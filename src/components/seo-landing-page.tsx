@@ -108,7 +108,7 @@ function FAQSection({ faqs }: { faqs: FAQ[] }) {
   return (
     <div className="mb-8">
       <h2 className="text-2xl font-medium text-neutral-900 mb-8">Frequently Asked Questions</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 items-start">
         {faqs.map((faq, index) => {
           const isOpen = openFaq === index
           return (

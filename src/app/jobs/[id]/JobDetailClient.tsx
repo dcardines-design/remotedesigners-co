@@ -5,6 +5,7 @@ import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
 import { SocialProof, RainbowButton } from '@/components/ui'
 import { useSignupModal } from '@/context/signup-modal-context'
+import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 
 interface Job {
   id: string
@@ -379,8 +380,93 @@ interface JobDetailClientProps {
 export default function JobDetailClient({ initialJob, error: initialError }: JobDetailClientProps) {
   const [job] = useState<Job | null>(initialJob)
   const [openFaq, setOpenFaq] = useState<number>(0)
+  const [isSaved, setIsSaved] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [similarJobs, setSimilarJobs] = useState<Job[]>([])
+  const [userId, setUserId] = useState<string | null>(null)
   const { openSignupModal } = useSignupModal()
   const error = initialError
+
+  // Check auth status and saved state
+  useEffect(() => {
+    const checkSavedStatus = async () => {
+      if (!initialJob) return
+
+      const supabase = createBrowserSupabaseClient()
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (user) {
+        setUserId(user.id)
+        const { data } = await supabase
+          .from('saved_jobs')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('job_id', initialJob.id)
+          .single()
+
+        setIsSaved(!!data)
+      }
+    }
+
+    checkSavedStatus()
+  }, [initialJob])
+
+  // Fetch similar jobs
+  useEffect(() => {
+    const fetchSimilarJobs = async () => {
+      if (!initialJob) return
+
+      try {
+        const params = new URLSearchParams({
+          limit: '4',
+          type: initialJob.job_type || '',
+        })
+
+        const res = await fetch(`/api/jobs?${params}`)
+        const data = await res.json()
+
+        // Filter out current job
+        const filtered = (data.jobs || []).filter((j: Job) => j.id !== initialJob.id).slice(0, 3)
+        setSimilarJobs(filtered)
+      } catch (err) {
+        console.error('Failed to fetch similar jobs:', err)
+      }
+    }
+
+    fetchSimilarJobs()
+  }, [initialJob])
+
+  const handleSaveJob = async () => {
+    if (!job) return
+
+    if (!userId) {
+      openSignupModal()
+      return
+    }
+
+    setIsSaving(true)
+    const supabase = createBrowserSupabaseClient()
+
+    try {
+      if (isSaved) {
+        await supabase
+          .from('saved_jobs')
+          .delete()
+          .eq('user_id', userId)
+          .eq('job_id', job.id)
+        setIsSaved(false)
+      } else {
+        await supabase
+          .from('saved_jobs')
+          .insert({ user_id: userId, job_id: job.id })
+        setIsSaved(true)
+      }
+    } catch (err) {
+      console.error('Failed to save job:', err)
+    } finally {
+      setIsSaving(false)
+    }
+  }
 
   if (error || !job) {
     return (
@@ -630,16 +716,42 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
                 ))}
               </div>
 
-              {/* Apply Button */}
-              <a
-                href={job.apply_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full text-center px-6 py-3 rounded-lg text-white font-medium shadow-[0px_4px_0px_0px_rgba(0,0,0,0.3),0px_1px_2px_0px_rgba(0,0,0,0.1)] hover:translate-y-[1px] hover:shadow-[0px_3px_0px_0px_rgba(0,0,0,0.3)] active:translate-y-[2px] active:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3)] transition-all"
-                style={{ backgroundImage: 'linear-gradient(165deg, #3a3a3a 0%, #1a1a1a 100%)' }}
-              >
-                Apply now
-              </a>
+              {/* Action Buttons */}
+              <div className="space-y-3">
+                <a
+                  href={job.apply_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full text-center px-6 py-3 rounded-lg text-white font-medium shadow-[0px_4px_0px_0px_rgba(0,0,0,0.3),0px_1px_2px_0px_rgba(0,0,0,0.1)] hover:translate-y-[1px] hover:shadow-[0px_3px_0px_0px_rgba(0,0,0,0.3)] active:translate-y-[2px] active:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3)] transition-all"
+                  style={{ backgroundImage: 'linear-gradient(165deg, #3a3a3a 0%, #1a1a1a 100%)' }}
+                >
+                  Apply now
+                </a>
+
+                <button
+                  onClick={handleSaveJob}
+                  disabled={isSaving}
+                  className={`flex items-center justify-center gap-2 w-full px-6 py-3 rounded-lg font-medium border transition-all ${
+                    isSaved
+                      ? 'bg-neutral-900 text-white border-neutral-900 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3)]'
+                      : 'bg-white text-neutral-700 border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.05)] hover:translate-y-[1px]'
+                  } ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                >
+                  <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill={isSaved ? 'currentColor' : 'none'}
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                  </svg>
+                  {isSaved ? 'Saved' : 'Save job'}
+                </button>
+              </div>
 
               {/* Posted Date & Source */}
               <div className="text-xs text-neutral-400 text-center mt-4 space-y-1">
@@ -650,6 +762,51 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
           </div>
         </div>
       </div>
+
+      {/* Similar Jobs Section */}
+      {similarJobs.length > 0 && (
+        <div className="max-w-6xl mx-auto px-8 py-12">
+          <h2 className="text-2xl font-medium text-neutral-900 mb-6">Similar Jobs</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {similarJobs.map((similarJob) => (
+              <Link
+                key={similarJob.id}
+                href={`/jobs/${similarJob.id}`}
+                className="bg-white border border-neutral-200 rounded-xl p-5 hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.05)] hover:-translate-y-1 transition-all"
+              >
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="w-10 h-10 rounded-lg bg-white border border-neutral-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <img
+                      src={similarJob.company_logo || getCompanyLogoUrl(similarJob.company)}
+                      alt={similarJob.company}
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.style.display = 'none'
+                        target.parentElement!.innerHTML = `<span class="text-xs font-medium text-neutral-400">${getInitials(similarJob.company)}</span>`
+                      }}
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm text-neutral-500 truncate">{similarJob.company}</p>
+                    <h3 className="font-medium text-neutral-900 truncate">{similarJob.title}</h3>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <span className="text-xs text-neutral-500 bg-neutral-100 px-2 py-1 rounded">
+                    {similarJob.location}
+                  </span>
+                  {similarJob.job_type && (
+                    <span className="text-xs text-neutral-500 bg-neutral-100 px-2 py-1 rounded">
+                      {toTitleCase(similarJob.job_type)}
+                    </span>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* CTA Card Section */}
       <div className="max-w-6xl mx-auto px-8 pt-12 pb-4">
@@ -730,7 +887,7 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
           Questions,<br />answered.
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 items-start">
           {faqs.map((faq, index) => {
             const isOpen = openFaq === index
             return (

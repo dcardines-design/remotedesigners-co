@@ -39,7 +39,7 @@ export default async function Page() {
     .limit(50)
 
   const jobTypeName = jobTypeConfig.h1.replace('Remote ', '').replace(' Jobs', '')
-  const regionName = 'usa' === 'worldwide' ? 'Worldwide' : regionConfig.h1.replace('Remote Design Jobs in ', '')
+  const regionName = regionConfig.h1.replace('Remote Design Jobs in ', '')
 
   return (
     <SEOLandingPage
