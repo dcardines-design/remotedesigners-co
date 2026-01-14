@@ -244,22 +244,14 @@ export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageT
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {job.job_type && (
-                          <Link
-                            href={`/?type=${job.job_type.toLowerCase()}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
-                          >
+                          <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200">
                             {toTitleCase(job.job_type)}
-                          </Link>
+                          </span>
                         )}
                         {job.experience_level && (
-                          <Link
-                            href={`/?experience=${job.experience_level.toLowerCase()}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
-                          >
+                          <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200">
                             {toTitleCase(job.experience_level)}
-                          </Link>
+                          </span>
                         )}
                         {salary && (
                           <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200">
@@ -267,23 +259,17 @@ export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageT
                           </span>
                         )}
                         {remote && (
-                          <Link
-                            href="/?remote_type=remote"
-                            onClick={(e) => e.stopPropagation()}
-                            className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
-                          >
+                          <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200">
                             Remote
-                          </Link>
+                          </span>
                         )}
                         {job.skills && job.skills.slice(0, 3).map((skill: string, index: number) => (
-                          <Link
+                          <span
                             key={index}
-                            href={`/?skill=${encodeURIComponent(skill)}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+                            className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200"
                           >
                             {toTitleCase(skill)}
-                          </Link>
+                          </span>
                         ))}
                       </div>
                     </div>
