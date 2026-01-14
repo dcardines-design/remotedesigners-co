@@ -8,6 +8,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        'dm-sans': ['var(--font-dm-sans)', 'system-ui', 'sans-serif'],
+      },
       colors: {
         primary: {
           50: '#f5f3ff',

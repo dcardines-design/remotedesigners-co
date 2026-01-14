@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { generateJobSlug } from '@/lib/slug'
+import { HeroBackground } from './hero-background'
 
 // Helper functions
 const getInitials = (company: string) => company.substring(0, 2).toUpperCase()
@@ -105,36 +106,87 @@ function FAQSection({ faqs }: { faqs: FAQ[] }) {
   const [openFaq, setOpenFaq] = useState<number>(0)
 
   return (
-    <div className="mb-16">
+    <div className="mb-8">
       <h2 className="text-2xl font-medium text-neutral-900 mb-8">Frequently Asked Questions</h2>
-      <div className="space-y-0">
-        {faqs.map((faq, index) => (
-          <div key={index} className="border-t border-neutral-200">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+        {faqs.map((faq, index) => {
+          const isOpen = openFaq === index
+          return (
             <button
-              onClick={() => setOpenFaq(openFaq === index ? -1 : index)}
-              className="w-full py-6 flex items-center justify-between text-left"
+              key={index}
+              onClick={() => setOpenFaq(isOpen ? -1 : index)}
+              className="w-full border-t border-neutral-200 hover:bg-neutral-100/50 transition-colors duration-150 py-4 text-left"
             >
-              <span className="font-medium text-neutral-900">{faq.question}</span>
-              <div className="w-8 h-8 rounded-full border border-neutral-200 flex items-center justify-center flex-shrink-0">
-                {openFaq === index ? (
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M3 7H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-neutral-900">{faq.question}</span>
+                <div className={`w-8 h-8 rounded-full border border-neutral-200 flex items-center justify-center flex-shrink-0 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`}>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="transition-transform duration-150"
+                  >
+                    <path
+                      d="M3 7H11"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M7 3V11"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      className={`origin-center transition-transform duration-150 ${isOpen ? 'scale-y-0' : 'scale-y-100'}`}
+                    />
                   </svg>
-                ) : (
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M7 3V11M3 7H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                  </svg>
-                )}
+                </div>
+              </div>
+              <div
+                className={`grid transition-all duration-150 ease-out ${isOpen ? 'grid-rows-[1fr] opacity-100 mt-2' : 'grid-rows-[0fr] opacity-0'}`}
+              >
+                <div className="overflow-hidden">
+                  <p className="text-neutral-600 pr-12" dangerouslySetInnerHTML={{ __html: faq.answer }} />
+                </div>
               </div>
             </button>
-            {openFaq === index && (
-              <p className="pb-6 text-neutral-600 pr-12">{faq.answer}</p>
-            )}
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
+}
+
+// Available job types and regions for drill-down chips
+const allJobTypes = ['ui-ux-design', 'product-design', 'graphic-design', 'motion-design', 'brand-design', 'web-design']
+const allRegions = ['usa', 'europe', 'uk', 'canada', 'asia', 'worldwide']
+
+// For regional pages: show all job types. For job type pages: show all regions.
+const availableCombinations: Record<string, string[]> = {
+  // Regional pages get all job types
+  ...Object.fromEntries(allRegions.map(r => [r, allJobTypes])),
+  // Job type pages get all regions
+  ...Object.fromEntries(allJobTypes.map(j => [j, allRegions])),
+}
+
+const jobTypeLabels: Record<string, string> = {
+  'ui-ux-design': 'UI/UX Design',
+  'product-design': 'Product Design',
+  'graphic-design': 'Graphic Design',
+  'motion-design': 'Motion Design',
+  'brand-design': 'Brand Design',
+  'web-design': 'Web Design',
+}
+
+const regionLabels: Record<string, string> = {
+  'usa': 'USA',
+  'europe': 'Europe',
+  'uk': 'UK',
+  'canada': 'Canada',
+  'asia': 'Asia',
+  'worldwide': 'Worldwide',
 }
 
 interface SEOLandingPageProps {
@@ -151,8 +203,10 @@ interface SEOLandingPageProps {
 
 export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageType, faqs, breadcrumbLabel, parentPage }: SEOLandingPageProps) {
   return (
-    <div className="bg-neutral-50 min-h-screen">
-      <div className="max-w-6xl mx-auto px-8 py-16">
+    <div className="bg-neutral-50 min-h-screen relative">
+      <HeroBackground />
+
+      <div className="max-w-6xl mx-auto px-8 pt-16 pb-8 relative z-10">
         {/* Breadcrumbs */}
         <nav aria-label="Breadcrumb" className="mb-6">
           <ol className="flex items-center gap-2 text-sm text-neutral-500">
@@ -190,16 +244,51 @@ export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageT
         {/* Hero Section */}
         <div className="mb-12">
           <div className="max-w-2xl">
-            <h1 className="text-4xl font-medium text-neutral-900 mb-4">
+            <h1 className="text-4xl font-medium text-neutral-900 mb-4 tracking-tight">
               {h1}
             </h1>
             <p className="text-lg text-neutral-600 mb-6">
               {intro}
             </p>
-            <div className="flex items-center gap-2 text-sm text-neutral-500">
-              <span className="font-medium text-neutral-900">{totalCount}</span>
-              <span>jobs available</span>
+          </div>
+        </div>
+
+        {/* Jobs count and Filter Chips Row */}
+        <div className="flex items-center justify-between mb-4">
+          {availableCombinations[currentSlug] && availableCombinations[currentSlug].length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm text-neutral-500 mr-1">
+                {pageType === 'regional' ? 'Filter by specialty' : 'Filter by location'}
+              </span>
+              {pageType === 'regional' ? (
+                // Show job type chips on regional pages
+                availableCombinations[currentSlug].map((jobTypeSlug) => (
+                  <Link
+                    key={jobTypeSlug}
+                    href={`/remote-${jobTypeSlug}-jobs-${currentSlug}`}
+                    className="bg-white text-neutral-600 text-sm px-4 py-2 rounded-md border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+                  >
+                    {jobTypeLabels[jobTypeSlug] || jobTypeSlug}
+                  </Link>
+                ))
+              ) : (
+                // Show region chips on job type pages
+                availableCombinations[currentSlug].map((regionSlug) => (
+                  <Link
+                    key={regionSlug}
+                    href={`/remote-${currentSlug}-jobs-${regionSlug}`}
+                    className="bg-white text-neutral-600 text-sm px-4 py-2 rounded-md border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+                  >
+                    {regionLabels[regionSlug] || regionSlug}
+                  </Link>
+                ))
+              )}
             </div>
+          )}
+
+          <div className="flex items-center gap-2 text-sm text-neutral-500">
+            <span className="font-medium text-neutral-900">{totalCount}</span>
+            <span>jobs available</span>
           </div>
         </div>
 

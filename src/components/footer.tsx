@@ -1,10 +1,46 @@
+'use client'
+
 import Link from 'next/link'
+import { useRef, useEffect } from 'react'
 
 export function Footer() {
+  const footerRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    let animationId: number
+    const startTime = Date.now()
+
+    const animate = () => {
+      const elapsed = (Date.now() - startTime) / 1000
+
+      // Use multiple sine waves at different frequencies for organic motion
+      const x = 50 + Math.sin(elapsed * 0.5) * 30 + Math.sin(elapsed * 0.3) * 20
+      const y = 50 + Math.cos(elapsed * 0.4) * 30 + Math.cos(elapsed * 0.6) * 20
+      const angle = 135 + Math.sin(elapsed * 0.2) * 45
+
+      if (footerRef.current) {
+        footerRef.current.style.backgroundPosition = `${x}% ${y}%`
+        footerRef.current.style.backgroundImage = `linear-gradient(${angle}deg, #050505 0%, #0a0a0a 15%, #121212 30%, #181818 45%, #121212 60%, #0a0a0a 75%, #050505 90%, #080808 100%)`
+      }
+
+      animationId = requestAnimationFrame(animate)
+    }
+
+    animate()
+    return () => cancelAnimationFrame(animationId)
+  }, [])
+
   return (
-    <footer className="bg-neutral-900 text-neutral-400 py-16">
+    <footer
+      ref={footerRef}
+      className="text-neutral-400 py-16 rounded-xl mx-3 mb-3"
+      style={{
+        backgroundSize: '300% 300%',
+        backgroundImage: 'linear-gradient(135deg, #050505 0%, #0a0a0a 15%, #121212 30%, #181818 45%, #121212 60%, #0a0a0a 75%, #050505 90%, #080808 100%)'
+      }}
+    >
       <div className="max-w-6xl mx-auto px-8">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+        <div className="flex flex-wrap justify-between gap-8 mb-12">
           {/* Job Types */}
           <div>
             <h3 className="text-white text-sm font-medium mb-4">By Specialty</h3>
@@ -32,16 +68,6 @@ export function Footer() {
               <li><Link href="/remote-design-jobs-australia" className="hover:text-white transition-colors">Australia</Link></li>
               <li><Link href="/remote-design-jobs-latam" className="hover:text-white transition-colors">Latin America</Link></li>
               <li><Link href="/remote-design-jobs-worldwide" className="hover:text-white transition-colors">Worldwide</Link></li>
-            </ul>
-          </div>
-
-          {/* Resources */}
-          <div>
-            <h3 className="text-white text-sm font-medium mb-4">Resources</h3>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="/resume-builder" className="hover:text-white transition-colors">Resume Builder</Link></li>
-              <li><Link href="/cover-letter" className="hover:text-white transition-colors">Cover Letter Generator</Link></li>
-              <li><Link href="/" className="hover:text-white transition-colors">Browse All Jobs</Link></li>
             </ul>
           </div>
 

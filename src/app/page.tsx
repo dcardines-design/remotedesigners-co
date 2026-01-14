@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback, useMemo, Suspense, useRef } from 'rea
 import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { generateJobSlug } from '@/lib/slug'
+import { HeroBackground } from '@/components/hero-background'
+import { SocialProof, RainbowButton } from '@/components/ui'
 
 // Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -133,10 +135,10 @@ function SalaryDropdown({ value, onChange }: { value: string, onChange: (val: st
         </svg>
       </button>
       {isOpen && (
-        <div className="absolute z-50 w-full mt-1 bg-white border border-neutral-200 rounded-lg shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08)] max-h-60 overflow-y-auto">
+        <div className="absolute z-50 w-full mt-1 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] max-h-60 overflow-y-auto">
           <button
             onClick={() => { onChange(''); setIsOpen(false) }}
-            className={`w-full px-3 py-2 text-sm text-left hover:bg-neutral-50 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all ${!value ? 'bg-neutral-50 text-neutral-900' : 'text-neutral-700'}`}
+            className={`w-full px-3 py-2 text-sm text-left hover:bg-neutral-50 transition-colors ${!value ? 'bg-neutral-50 text-neutral-900' : 'text-neutral-700'}`}
           >
             Any salary
           </button>
@@ -144,7 +146,7 @@ function SalaryDropdown({ value, onChange }: { value: string, onChange: (val: st
             <button
               key={opt.value}
               onClick={() => { onChange(opt.value); setIsOpen(false) }}
-              className={`w-full px-3 py-2 text-sm text-left hover:bg-neutral-50 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all ${value === opt.value ? 'bg-neutral-50 text-neutral-900' : 'text-neutral-700'}`}
+              className={`w-full px-3 py-2 text-sm text-left hover:bg-neutral-50 transition-colors ${value === opt.value ? 'bg-neutral-50 text-neutral-900' : 'text-neutral-700'}`}
             >
               {opt.label}
             </button>
@@ -210,12 +212,12 @@ function LocationSearchDropdown({ locations, onToggle }: { locations: string[], 
           </svg>
         </div>
         {isOpen && filteredOptions.length > 0 && (
-          <div className="absolute z-50 w-full mt-1 bg-white border border-neutral-200 rounded-lg shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08)] max-h-48 overflow-y-auto">
+          <div className="absolute z-50 w-full mt-1 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] max-h-48 overflow-y-auto">
             {filteredOptions.map(opt => (
               <button
                 key={opt.value}
                 onClick={() => handleSelect(opt.value)}
-                className="w-full px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all flex items-center gap-2"
+                className="w-full px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 transition-colors flex items-center gap-2"
               >
                 <span>{opt.emoji}</span>
                 <span>{opt.label}</span>
@@ -663,32 +665,15 @@ function HomeContent() {
       <div className="max-w-6xl mx-auto px-8 py-16">
         {/* Hero Section */}
         <div className="mb-16 relative">
-          {/* Background Image */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-screen -mt-[350px] max-h-[880px] overflow-hidden pointer-events-none">
-            <img
-              src="/hero-bg.png"
-              alt=""
-              className="w-full h-auto opacity-[0.15]"
-            />
-            {/* Fade overlay - gradient visible until job cards */}
-            <div
-              className="absolute inset-0"
-              style={{ background: 'linear-gradient(to bottom, rgba(250,250,250,0) 0%, rgba(250,250,250,0) 85%, rgba(250,250,250,1) 100%)' }}
-            />
-            {/* Bottom left corner fade */}
-            <div
-              className="absolute bottom-0 left-0 w-1/3 h-1/2"
-              style={{ background: 'radial-gradient(ellipse at bottom left, rgba(250,250,250,1) 0%, rgba(250,250,250,0) 70%)' }}
-            />
-            {/* Bottom right corner fade */}
-            <div
-              className="absolute bottom-0 right-0 w-1/3 h-1/2"
-              style={{ background: 'radial-gradient(ellipse at bottom right, rgba(250,250,250,1) 0%, rgba(250,250,250,0) 70%)' }}
-            />
-          </div>
+          <HeroBackground
+            imageSrc="/hero-bg.png"
+            opacity={0.15}
+            maxHeight="880px"
+            offsetTop="-350px"
+          />
 
           <div className="max-w-2xl mx-auto text-center relative z-10">
-            <div className="inline-flex items-center gap-2 mb-4 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-neutral-200/60">
+            <div className="inline-flex items-center gap-2 mb-4 px-3 py-1.5 bg-white/80 backdrop-blur-sm rounded-full border border-neutral-200/60">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse-glow" />
               <span className="text-sm text-neutral-500">
                 {totalPlatformJobs} designer jobs posted
@@ -708,40 +693,12 @@ function HomeContent() {
               Browse thousands of remote design jobs from top companies worldwide. Updated daily with the freshest opportunities in UI, UX, product design, and more.
             </p>
 
-            <div
-              className="relative inline-block p-[1px] rounded-[7.5px] shadow-[0px_4px_0px_0px_rgba(0,0,0,0.3),0px_1px_2px_0px_rgba(0,0,0,0.1)] hover:translate-y-[1px] hover:shadow-[0px_3px_0px_0px_rgba(0,0,0,0.3),0px_1px_2px_0px_rgba(0,0,0,0.1)] active:translate-y-[2px] active:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3)] transition-all"
-              style={{ backgroundImage: 'linear-gradient(135deg, #00C939 0%, #FF8C00 33%, #FF6467 66%, #FF64F2 100%)' }}
-            >
-              <button
-                className="relative px-6 py-3 rounded-[6.5px] font-normal text-base text-white"
-                style={{ backgroundImage: 'linear-gradient(135deg, #3b3b3b 0%, #1a1a1a 100%)' }}
-              >
-                Post a job for $299
-              </button>
-            </div>
+            <RainbowButton href="/post-job" size="md">
+              Post a job for $299
+            </RainbowButton>
 
             {/* Social Proof */}
-            <div className="flex items-center justify-center gap-4 mt-10">
-              {/* Overlapping Avatars */}
-              <div className="flex -space-x-3">
-                <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="" className="w-10 h-10 rounded-full border-2 border-white object-cover" />
-                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="" className="w-10 h-10 rounded-full border-2 border-white object-cover" />
-                <img src="https://randomuser.me/api/portraits/men/68.jpg" alt="" className="w-10 h-10 rounded-full border-2 border-white object-cover" />
-                <img src="https://randomuser.me/api/portraits/women/65.jpg" alt="" className="w-10 h-10 rounded-full border-2 border-white object-cover" />
-                <img src="https://randomuser.me/api/portraits/women/54.jpg" alt="" className="w-10 h-10 rounded-full border-2 border-white object-cover" />
-              </div>
-              {/* Stars and Text */}
-              <div className="flex flex-col items-start">
-                <div className="flex gap-0.5 text-amber-400">
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
-                </div>
-                <span className="text-sm text-neutral-500">Loved by 10,000+ remote workers</span>
-              </div>
-            </div>
+            <SocialProof className="mt-10 justify-center" />
           </div>
         </div>
 

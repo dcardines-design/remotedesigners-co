@@ -50,3 +50,67 @@ body {
   background-size: 200% 200%;
   animation: gradient-flow 8s ease-in-out infinite;
 }
+
+/* Rainbow outline button wrapper */
+.btn-rainbow-wrapper {
+  background-image: linear-gradient(135deg, #00C939 0%, #FF8C00 33%, #FF6467 66%, #FF64F2 100%);
+}
+
+/* Rainbow outline button inner */
+.btn-rainbow-inner {
+  background: #1a1a1a;
+}
+
+/* Staggered pop animation for avatars */
+@keyframes avatar-pop {
+  0%, 15%, 100% {
+    transform: translateY(0);
+  }
+  3% {
+    transform: translateY(-8px);
+  }
+  6% {
+    transform: translateY(-2px);
+  }
+  9% {
+    transform: translateY(-4px);
+  }
+  12% {
+    transform: translateY(0);
+  }
+}
+
+.avatar-pop {
+  animation: avatar-pop 5s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+}
+
+.avatar-pop-1 { animation-delay: 0s; }
+.avatar-pop-2 { animation-delay: 0.4s; }
+.avatar-pop-3 { animation-delay: 0.8s; }
+.avatar-pop-4 { animation-delay: 1.2s; }
+.avatar-pop-5 { animation-delay: 1.6s; }
+
+/* Custom sleek scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d4d4d4;
+  border-radius: 100px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a3a3a3;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #d4d4d4 transparent;
+}

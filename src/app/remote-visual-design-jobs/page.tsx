@@ -1,11 +1,12 @@
 import { Metadata } from 'next'
-import { jobTypePages } from '@/config/seo-pages'
+import { jobTypePages, generalFAQs } from '@/config/seo-pages'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import { SEOLandingPage } from '@/components/seo-landing-page'
 
 const BASE_URL = 'https://remotedesigners.co'
 const page = jobTypePages['visual-design']
 const pageUrl = `${BASE_URL}/remote-visual-design-jobs`
+const allFaqs = [...page.faqs, ...generalFAQs]
 
 export const metadata: Metadata = {
   title: page.title,
@@ -34,7 +35,7 @@ function generateStructuredData() {
   const faqSchema = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: page.faqs.map(faq => ({
+    mainEntity: allFaqs.map(faq => ({
       '@type': 'Question',
       name: faq.question,
       acceptedAnswer: { '@type': 'Answer', text: faq.answer },
@@ -69,7 +70,7 @@ export default async function Page() {
         totalCount={count || 0}
         currentSlug="visual-design"
         pageType="jobType"
-        faqs={page.faqs}
+        faqs={allFaqs}
         breadcrumbLabel="Visual Design"
       />
     </>

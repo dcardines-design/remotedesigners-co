@@ -5,6 +5,26 @@ export interface FAQ {
   answer: string
 }
 
+// General FAQs that appear on all SEO pages
+export const generalFAQs: FAQ[] = [
+  {
+    question: 'What is the difference between remotedesigners.co and other job boards?',
+    answer: 'Most job boards only show paid listings from companies willing to pay to post. We aggregate jobs from hundreds of sources across the internet, including direct company career pages, giving you access to thousands more opportunities. We also accept featured job posts from companies who want extra visibility.'
+  },
+  {
+    question: 'How often are new jobs posted?',
+    answer: 'New jobs are posted hourly. We continuously scan hundreds of job sites and company career pages to ensure you have access to the freshest remote design opportunities as soon as they become available.'
+  },
+  {
+    question: 'Can I suggest jobs to be added?',
+    answer: 'Yes! We\'re always looking to expand our listings and appreciate suggestions from our community. Just send an email to dcardinesiii@gmail.com with the job details and we\'ll review it.'
+  },
+  {
+    question: 'Who built remotedesigners.co?',
+    answer: 'remotedesigners.co was built by Dante Cardines III. You can follow along with updates and connect on X (Twitter) at <a href="https://x.com/dantecardines" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline hover:no-underline">@dantecardines</a>.'
+  },
+]
+
 export interface JobTypePage {
   slug: string
   title: string
@@ -277,77 +297,55 @@ export interface CombinationPage {
   faqs: FAQ[]
 }
 
-export const combinationPages: Record<string, CombinationPage> = {
-  'product-design-usa': {
-    jobTypeSlug: 'product-design',
-    regionSlug: 'usa',
-    slug: 'product-design-usa',
-    title: 'Remote Product Design Jobs in USA',
-    metaDescription: 'Find remote product design jobs at US-based companies. Browse product designer positions at American startups and tech companies hiring remotely.',
-    h1: 'Remote Product Design Jobs in USA',
-    intro: 'Join top US companies as a remote product designer. These positions combine competitive American salaries with the flexibility of remote work.',
+// Helper to generate combination page content
+function generateCombinationPage(jobTypeSlug: string, regionSlug: string): CombinationPage {
+  const jobType = jobTypePages[jobTypeSlug]
+  const region = regionalPages[regionSlug]
+
+  const jobTypeName = jobType.h1.replace('Remote ', '').replace(' Jobs', '')
+  const regionName = region.h1.replace('Remote Design Jobs in ', '').replace('Worldwide Remote Design Jobs', 'Worldwide')
+
+  const isWorldwide = regionSlug === 'worldwide'
+  const title = isWorldwide
+    ? `Worldwide Remote ${jobTypeName} Jobs`
+    : `Remote ${jobTypeName} Jobs in ${regionName}`
+
+  return {
+    jobTypeSlug,
+    regionSlug,
+    slug: `${jobTypeSlug}-${regionSlug}`,
+    title,
+    metaDescription: `Find remote ${jobTypeName.toLowerCase()} jobs ${isWorldwide ? 'worldwide' : `in ${regionName}`}. Browse ${jobTypeName.toLowerCase()} positions at companies hiring remotely.`,
+    h1: title,
+    intro: `Discover remote ${jobTypeName.toLowerCase()} opportunities ${isWorldwide ? 'from companies hiring globally' : `at ${regionName}-based companies`}. Find your next role with flexible remote work.`,
     faqs: [
-      { question: 'What is the average salary for remote product designers in the US?', answer: 'Remote product designers at US companies typically earn $100,000-$180,000+ annually, with top tech companies offering even higher compensation.' },
-      { question: 'Do US product design jobs require US residency?', answer: 'Some positions require US work authorization, while others are open to global candidates. Check each job listing for specific requirements.' },
-      { question: 'What timezone overlap is expected?', answer: 'Most US companies prefer 4+ hours overlap with US timezones (PT to ET). Some fully distributed teams are async-friendly.' },
+      {
+        question: `What ${jobTypeName.toLowerCase()} jobs are available ${isWorldwide ? 'worldwide' : `in ${regionName}`}?`,
+        answer: `We list remote ${jobTypeName.toLowerCase()} positions ${isWorldwide ? 'from companies hiring globally with no location restrictions' : `at companies based in or hiring from ${regionName}`}. Roles range from junior to senior levels.`
+      },
+      {
+        question: `What skills do I need for remote ${jobTypeName.toLowerCase()} jobs?`,
+        answer: jobType.faqs[0]?.answer || `Key skills include proficiency in modern design tools, strong communication for remote collaboration, and a portfolio demonstrating your work.`
+      },
+      {
+        question: `What is the salary range for remote ${jobTypeName.toLowerCase()} roles?`,
+        answer: jobType.faqs[1]?.answer || `Salaries vary based on experience, company size, and location. Senior roles at well-funded companies offer the highest compensation.`
+      },
     ],
-  },
-  'ui-ux-design-uk': {
-    jobTypeSlug: 'ui-ux-design',
-    regionSlug: 'uk',
-    slug: 'ui-ux-design-uk',
-    title: 'Remote UI/UX Design Jobs in UK',
-    metaDescription: 'Browse remote UI/UX design jobs from UK companies. Find user interface and user experience designer positions at British startups and agencies.',
-    h1: 'Remote UI/UX Design Jobs in UK',
-    intro: 'Design for innovative British companies from anywhere. These UK-based UI/UX roles offer competitive packages and the chance to work with world-class brands.',
-    faqs: [
-      { question: 'What are typical UK UI/UX designer salaries?', answer: 'UK UI/UX designers earn £45,000-£85,000 typically, with London-based companies often paying 20-30% more. Senior roles can exceed £100,000.' },
-      { question: 'Can non-UK residents apply for UK remote jobs?', answer: 'Many UK companies hire internationally, though some may require right-to-work in the UK. Remote-first companies are often more flexible.' },
-      { question: 'What design tools are popular in UK companies?', answer: 'Figma dominates the UK design scene, with Sketch still used in some agencies. Proficiency in prototyping tools like Principle is a plus.' },
-    ],
-  },
-  'product-design-europe': {
-    jobTypeSlug: 'product-design',
-    regionSlug: 'europe',
-    slug: 'product-design-europe',
-    title: 'Remote Product Design Jobs in Europe',
-    metaDescription: 'Discover remote product design jobs at European companies. Find product designer roles at startups across Germany, France, Netherlands, and more.',
-    h1: 'Remote Product Design Jobs in Europe',
-    intro: 'Join the European tech scene as a remote product designer. From Berlin to Amsterdam, these companies offer great work-life balance and competitive compensation.',
-    faqs: [
-      { question: 'Which European countries have the most product design jobs?', answer: 'Germany, Netherlands, UK, and France lead in product design opportunities. Berlin, Amsterdam, and London are major tech hubs.' },
-      { question: 'What languages are required for European product design jobs?', answer: 'English is typically sufficient for international companies. Local language skills are a bonus but rarely required for design roles.' },
-      { question: 'How do European design salaries compare to US?', answer: 'European salaries are typically lower in raw numbers (€50,000-€100,000) but often come with better benefits, more vacation, and lower living costs.' },
-    ],
-  },
-  'graphic-design-usa': {
-    jobTypeSlug: 'graphic-design',
-    regionSlug: 'usa',
-    slug: 'graphic-design-usa',
-    title: 'Remote Graphic Design Jobs in USA',
-    metaDescription: 'Find remote graphic design jobs at US companies. Browse graphic designer positions in brand design, marketing, and visual communications.',
-    h1: 'Remote Graphic Design Jobs in USA',
-    intro: 'Create stunning visuals for American brands from anywhere. These US-based graphic design roles span agencies, startups, and enterprise companies.',
-    faqs: [
-      { question: 'What types of graphic design work are most in demand in the US?', answer: 'Brand identity, marketing collateral, social media graphics, and packaging design are highly sought after. Digital-first skills are increasingly important.' },
-      { question: 'What is the salary range for remote graphic designers in the US?', answer: 'Remote graphic designers earn $50,000-$100,000+ depending on experience and specialization. Senior and specialized roles command higher rates.' },
-      { question: 'Do US graphic design jobs require specific software skills?', answer: 'Adobe Creative Suite proficiency is essential. Figma skills are increasingly valued. Motion graphics capabilities (After Effects) are a strong differentiator.' },
-    ],
-  },
-  'ui-ux-design-worldwide': {
-    jobTypeSlug: 'ui-ux-design',
-    regionSlug: 'worldwide',
-    slug: 'ui-ux-design-worldwide',
-    title: 'Worldwide Remote UI/UX Design Jobs',
-    metaDescription: 'Browse fully remote UI/UX design jobs open worldwide. Find global positions at distributed companies with no location restrictions.',
-    h1: 'Worldwide Remote UI/UX Design Jobs',
-    intro: 'Work from anywhere in the world as a UI/UX designer. These fully distributed companies hire globally and embrace async-first culture.',
-    faqs: [
-      { question: 'What does "worldwide" mean for remote UI/UX jobs?', answer: 'Worldwide positions have no geographic restrictions - you can work from any country. These are typically at fully distributed, async-friendly companies.' },
-      { question: 'How is compensation handled for worldwide remote positions?', answer: 'Varies by company: some pay US-equivalent rates globally, others adjust for local cost of living, and some use standardized global pay bands.' },
-      { question: 'What challenges come with worldwide remote UI/UX work?', answer: 'Main challenges include timezone coordination for meetings, async communication skills, and potentially complex tax situations. Strong written communication is essential.' },
-    ],
-  },
+  }
+}
+
+// Generate all combination pages
+const allJobTypes = ['ui-ux-design', 'product-design', 'graphic-design', 'motion-design', 'brand-design', 'web-design', 'interaction-design', 'visual-design'] as const
+const allRegions = ['usa', 'europe', 'uk', 'canada', 'asia', 'australia', 'latam', 'middle-east', 'africa', 'worldwide'] as const
+
+export const combinationPages: Record<string, CombinationPage> = {}
+
+for (const jobType of allJobTypes) {
+  for (const region of allRegions) {
+    const key = `${jobType}-${region}`
+    combinationPages[key] = generateCombinationPage(jobType, region)
+  }
 }
 
 export const combinationSlugs = Object.keys(combinationPages)

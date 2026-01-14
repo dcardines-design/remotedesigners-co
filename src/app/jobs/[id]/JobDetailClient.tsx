@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import ReactMarkdown from 'react-markdown'
+import { SocialProof, RainbowButton } from '@/components/ui'
+import { useSignupModal } from '@/context/signup-modal-context'
 
 interface Job {
   id: string
@@ -26,6 +28,22 @@ interface Job {
 }
 
 const getInitials = (company: string) => company.substring(0, 2).toUpperCase()
+
+// Generate company logo URL using Clearbit
+const getCompanyLogoUrl = (company: string): string => {
+  const cleanName = company.toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .replace(/\s+/g, '')
+  return `https://logo.clearbit.com/${cleanName}.com`
+}
+
+// Google Favicon fallback
+const getGoogleFaviconUrl = (company: string): string => {
+  const cleanName = company.toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .replace(/\s+/g, '')
+  return `https://www.google.com/s2/favicons?domain=${cleanName}.com&sz=128`
+}
 
 const toTitleCase = (str: string) =>
   str.toLowerCase().replace(/(?:^|[\s-])\w/g, match => match.toUpperCase())
@@ -89,14 +107,14 @@ const renderDescription = (description: string) => {
           Description
         </h2>
         {paragraphs.length > 0 && (
-          <div className="space-y-3 text-neutral-600">
+          <div className="space-y-3 text-neutral-600 text-[17px] leading-relaxed">
             {paragraphs.map((p, i) => <p key={i}>{p}</p>)}
           </div>
         )}
         {bullets.length > 0 && (
           <ul className="space-y-2">
             {bullets.map((b, i) => (
-              <li key={i} className="flex items-start gap-3 text-neutral-600">
+              <li key={i} className="flex items-start gap-3 text-neutral-600 text-[17px] leading-relaxed">
                 <span className="text-neutral-400 mt-1.5">•</span>
                 <span>{b.replace(/^[•\-\*]\s*/, '')}</span>
               </li>
@@ -162,14 +180,14 @@ const renderDescription = (description: string) => {
               </h2>
             )}
             {paragraphs.length > 0 && (
-              <div className="space-y-3 text-neutral-600 mb-4">
+              <div className="space-y-3 text-neutral-600 text-[17px] leading-relaxed mb-4">
                 {paragraphs.map((p, i) => <p key={i}>{p}</p>)}
               </div>
             )}
             {bullets.length > 0 && (
               <ul className="space-y-2">
                 {bullets.map((bullet, i) => (
-                  <li key={i} className="flex items-start gap-3 text-neutral-600">
+                  <li key={i} className="flex items-start gap-3 text-neutral-600 text-[17px] leading-relaxed">
                     <span className="text-neutral-400 mt-1.5">•</span>
                     <span>{bullet}</span>
                   </li>
@@ -183,93 +201,150 @@ const renderDescription = (description: string) => {
   )
 }
 
-const benefits = [
-  'Competitive salary and equity',
-  'Health, dental, and vision insurance',
-  'Unlimited PTO',
-  '401(k) matching',
-  'Home office stipend',
-  'Professional development budget',
-]
-
 const ctaFeatures = [
   {
-    title: 'Discover hidden jobs',
-    description: 'We scan the internet everyday and find jobs not posted on traditional job boards.',
+    emoji: '🔮',
+    title: 'Exclusive Jobs Not Found Elsewhere',
+    description: 'Access hidden opportunities we source directly from companies and scrape daily from 50+ sites.',
   },
   {
-    title: 'Head start against the competition',
-    description: "We find jobs as soon as they're posted, so you can apply before anyone else.",
+    emoji: '⚡',
+    title: '24-Hour Head Start on Every Listing',
+    description: 'See and apply to jobs a full day before they appear on LinkedIn, Indeed, or other boards.',
   },
   {
-    title: 'Be the first to know',
-    description: 'Daily emails with new job openings straight to your inbox.',
+    emoji: '📧',
+    title: 'Fresh Jobs Delivered to Your Inbox',
+    description: 'Get daily job alerts every morning. Never miss a perfect match.',
   },
 ]
 
 const testimonials = [
   {
-    name: 'Guilherme',
-    role: 'Systems Engineer',
-    text: 'A great way to find remote job leads!',
+    name: 'mei lin',
+    role: 'product designer @ fintech startup',
+    text: 'ok so i was mass applying on linkedin for like 3 weeks with zero responses. found this site, applied to 4 jobs and got 2 interviews?? one of them was a company i literally never heard of before. starting there next month lol',
     date: 'Jan 13, 2026',
-    color: 'bg-green-500',
+    avatar: 'https://randomuser.me/api/portraits/women/44.jpg',
   },
   {
-    name: 'Mitch',
-    role: 'Go Engineer',
-    text: "Hi everyone! I started using this application recently, and here's what I can say so far: It offers a lot of opportunities — there are many job vacancies, and it's not spam. Most of the listings are relevant and worth checking out.",
+    name: 'Marcus J',
+    role: 'Senior UI Designer',
+    text: "The early access thing actually works. Applied to a role at 6am, recruiter told me I was one of the first 10 applicants. That never happens on other sites",
     date: 'Jan 10, 2026',
-    color: 'bg-violet-500',
+    avatar: 'https://randomuser.me/api/portraits/men/32.jpg',
   },
   {
-    name: 'Hayley Hassler',
-    role: 'Bioinformatician',
-    text: "Remote Rocketship is a sigh of relief in an otherwise arduous process. I've found high quality job listings here",
+    name: 'em',
+    role: 'Brand Designer',
+    text: "finally a job board thats not 90% engineering roles. i dont have to scroll past \"senior backend engineer\" 50 times to find actual design jobs anymore thank god",
     date: 'Dec 18, 2025',
-    color: 'bg-blue-500',
+    avatar: 'https://randomuser.me/api/portraits/women/65.jpg',
   },
   {
-    name: 'Rebeca Gradinaru',
-    role: 'Personal assistant',
-    text: "Lior is an amazing helper, I highly recommend to a friend or family to find jobs on RemoteRocketship. I like how all the jobs I want to find have a detailed description and are very easy to understand",
+    name: 'James',
+    role: 'Motion/Video',
+    text: "Was super skeptical paying for a job board tbh. But the listings here are different - found 3 motion design roles I didnt see anywhere else. Got an offer from one of them",
     date: 'Jan 12, 2026',
-    color: 'bg-purple-500',
+    avatar: 'https://randomuser.me/api/portraits/men/68.jpg',
   },
   {
-    name: 'charley',
-    role: 'QA Engineer',
-    text: "Its great to see a site that is easier to navigate and has a good selection of filters, would recommend",
+    name: 'Liv Park',
+    role: 'Visual Designer',
+    text: "the filters!! they actually work lmao. remote only + senior level + $120k minimum = exactly what i needed. no more wading through irrelevant postings",
     date: 'Dec 30, 2025',
-    color: 'bg-cyan-500',
+    avatar: 'https://randomuser.me/api/portraits/women/54.jpg',
   },
   {
-    name: 'Dhruv Jalota',
-    role: 'Project Manager',
-    text: "Remote Rocketship is great for job hunters since you find openings not listed on other sites like LinkedIn etc. And it makes the application targeting easier with the help of AI scoring for personalized CVs",
+    name: 'D. Martinez',
+    role: 'Product Designer',
+    text: "Landed at a series B startup that wasnt even on my radar. They posted here exclusively before going to linkedin. Thats the whole value prop right there",
     date: 'Jan 5, 2026',
-    color: 'bg-indigo-500',
+    avatar: 'https://randomuser.me/api/portraits/men/75.jpg',
   },
   {
-    name: 'Jason Bryant',
-    role: 'Senior Data & Growth Plat...',
-    text: 'Great aggregating tool! Moreover, a personal follow up email from Founder (I assume creator) was a really nice touch.',
+    name: 'Aisha',
+    role: 'UX Designer',
+    text: "love the daily email. just 5-6 jobs every morning that are actually relevant. not like indeed where you get 100 notifications for roles you'd never apply to",
     date: 'Jan 12, 2026',
-    color: 'bg-yellow-500',
+    avatar: 'https://randomuser.me/api/portraits/women/33.jpg',
   },
   {
-    name: 'Niki',
-    role: 'Staff Engineer',
-    text: "I nuked my LinkedIn because it became rubbish, completely useless. Remote Rocketship is the only site I'm on now to monitor all the jobs openings.",
+    name: 'Chris A.',
+    role: 'Design Lead',
+    text: "Been in the industry 12 years. This is the first job board that feels like it was made by someone who actually understands what designers are looking for. Simple as that.",
     date: 'Jan 10, 2026',
-    color: 'bg-teal-500',
+    avatar: 'https://randomuser.me/api/portraits/men/52.jpg',
   },
   {
-    name: 'Kylie Harper',
-    role: 'Still looking',
-    text: 'I love all the opportunities this app gives you, and brings you straight to the application process, very neat and useful',
+    name: 'nina w',
+    role: 'IxD',
+    text: '5 applications, 3 interviews. my linkedin ratio is like 50 apps = 2 interviews maybe. the quality here is just different idk how else to explain it',
     date: 'Dec 14, 2025',
-    color: 'bg-pink-500',
+    avatar: 'https://randomuser.me/api/portraits/women/28.jpg',
+  },
+  {
+    name: 'Tom R.',
+    role: 'Design Systems',
+    text: "Somehow every job here feels hand-picked? Like someone actually looked at it before posting. Rare for job boards these days.",
+    date: 'Jan 8, 2026',
+    avatar: 'https://randomuser.me/api/portraits/men/22.jpg',
+  },
+  {
+    name: 'sofia',
+    role: 'freelance ui/ux',
+    text: "i use this mainly for contract gigs. way better selection than upwork and the companies are actually legit. found 2 long-term clients here already",
+    date: 'Dec 28, 2025',
+    avatar: 'https://randomuser.me/api/portraits/women/71.jpg',
+  },
+  {
+    name: 'K. Thompson',
+    role: 'Senior Product Designer',
+    text: "Left my FAANG job last year. This site helped me find a fully remote role at a smaller company with way better work-life balance. No regrets",
+    date: 'Jan 6, 2026',
+    avatar: 'https://randomuser.me/api/portraits/men/45.jpg',
+  },
+  {
+    name: 'rachel m',
+    role: 'UX Researcher',
+    text: "not strictly a designer but the ux research roles here are solid. found my current job through here - fully remote, great team, good pay. 10/10",
+    date: 'Jan 11, 2026',
+    avatar: 'https://randomuser.me/api/portraits/women/89.jpg',
+  },
+  {
+    name: 'Andre',
+    role: 'UI Designer',
+    text: "my only complaint is i wish i found this sooner lol. spent months on linkedin applying to jobs that probably had 500+ applicants already",
+    date: 'Dec 22, 2025',
+    avatar: 'https://randomuser.me/api/portraits/men/78.jpg',
+  },
+  {
+    name: 'Jen Liu',
+    role: 'Product Designer',
+    text: "The fact that its designer-focused makes such a difference. I actually trust that when I click on a job its gonna be relevant to what I do",
+    date: 'Jan 9, 2026',
+    avatar: 'https://randomuser.me/api/portraits/women/42.jpg',
+  },
+  {
+    name: 'mike',
+    role: 'graphic design / illustration',
+    text: "as someone whos not strictly in tech/product design, i appreciate that theres actually graphic design and illustration roles here too. hard to find elsewhere",
+    date: 'Jan 4, 2026',
+    avatar: 'https://randomuser.me/api/portraits/men/36.jpg',
+  },
+  {
+    name: 'Priya S',
+    role: 'Design Lead',
+    text: "Used to spend hours filtering through garbage on other sites. Now I just check here once a day. Saves so much time and mental energy honestly",
+    date: 'Dec 31, 2025',
+    avatar: 'https://randomuser.me/api/portraits/women/63.jpg',
+  },
+  {
+    name: 'alex t',
+    role: 'product designer',
+    text: "got my job through here. applied on a tuesday, had a call thursday, offer the next week. the whole process was surprisingly fast",
+    date: 'Jan 14, 2026',
+    avatar: 'https://randomuser.me/api/portraits/men/91.jpg',
   },
 ]
 
@@ -278,10 +353,10 @@ const faqs = [
     question: 'How do I post a job on Remote Designers?',
     answer: 'You can post a job by clicking the "Post a job" button in the top navigation. Fill out the job details including title, location, salary, and description. Your job will be reviewed and published within 24 hours.',
   },
-  {
-    question: 'Is Remote Designers free to use?',
-    answer: 'Yes, browsing and applying to jobs is completely free for job seekers. Employers pay a one-time fee of $299 to post a job listing.',
-  },
+  // {
+  //   question: 'Is Remote Designers free to use?',
+  //   answer: 'Yes, browsing and applying to jobs is completely free for job seekers. Employers pay a one-time fee of $299 to post a job listing.',
+  // },
   {
     question: 'What types of design roles are available?',
     answer: 'We feature a wide range of design roles including UI/UX Design, Product Design, Graphic Design, Brand Design, Motion Design, and more.',
@@ -304,6 +379,7 @@ interface JobDetailClientProps {
 export default function JobDetailClient({ initialJob, error: initialError }: JobDetailClientProps) {
   const [job] = useState<Job | null>(initialJob)
   const [openFaq, setOpenFaq] = useState<number>(0)
+  const { openSignupModal } = useSignupModal()
   const error = initialError
 
   if (error || !job) {
@@ -380,28 +456,34 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
       />
 
       <div className="bg-neutral-50 min-h-screen">
-        {/* Back to Jobs Bar */}
-        <div className="bg-white border-b border-neutral-200">
-          <div className="max-w-6xl mx-auto px-8">
-            <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-neutral-500 hover:text-neutral-700 transition-colors py-5"
-          >
-            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9 3L5 7.5L9 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            Back to jobs
-          </Link>
-        </div>
-      </div>
+        <div className="max-w-6xl mx-auto px-8 pt-12 pb-8">
+        {/* Breadcrumb */}
+        <nav aria-label="Breadcrumb" className="mb-6">
+          <ol className="flex items-center gap-2 text-sm text-neutral-500">
+            <li>
+              <Link href="/" className="hover:text-neutral-900 transition-colors">
+                Home
+              </Link>
+            </li>
+            <li className="text-neutral-300">/</li>
+            <li>
+              <Link href="/" className="hover:text-neutral-900 transition-colors">
+                Jobs
+              </Link>
+            </li>
+            <li className="text-neutral-300">/</li>
+            <li className="text-neutral-900 font-medium truncate max-w-[300px]">
+              {job.title}
+            </li>
+          </ol>
+        </nav>
 
-      <div className="max-w-6xl mx-auto px-8 py-8">
         {/* Main Content */}
         <div className="flex gap-12">
           {/* Left Column - Job Description */}
           <div className="flex-1">
             {/* Job Title - H1 for SEO */}
-            <h1 className="text-3xl font-semibold text-neutral-900 mb-2">{job.title}</h1>
+            <h1 className="text-3xl font-semibold text-neutral-900 mb-2 tracking-tight">{job.title}</h1>
             <p className="text-lg text-neutral-500 mb-8">{job.company} · {job.location}</p>
 
             {/* Job Description */}
@@ -418,43 +500,29 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
               )}
             </section>
 
-            {/* Benefits - only show if not already in description */}
-            {!job.description?.includes('💰') && (
-              <section>
-                <h2 className="flex items-center gap-2 text-lg font-semibold text-neutral-900 mb-4">
-                  <span className="text-xl">💰</span>
-                  Benefits
-                </h2>
-                <ul className="space-y-2">
-                  {benefits.map((benefit, index) => (
-                    <li key={index} className="flex items-start gap-3 text-neutral-600">
-                      <span className="text-neutral-400 mt-1.5">•</span>
-                      <span>{benefit}</span>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            )}
           </div>
 
           {/* Right Column - Job Sidebar */}
           <div className="w-[360px] flex-shrink-0">
-            <div className="bg-white border border-neutral-200 rounded-xl p-6 sticky top-24">
+            <div className="bg-white border border-neutral-200 rounded-xl rounded-tr-[100px] p-6 sticky top-24">
               {/* Company Logo */}
-              {job.company_logo ? (
+              <div className="w-16 h-16 rounded-full bg-white border border-neutral-200 flex items-center justify-center mb-6 overflow-hidden">
                 <img
-                  src={job.company_logo}
+                  src={job.company_logo || getCompanyLogoUrl(job.company)}
                   alt={job.company}
-                  className="w-16 h-16 rounded-xl bg-neutral-100 border border-neutral-200 object-contain mb-6"
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement
+                    if (!target.dataset.triedFallback) {
+                      target.dataset.triedFallback = 'true'
+                      target.src = getGoogleFaviconUrl(job.company)
+                    } else {
+                      target.style.display = 'none'
+                      target.parentElement!.innerHTML = `<span class="text-xl font-medium text-neutral-400">${getInitials(job.company)}</span>`
+                    }
+                  }}
                 />
-              ) : (
-                <div
-                  className="w-16 h-16 rounded-xl flex items-center justify-center mb-6"
-                  style={{ backgroundImage: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
-                >
-                  <span className="text-2xl font-medium text-white">{job.company.charAt(0).toUpperCase()}</span>
-                </div>
-              )}
+              </div>
 
               {/* Featured Badge */}
               {job.is_featured && (
@@ -463,20 +531,14 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
                 </span>
               )}
 
+              {/* Company Name */}
+              <p className="text-neutral-500 mb-2">{job.company}</p>
+
               {/* Job Title in Sidebar */}
               <h2 className="text-2xl font-medium text-neutral-900 mb-6">{job.title}</h2>
 
               {/* Job Details */}
-              <div className="space-y-4 mb-6">
-                {/* Company */}
-                <div className="flex items-center gap-3 text-neutral-600">
-                  <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-neutral-400 flex-shrink-0">
-                    <path d="M7.5 1.5L13.5 4.5V13.5H1.5V4.5L7.5 1.5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-                    <path d="M5.5 13.5V8.5H9.5V13.5" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-                  </svg>
-                  {job.company}
-                </div>
-
+              <div className="space-y-2 mb-6">
                 {/* Location */}
                 <div className="flex items-center gap-3 text-neutral-600">
                   <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-neutral-400 flex-shrink-0">
@@ -518,19 +580,55 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
                 )}
               </div>
 
-              {/* Skills */}
-              {job.skills && job.skills.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {job.skills.map((skill, index) => (
-                    <span
-                      key={index}
-                      className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all cursor-default"
-                    >
-                      {toTitleCase(skill)}
-                    </span>
-                  ))}
-                </div>
-              )}
+              {/* Chips */}
+              <div className="flex flex-wrap gap-2 mb-6">
+                {job.is_featured && (
+                  <Link
+                    href="/?featured=true"
+                    className="bg-yellow-400 text-neutral-900 text-xs font-medium px-2.5 py-1 rounded border border-yellow-500 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.15)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+                  >
+                    Featured
+                  </Link>
+                )}
+                {job.job_type && (
+                  <Link
+                    href={`/?type=${job.job_type.toLowerCase()}`}
+                    className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+                  >
+                    {toTitleCase(job.job_type)}
+                  </Link>
+                )}
+                {job.experience_level && (
+                  <Link
+                    href={`/?experience=${job.experience_level.toLowerCase()}`}
+                    className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+                  >
+                    {toTitleCase(job.experience_level)}
+                  </Link>
+                )}
+                {salary && (
+                  <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200">
+                    {salary}
+                  </span>
+                )}
+                {job.location.toLowerCase().includes('remote') && (
+                  <Link
+                    href="/?remote_type=remote"
+                    className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+                  >
+                    Remote
+                  </Link>
+                )}
+                {job.skills && job.skills.map((skill, index) => (
+                  <Link
+                    key={index}
+                    href={`/?skill=${encodeURIComponent(skill)}`}
+                    className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+                  >
+                    {toTitleCase(skill)}
+                  </Link>
+                ))}
+              </div>
 
               {/* Apply Button */}
               <a
@@ -554,83 +652,59 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
       </div>
 
       {/* CTA Card Section */}
-      <div className="max-w-6xl mx-auto px-8 py-12">
-        <div className="bg-neutral-100 rounded-2xl p-12">
-          <h2 className="text-3xl font-medium text-neutral-900 text-center mb-10">
-            Join now to find your dream remote job
-          </h2>
+      <div className="max-w-6xl mx-auto px-8 pt-12 pb-4">
+        <div className="flex gap-4">
+          {/* Left Content Card */}
+          <div className="bg-white border border-neutral-200 rounded-2xl p-12 w-1/2 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]">
+            <h2 className="text-4xl font-medium text-neutral-900 text-left mb-10 font-dm-sans">
+              Land Your Dream Remote Design Job.
+            </h2>
 
-          <div className="max-w-2xl mx-auto space-y-6 mb-10">
-            {ctaFeatures.map((feature, index) => (
-              <div key={index} className="flex gap-4">
-                <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center flex-shrink-0">
-                  {index === 0 && (
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.5"/>
-                      <path d="M12 12L16 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                    </svg>
-                  )}
-                  {index === 1 && (
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M9 1L11 7H17L12 11L14 17L9 13L4 17L6 11L1 7H7L9 1Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-                    </svg>
-                  )}
-                  {index === 2 && (
-                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="2" y="4" width="14" height="10" rx="1" stroke="currentColor" strokeWidth="1.5"/>
-                      <path d="M2 6L9 10L16 6" stroke="currentColor" strokeWidth="1.5"/>
-                    </svg>
-                  )}
+            <div className="space-y-5 mb-10">
+              {ctaFeatures.map((feature, index) => (
+                <div key={index} className="flex gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-neutral-100 flex items-center justify-center flex-shrink-0 text-xl">
+                    {feature.emoji}
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-neutral-900 mb-1">{feature.title}</h3>
+                    <p className="text-neutral-500 text-sm">{feature.description}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-medium text-neutral-900 mb-1">{feature.title}</h3>
-                  <p className="text-neutral-500 text-sm">{feature.description}</p>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
+
+            <div className="text-left">
+              <RainbowButton onClick={openSignupModal}>
+                Unlock Full Access
+              </RainbowButton>
+
+              <SocialProof className="mt-10" />
+            </div>
           </div>
 
-          <div className="text-center">
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg text-white font-medium shadow-[0px_4px_0px_0px_rgba(0,0,0,0.3),0px_1px_2px_0px_rgba(0,0,0,0.1)] hover:translate-y-[1px] hover:shadow-[0px_3px_0px_0px_rgba(0,0,0,0.3)] transition-all"
-              style={{ backgroundImage: 'linear-gradient(165deg, #3a3a3a 0%, #1a1a1a 100%)' }}
-            >
-              <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="6.5" cy="6.5" r="4.5" stroke="currentColor" strokeWidth="1.5"/>
-                <path d="M10 10L14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-              </svg>
-              Find Your Dream Remote Job
-            </Link>
-
-            <div className="flex items-center justify-center gap-4 mt-6">
-              <div className="flex -space-x-2">
-                {['bg-violet-500', 'bg-blue-500', 'bg-cyan-500', 'bg-green-500', 'bg-yellow-500'].map((color, i) => (
-                  <div key={i} className={`w-8 h-8 rounded-full ${color} border-2 border-white`} />
-                ))}
-              </div>
-              <div className="flex items-center gap-1">
-                {[1, 2, 3, 4, 5].map(i => (
-                  <svg key={i} width="14" height="14" viewBox="0 0 14 14" fill="#FBBF24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M7 1L8.5 5H13L9.5 8L11 13L7 10L3 13L4.5 8L1 5H5.5L7 1Z"/>
-                  </svg>
-                ))}
-              </div>
-              <span className="text-sm text-neutral-500">Loved by 10,000+ remote workers</span>
-            </div>
+          {/* Right Image Card */}
+          <div className="w-1/2 hidden lg:block rounded-2xl overflow-hidden">
+            <img
+              src="/hero-bg.png"
+              alt="Remote designers working"
+              className="w-full h-full object-cover"
+            />
           </div>
         </div>
       </div>
 
       {/* Testimonials Grid */}
-      <div className="max-w-6xl mx-auto px-8 py-12">
+      <div className="max-w-6xl mx-auto px-8 pt-8 pb-12">
         <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
           {testimonials.map((testimonial, index) => (
-            <div key={index} className="break-inside-avoid bg-white border border-neutral-200 rounded-xl p-6">
+            <div key={index} className="break-inside-avoid bg-white border border-neutral-200 rounded-xl p-6 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]">
               <div className="flex items-center gap-3 mb-4">
-                <div className={`w-10 h-10 rounded-full ${testimonial.color} flex items-center justify-center`}>
-                  <span className="text-white font-medium">{testimonial.name.charAt(0)}</span>
-                </div>
+                <img
+                  src={testimonial.avatar}
+                  alt={testimonial.name}
+                  className="w-10 h-10 rounded-full object-cover"
+                />
                 <div>
                   <p className="font-medium text-neutral-900">{testimonial.name}</p>
                   <p className="text-sm text-neutral-500">{testimonial.role}</p>
@@ -656,31 +730,52 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
           Questions,<br />answered.
         </h2>
 
-        <div className="space-y-0">
-          {faqs.map((faq, index) => (
-            <div key={index} className="border-t border-neutral-200">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+          {faqs.map((faq, index) => {
+            const isOpen = openFaq === index
+            return (
               <button
-                onClick={() => setOpenFaq(openFaq === index ? -1 : index)}
-                className="w-full py-6 flex items-center justify-between text-left"
+                key={index}
+                onClick={() => setOpenFaq(isOpen ? -1 : index)}
+                className="w-full border-t border-neutral-200 hover:bg-neutral-100/50 transition-colors duration-150 py-4 text-left"
               >
-                <span className="font-medium text-neutral-900">{faq.question}</span>
-                <div className="w-8 h-8 rounded-full border border-neutral-200 flex items-center justify-center flex-shrink-0">
-                  {openFaq === index ? (
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M3 7H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-neutral-900">{faq.question}</span>
+                  <div className={`w-8 h-8 rounded-full border border-neutral-200 flex items-center justify-center flex-shrink-0 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`}>
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 14 14"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="transition-transform duration-150"
+                    >
+                      <path
+                        d="M3 7H11"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                      />
+                      <path
+                        d="M7 3V11"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
+                        className={`origin-center transition-transform duration-150 ${isOpen ? 'scale-y-0' : 'scale-y-100'}`}
+                      />
                     </svg>
-                  ) : (
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M7 3V11M3 7H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                    </svg>
-                  )}
+                  </div>
+                </div>
+                <div
+                  className={`grid transition-all duration-150 ease-out ${isOpen ? 'grid-rows-[1fr] opacity-100 mt-2' : 'grid-rows-[0fr] opacity-0'}`}
+                >
+                  <div className="overflow-hidden">
+                    <p className="text-neutral-600 pr-12">{faq.answer}</p>
+                  </div>
                 </div>
               </button>
-              {openFaq === index && (
-                <p className="pb-6 text-neutral-600 pr-12">{faq.answer}</p>
-              )}
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
       </div>
