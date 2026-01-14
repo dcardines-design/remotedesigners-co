@@ -321,9 +321,9 @@ export default function JobsPage() {
                 >
                   <div className="flex items-start gap-4">
                     {/* Company Logo */}
-                    <div className="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <div className="w-14 h-14 bg-white border border-gray-200 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
                       <img
-                        src={job.company_logo || getCompanyLogoUrl(job.company)}
+                        src={getSourceFavicon(job.source) || job.company_logo || getCompanyLogoUrl(job.company)}
                         alt={job.company}
                         className="w-10 h-10 object-contain"
                         onError={(e) => {

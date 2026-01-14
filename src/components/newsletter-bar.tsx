@@ -1,9 +1,33 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+
+// Export height constant for other components
+export const NEWSLETTER_BAR_HEIGHT = 56
 
 export function NewsletterBar() {
   const [show, setShow] = useState(true)
+
+  // Check localStorage on mount - respect 24 hour dismissal
+  useEffect(() => {
+    const dismissedAt = localStorage.getItem('newsletter-dismissed-at')
+    if (dismissedAt) {
+      const hoursSinceDismissed = (Date.now() - parseInt(dismissedAt)) / (1000 * 60 * 60)
+      if (hoursSinceDismissed < 24) {
+        setShow(false)
+      } else {
+        // 24 hours passed, clear the dismissal
+        localStorage.removeItem('newsletter-dismissed-at')
+      }
+    }
+  }, [])
+
+  const handleDismiss = () => {
+    setShow(false)
+    localStorage.setItem('newsletter-dismissed-at', Date.now().toString())
+    // Dispatch custom event for other components
+    window.dispatchEvent(new CustomEvent('newsletter-visibility', { detail: { visible: false } }))
+  }
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [message, setMessage] = useState('')
@@ -33,7 +57,7 @@ export function NewsletterBar() {
         setMessage(data.message || 'Successfully subscribed!')
         setEmail('')
         // Auto-hide after success
-        setTimeout(() => setShow(false), 3000)
+        setTimeout(() => handleDismiss(), 3000)
       } else {
         setStatus('error')
         setMessage(data.error || 'Failed to subscribe')
@@ -101,7 +125,7 @@ export function NewsletterBar() {
           </>
         )}
         <button
-          onClick={() => setShow(false)}
+          onClick={handleDismiss}
           className="text-neutral-500 hover:text-neutral-300 transition-colors p-1"
           aria-label="Dismiss"
         >

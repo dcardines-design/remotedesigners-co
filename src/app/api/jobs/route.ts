@@ -9,12 +9,14 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search')?.toLowerCase()
     const location = searchParams.get('location')?.toLowerCase()
     const jobType = searchParams.get('type')?.toLowerCase()
-    const skills = searchParams.get('skills')?.toLowerCase()
+    const skills = searchParams.get('skills')
     const experience = searchParams.get('experience')?.toLowerCase()
     const salaryMin = searchParams.get('salary_min')
     const salaryMax = searchParams.get('salary_max')
     const datePosted = searchParams.get('date_posted')
     const remoteType = searchParams.get('remote_type')?.toLowerCase()
+    const titleKeywords = searchParams.get('title_keywords')
+    const locationKeywords = searchParams.get('location_keywords')
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
     const offset = (page - 1) * limit
@@ -42,8 +44,8 @@ export async function GET(request: NextRequest) {
     // Skills filter - check if any of the requested skills are in the job's skills array
     if (skills) {
       const skillsArray = skills.split(',').map(s => s.trim())
-      // Use contains to check if skills array contains any of the requested skills
-      query = query.contains('skills', skillsArray)
+      // Use overlaps to check if job has ANY of the requested skills
+      query = query.overlaps('skills', skillsArray)
     }
 
     // Experience level filter
@@ -76,6 +78,20 @@ export async function GET(request: NextRequest) {
       } else if (remoteType === 'onsite') {
         query = query.not('location', 'ilike', '%remote%').not('location', 'ilike', '%hybrid%')
       }
+    }
+
+    // Title keywords filter (for SEO landing pages - matches any keyword in title)
+    if (titleKeywords) {
+      const keywords = titleKeywords.split(',').map(k => k.trim().toLowerCase())
+      const orConditions = keywords.map(k => `title.ilike.%${k}%`).join(',')
+      query = query.or(orConditions)
+    }
+
+    // Location keywords filter (for regional SEO pages - matches any keyword in location)
+    if (locationKeywords) {
+      const keywords = locationKeywords.split(',').map(k => k.trim().toLowerCase())
+      const orConditions = keywords.map(k => `location.ilike.%${k}%`).join(',')
+      query = query.or(orConditions)
     }
 
     // Pagination

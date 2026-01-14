@@ -1,9 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase'
-import { Resend } from 'resend'
+import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses'
 import { generateJobSlug } from '@/lib/slug'
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
+const sesClient = process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY
+  ? new SESClient({
+      region: process.env.AWS_REGION || 'us-east-1',
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+      },
+    })
+  : null
 
 // Verify cron secret to prevent unauthorized access
 function verifyCronSecret(request: NextRequest): boolean {
@@ -175,11 +183,13 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'No active subscribers', sent: 0 })
     }
 
-    // Check if Resend is configured
-    if (!resend) {
-      console.error('Resend API key not configured')
+    // Check if SES is configured
+    if (!sesClient) {
+      console.error('AWS SES not configured')
       return NextResponse.json({ error: 'Email service not configured' }, { status: 500 })
     }
+
+    const fromEmail = process.env.SES_FROM_EMAIL || 'hello@remotedesigners.co'
 
     // Send emails
     let sent = 0
@@ -187,12 +197,26 @@ export async function GET(request: NextRequest) {
 
     for (const subscriber of subscribers) {
       try {
-        await resend.emails.send({
-          from: 'RemoteDesigners.co <hello@remotedesigners.co>',
-          to: subscriber.email,
-          subject: `${jobs.length} New Remote Design Jobs Today 🎨`,
-          html: generateEmailHTML(jobs as Job[], subscriber.unsubscribe_token),
+        const command = new SendEmailCommand({
+          Source: `RemoteDesigners.co <${fromEmail}>`,
+          Destination: {
+            ToAddresses: [subscriber.email],
+          },
+          Message: {
+            Subject: {
+              Data: `${jobs.length} New Remote Design Jobs Today 🎨`,
+              Charset: 'UTF-8',
+            },
+            Body: {
+              Html: {
+                Data: generateEmailHTML(jobs as Job[], subscriber.unsubscribe_token),
+                Charset: 'UTF-8',
+              },
+            },
+          },
         })
+
+        await sesClient.send(command)
 
         // Update last_email_sent_at
         await supabase

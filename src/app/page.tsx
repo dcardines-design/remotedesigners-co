@@ -91,6 +91,70 @@ const LOCATION_OPTIONS = [
   { value: 'germany', label: 'Germany', emoji: '🇩🇪' },
 ]
 
+const SALARY_OPTIONS = [
+  { value: '50000', label: '$50k - $75k USD' },
+  { value: '75000', label: '$75k - $100k USD' },
+  { value: '100000', label: '$100k - $125k USD' },
+  { value: '125000', label: '$125k - $150k USD' },
+  { value: '150000', label: '$150k - $200k USD' },
+  { value: '200000', label: '$200k - $250k USD' },
+  { value: '250000', label: '$250k+ USD' },
+]
+
+// Salary dropdown component
+function SalaryDropdown({ value, onChange }: { value: string, onChange: (val: string) => void }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  const selectedOption = SALARY_OPTIONS.find(opt => opt.value === value)
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full bg-white border border-neutral-200 rounded-lg px-3 py-2 text-sm text-left hover:border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.04)] transition-all focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 flex items-center justify-between"
+      >
+        <span className={selectedOption ? 'text-neutral-900' : 'text-neutral-400'}>
+          {selectedOption ? selectedOption.label : 'Select salary (USD)...'}
+        </span>
+        <svg className={`w-4 h-4 text-neutral-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {isOpen && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-neutral-200 rounded-lg shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08)] max-h-60 overflow-y-auto">
+          <button
+            onClick={() => { onChange(''); setIsOpen(false) }}
+            className={`w-full px-3 py-2 text-sm text-left hover:bg-neutral-50 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all ${!value ? 'bg-neutral-50 text-neutral-900' : 'text-neutral-700'}`}
+          >
+            Any salary
+          </button>
+          {SALARY_OPTIONS.map(opt => (
+            <button
+              key={opt.value}
+              onClick={() => { onChange(opt.value); setIsOpen(false) }}
+              className={`w-full px-3 py-2 text-sm text-left hover:bg-neutral-50 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all ${value === opt.value ? 'bg-neutral-50 text-neutral-900' : 'text-neutral-700'}`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // Location search dropdown component
 function LocationSearchDropdown({ locations, onToggle }: { locations: string[], onToggle: (loc: string) => void }) {
   const [search, setSearch] = useState('')
@@ -146,7 +210,7 @@ function LocationSearchDropdown({ locations, onToggle }: { locations: string[], 
           </svg>
         </div>
         {isOpen && filteredOptions.length > 0 && (
-          <div className="absolute z-50 w-full mt-1 bg-white border border-neutral-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+          <div className="absolute z-50 w-full mt-1 bg-white border border-neutral-200 rounded-lg shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08)] max-h-48 overflow-y-auto">
             {filteredOptions.map(opt => (
               <button
                 key={opt.value}
@@ -238,6 +302,29 @@ const getSourceFavicon = (source: string): string | null => {
 
 const toTitleCase = (str: string) =>
   str.toLowerCase().replace(/(?:^|[\s-])\w/g, match => match.toUpperCase())
+
+// Extract a simple region label for the chip (first city/country or "Remote")
+const getRegionChip = (location: string): { label: string; value: string } | null => {
+  if (!location) return null
+  const loc = location.toLowerCase()
+
+  // Check for specific regions first
+  if (loc.includes('usa') || loc.includes('united states')) return { label: 'USA', value: 'usa' }
+  if (loc.includes('europe')) return { label: 'Europe', value: 'europe' }
+  if (loc.includes('uk') || loc.includes('united kingdom')) return { label: 'UK', value: 'uk' }
+  if (loc.includes('canada')) return { label: 'Canada', value: 'canada' }
+  if (loc.includes('germany')) return { label: 'Germany', value: 'germany' }
+  if (loc.includes('worldwide') || loc.includes('anywhere')) return { label: 'Worldwide', value: 'worldwide' }
+
+  // Extract first location part (city or country)
+  const parts = location.split(/[,;·]/).map(p => p.trim().replace(/\s*\(Remote\)/gi, ''))
+  const firstPart = parts[0]
+  if (firstPart && firstPart.length > 0 && firstPart.length <= 20 && !firstPart.toLowerCase().includes('remote')) {
+    return { label: firstPart, value: firstPart.toLowerCase() }
+  }
+
+  return null
+}
 
 const cleanJobTitle = (title: string): string => {
   // Remove "for a position of" prefix
@@ -344,6 +431,23 @@ function HomeContent() {
   const [pagination, setPagination] = useState<Pagination | null>(null)
   const [totalPlatformJobs, setTotalPlatformJobs] = useState<number>(0)
   const [availableSkills, setAvailableSkills] = useState<{ skill: string; count: number }[]>([])
+  const [newsletterVisible, setNewsletterVisible] = useState(true)
+
+  // Track newsletter bar visibility (respects 24h dismissal)
+  useEffect(() => {
+    const dismissedAt = localStorage.getItem('newsletter-dismissed-at')
+    if (dismissedAt) {
+      const hoursSinceDismissed = (Date.now() - parseInt(dismissedAt)) / (1000 * 60 * 60)
+      setNewsletterVisible(hoursSinceDismissed >= 24)
+    }
+
+    const handleVisibilityChange = (e: CustomEvent) => {
+      setNewsletterVisible(e.detail.visible)
+    }
+
+    window.addEventListener('newsletter-visibility', handleVisibilityChange as EventListener)
+    return () => window.removeEventListener('newsletter-visibility', handleVisibilityChange as EventListener)
+  }, [])
 
   // Initialize filters from URL
   // Collapsible filter sections
@@ -490,7 +594,7 @@ function HomeContent() {
     if (filters.locations.length) count++
     if (filters.jobTypes.length) count++
     if (filters.experience) count++
-    if (filters.salaryMin || filters.salaryMax) count++
+    if (filters.salaryMin) count++
     if (filters.datePosted && filters.datePosted !== 'all') count++
     if (filters.remoteType) count++
     if (filters.skills.length) count++
@@ -600,7 +704,7 @@ function HomeContent() {
               Remote Design Jobs
             </h1>
 
-            <p className="text-lg text-neutral-500 mb-10 leading-relaxed">
+            <p className="text-lg text-neutral-600 mb-10 leading-relaxed">
               Browse thousands of remote design jobs from top companies worldwide. Updated daily with the freshest opportunities in UI, UX, product design, and more.
             </p>
 
@@ -657,7 +761,7 @@ function HomeContent() {
               <div className="absolute left-0 top-0 bottom-0 w-1 bg-neutral-400/40 rounded-l-lg" />
               <div className="text-center text-neutral-500">
                 <p className="text-2xl mb-1">+</p>
-                <p className="text-base">post a job</p>
+                <p className="text-base">Post a job</p>
               </div>
             </Link>
 
@@ -721,7 +825,7 @@ function HomeContent() {
 
                   <div className="flex gap-4 pl-3">
                     {/* Company Avatar */}
-                    <div className="w-12 h-12 rounded-full bg-neutral-100 border border-neutral-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    <div className="w-12 h-12 rounded-full bg-white border border-neutral-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
                       <img
                         src={getSourceFavicon(job.source) || job.company_logo || getCompanyLogoUrl(job.company)}
                         alt={job.company}
@@ -800,6 +904,17 @@ function HomeContent() {
                               {toTitleCase(job.experience_level)}
                             </a>
                           )}
+                          {getRegionChip(job.location) && (
+                            <a
+                              href={`/?location=${encodeURIComponent(getRegionChip(job.location)!.value)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+                            >
+                              {getRegionChip(job.location)!.label}
+                            </a>
+                          )}
                           {salary && (
                             <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 cursor-default">
                               {salary}
@@ -863,7 +978,7 @@ function HomeContent() {
 
           {/* Filters Sidebar */}
           <div className="w-72 flex-shrink-0 hidden md:block">
-            <div className="sticky top-24 bg-neutral-100 border border-neutral-200 rounded-lg max-h-[calc(100vh-12rem)] flex flex-col">
+            <div className={`sticky top-24 bg-neutral-100 border border-neutral-200 rounded-lg flex flex-col transition-all duration-300 ${newsletterVisible ? 'max-h-[calc(100vh-12rem)]' : 'max-h-[calc(100vh-8rem)]'}`}>
               {/* Filter Header - Fixed */}
               <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200">
                 <span className="text-sm font-medium text-neutral-900">Filter jobs</span>
@@ -1118,40 +1233,14 @@ function HomeContent() {
               </div>
 
               {/* Salary Range */}
-              <div>
-                <button
-                  onClick={() => toggleSection('salary')}
-                  className="flex items-center justify-between w-full py-1 group"
-                >
-                  <span className="text-[10px] text-neutral-400 uppercase tracking-widest group-hover:text-neutral-600">
-                    Salary Range{(filters.salaryMin || filters.salaryMax) && ` (${(filters.salaryMin ? 1 : 0) + (filters.salaryMax ? 1 : 0)})`}
-                  </span>
-                  <svg className={`w-4 h-4 text-neutral-400 transition-transform ${expandedSections.salary ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-                {expandedSections.salary && (
-                  <div className="pt-2 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        placeholder="Min"
-                        value={filters.salaryMin}
-                        onChange={e => handleFilterChange('salaryMin', e.target.value)}
-                        className="w-full bg-white border border-neutral-200 rounded-lg px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 hover:border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.04)] transition-all focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400"
-                      />
-                      <span className="text-neutral-400">-</span>
-                      <input
-                        type="number"
-                        placeholder="Max"
-                        value={filters.salaryMax}
-                        onChange={e => handleFilterChange('salaryMax', e.target.value)}
-                        className="w-full bg-white border border-neutral-200 rounded-lg px-3 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 hover:border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.04)] transition-all focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400"
-                      />
-                    </div>
-                    <p className="text-xs text-neutral-400">Annual salary in USD</p>
-                  </div>
-                )}
+              <div className="space-y-2">
+                <span className="text-[10px] text-neutral-400 uppercase tracking-widest">
+                  Salary{filters.salaryMin && ' (1)'}
+                </span>
+                <SalaryDropdown
+                  value={filters.salaryMin}
+                  onChange={(val) => handleFilterChange('salaryMin', val)}
+                />
               </div>
 
               {/* Skills */}
@@ -1183,7 +1272,7 @@ function HomeContent() {
                           }`}
                           title={`${count} jobs`}
                         >
-                          {skill}
+                          {toTitleCase(skill)}
                         </button>
                       ))
                     )}

@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import { generateJobSlug } from '@/lib/slug'
+import { jobTypeSlugs, regionalSlugs } from '@/config/seo-pages'
 
 const BASE_URL = 'https://remotedesigners.co'
 
@@ -47,6 +48,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ]
 
+  // SEO Landing Pages - Job Types
+  const jobTypePages: MetadataRoute.Sitemap = jobTypeSlugs.map((slug) => ({
+    url: `${BASE_URL}/remote-${slug}-jobs`,
+    lastModified: new Date(),
+    changeFrequency: 'daily' as const,
+    priority: 0.85,
+  }))
+
+  // SEO Landing Pages - Regional
+  const regionalLandingPages: MetadataRoute.Sitemap = regionalSlugs.map((slug) => ({
+    url: `${BASE_URL}/remote-design-jobs-${slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'daily' as const,
+    priority: 0.85,
+  }))
+
   // Fetch all jobs for dynamic pages
   const { data: jobs, error } = await supabase
     .from('jobs')
@@ -67,5 +84,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }))
 
-  return [...staticPages, ...jobPages]
+  return [...staticPages, ...jobTypePages, ...regionalLandingPages, ...jobPages]
 }
