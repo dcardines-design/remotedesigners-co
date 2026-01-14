@@ -1,0 +1,125 @@
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import './globals.css'
+import { Navbar } from '@/components/navbar'
+import { NewsletterBar } from '@/components/newsletter-bar'
+
+const inter = Inter({ subsets: ['latin'] })
+
+const BASE_URL = 'https://remotedesigners.co'
+
+export const metadata: Metadata = {
+  metadataBase: new URL(BASE_URL),
+  title: {
+    default: 'RemoteDesigners.co - Remote Design Jobs',
+    template: '%s | RemoteDesigners.co',
+  },
+  description: 'Browse thousands of remote design jobs from top companies worldwide. Find UI, UX, product design, and graphic design positions updated daily.',
+  keywords: [
+    'remote design jobs',
+    'remote designer jobs',
+    'UI designer jobs',
+    'UX designer jobs',
+    'product designer jobs',
+    'graphic designer jobs',
+    'remote work',
+    'design careers',
+    'freelance design',
+  ],
+  authors: [{ name: 'RemoteDesigners.co' }],
+  creator: 'RemoteDesigners.co',
+  publisher: 'RemoteDesigners.co',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: BASE_URL,
+    siteName: 'RemoteDesigners.co',
+    title: 'RemoteDesigners.co - Remote Design Jobs',
+    description: 'Browse thousands of remote design jobs from top companies worldwide. Find UI, UX, product design, and graphic design positions updated daily.',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'RemoteDesigners.co - Find Remote Design Jobs',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'RemoteDesigners.co - Remote Design Jobs',
+    description: 'Browse thousands of remote design jobs from top companies worldwide.',
+    images: ['/og-image.png'],
+  },
+  alternates: {
+    canonical: BASE_URL,
+  },
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
+}
+
+// Structured data for Organization and WebSite
+const organizationSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'RemoteDesigners.co',
+  url: BASE_URL,
+  logo: `${BASE_URL}/logo.png`,
+  description: 'The best remote design job board for UI, UX, and product designers.',
+}
+
+const websiteSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: 'RemoteDesigners.co',
+  url: BASE_URL,
+  potentialAction: {
+    '@type': 'SearchAction',
+    target: {
+      '@type': 'EntryPoint',
+      urlTemplate: `${BASE_URL}/?search={search_term_string}`,
+    },
+    'query-input': 'required name=search_term_string',
+  },
+}
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+        />
+      </head>
+      <body className={inter.className}>
+        <Navbar />
+        <main className="min-h-screen pb-16">
+          {children}
+        </main>
+        <NewsletterBar />
+      </body>
+    </html>
+  )
+}
