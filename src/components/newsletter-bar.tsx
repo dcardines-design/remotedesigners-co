@@ -48,7 +48,7 @@ export function NewsletterBar() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-neutral-900 border-t border-neutral-800">
-      <div className="max-w-6xl mx-auto px-8 py-3 flex items-center justify-center gap-8">
+      <div className={`max-w-6xl mx-auto px-8 flex items-center justify-center gap-8 ${status === 'error' ? 'py-3 pb-7' : 'py-3'}`}>
         {status === 'success' ? (
           <p className="text-sm text-green-400 flex items-center gap-2">
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">

@@ -1,10 +1,15 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, DM_Sans } from 'next/font/google'
 import './globals.css'
 import { Navbar } from '@/components/navbar'
 import { NewsletterBar } from '@/components/newsletter-bar'
 
 const inter = Inter({ subsets: ['latin'] })
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  variable: '--font-dm-sans',
+  weight: ['400', '500', '600', '700']
+})
 
 const BASE_URL = 'https://remotedesigners.co'
 
@@ -113,7 +118,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.className} ${dmSans.variable}`}>
         <Navbar />
         <main className="min-h-screen pb-16">
           {children}

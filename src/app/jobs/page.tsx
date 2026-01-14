@@ -90,6 +90,29 @@ function formatSalary(job: Job): string | null {
   return null
 }
 
+// Logo helper functions
+const getInitials = (company: string) => company.substring(0, 2).toUpperCase()
+
+const getCompanyLogoUrl = (company: string): string => {
+  const cleanName = company.toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .replace(/\s+/g, '')
+  return `https://logo.clearbit.com/${cleanName}.com`
+}
+
+const getGoogleFaviconUrl = (company: string): string => {
+  const cleanName = company.toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .replace(/\s+/g, '')
+  return `https://www.google.com/s2/favicons?domain=${cleanName}.com&sz=128`
+}
+
+// For certain sources, use the source's favicon instead of company logo
+const getSourceFavicon = (source: string): string | null => {
+  if (source === 'dribbble') return 'https://www.google.com/s2/favicons?domain=dribbble.com&sz=128'
+  return null
+}
+
 export default function JobsPage() {
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
@@ -299,20 +322,23 @@ export default function JobsPage() {
                   <div className="flex items-start gap-4">
                     {/* Company Logo */}
                     <div className="w-14 h-14 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
-                      {job.company_logo ? (
-                        <img
-                          src={job.company_logo}
-                          alt={job.company}
-                          className="w-10 h-10 object-contain"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none'
-                          }}
-                        />
-                      ) : (
-                        <span className="text-xl font-bold text-gray-400">
-                          {job.company[0]}
-                        </span>
-                      )}
+                      <img
+                        src={job.company_logo || getCompanyLogoUrl(job.company)}
+                        alt={job.company}
+                        className="w-10 h-10 object-contain"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement
+                          // Try Google Favicon as fallback before showing initials
+                          if (!target.dataset.triedFallback) {
+                            target.dataset.triedFallback = 'true'
+                            target.src = getGoogleFaviconUrl(job.company)
+                          } else {
+                            // Both Clearbit and Google failed, show initials
+                            target.style.display = 'none'
+                            target.parentElement!.innerHTML = `<span class="text-xl font-bold text-gray-400">${getInitials(job.company)}</span>`
+                          }
+                        }}
+                      />
                     </div>
 
                     {/* Job Details */}
