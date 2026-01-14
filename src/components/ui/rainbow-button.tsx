@@ -9,6 +9,7 @@ interface RainbowButtonProps {
   fullWidth?: boolean
   size?: 'sm' | 'md' | 'lg'
   className?: string
+  external?: boolean // Opens in new tab
 }
 
 const sizeClasses = {
@@ -31,13 +32,23 @@ export function RainbowButton({
   onClick,
   fullWidth = false,
   size = 'lg',
-  className = ''
+  className = '',
+  external = false
 }: RainbowButtonProps) {
   const wrapperClasses = `btn-rainbow-wrapper inline-block p-[1px] ${wrapperSizeClasses[size]} hover:translate-y-[1px] active:translate-y-[2px] transition-all ${fullWidth ? 'w-full' : ''} ${disabled ? 'opacity-50 pointer-events-none' : ''} ${className}`
 
   const innerClasses = `btn-rainbow-inner inline-flex items-center justify-center gap-2 ${sizeClasses[size]} text-white font-medium ${fullWidth ? 'w-full' : ''}`
 
   if (href) {
+    if (external) {
+      return (
+        <div className={wrapperClasses}>
+          <a href={href} target="_blank" rel="noopener noreferrer" className={innerClasses}>
+            {children}
+          </a>
+        </div>
+      )
+    }
     return (
       <div className={wrapperClasses}>
         <Link href={href} className={innerClasses}>

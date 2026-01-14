@@ -417,15 +417,22 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
       if (!initialJob) return
 
       try {
+        // Extract keywords from job title for matching
+        const designKeywords = ['product', 'ui', 'ux', 'graphic', 'visual', 'brand', 'motion', 'web', 'interaction', 'senior', 'lead', 'staff', 'principal', 'junior']
+        const titleWords = initialJob.title.toLowerCase().split(/[\s,\/\-]+/)
+        const matchedKeywords = titleWords.filter(word =>
+          designKeywords.some(kw => word.includes(kw)) || word === 'designer' || word === 'design'
+        ).slice(0, 3)
+
         const params = new URLSearchParams({
-          limit: '4',
-          type: initialJob.job_type || '',
+          limit: '6',
+          title_keywords: matchedKeywords.join(',') || 'designer',
         })
 
         const res = await fetch(`/api/jobs?${params}`)
         const data = await res.json()
 
-        // Filter out current job
+        // Filter out current job and take 3
         const filtered = (data.jobs || []).filter((j: Job) => j.id !== initialJob.id).slice(0, 3)
         setSimilarJobs(filtered)
       } catch (err) {
@@ -718,15 +725,9 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
 
               {/* Action Buttons */}
               <div className="space-y-3">
-                <a
-                  href={job.apply_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="block w-full text-center px-6 py-3 rounded-lg text-white font-medium shadow-[0px_4px_0px_0px_rgba(0,0,0,0.3),0px_1px_2px_0px_rgba(0,0,0,0.1)] hover:translate-y-[1px] hover:shadow-[0px_3px_0px_0px_rgba(0,0,0,0.3)] active:translate-y-[2px] active:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3)] transition-all"
-                  style={{ backgroundImage: 'linear-gradient(165deg, #3a3a3a 0%, #1a1a1a 100%)' }}
-                >
+                <RainbowButton href={job.apply_url} external fullWidth size="md">
                   Apply now
-                </a>
+                </RainbowButton>
 
                 <button
                   onClick={handleSaveJob}
@@ -774,32 +775,52 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
                 href={`/jobs/${similarJob.id}`}
                 className="bg-white border border-neutral-200 rounded-xl p-5 hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.05)] hover:-translate-y-1 transition-all"
               >
-                <div className="flex items-start gap-3 mb-3">
-                  <div className="w-10 h-10 rounded-lg bg-white border border-neutral-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                <div className="flex items-start gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-full bg-white border border-neutral-200 flex items-center justify-center overflow-hidden flex-shrink-0">
                     <img
                       src={similarJob.company_logo || getCompanyLogoUrl(similarJob.company)}
                       alt={similarJob.company}
                       className="w-full h-full object-contain"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement
-                        target.style.display = 'none'
-                        target.parentElement!.innerHTML = `<span class="text-xs font-medium text-neutral-400">${getInitials(similarJob.company)}</span>`
+                        if (!target.dataset.triedFallback) {
+                          target.dataset.triedFallback = 'true'
+                          target.src = getGoogleFaviconUrl(similarJob.company)
+                        } else if (!target.dataset.triedInitials) {
+                          target.dataset.triedInitials = 'true'
+                          target.style.display = 'none'
+                          target.parentElement!.innerHTML = `<span class="text-sm font-medium text-neutral-400">${getInitials(similarJob.company)}</span>`
+                        }
                       }}
                     />
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm text-neutral-500 truncate">{similarJob.company}</p>
-                    <h3 className="font-medium text-neutral-900 truncate">{similarJob.title}</h3>
+                    <h3 className="font-medium text-neutral-900 line-clamp-2">{similarJob.title}</h3>
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <span className="text-xs text-neutral-500 bg-neutral-100 px-2 py-1 rounded">
+                <div className="flex flex-wrap gap-2" onClick={(e) => e.preventDefault()}>
+                  <Link
+                    href={similarJob.location.toLowerCase().includes('remote') ? '/?remote_type=remote' : `/?location=${encodeURIComponent(similarJob.location)}`}
+                    className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+                  >
                     {similarJob.location}
-                  </span>
+                  </Link>
                   {similarJob.job_type && (
-                    <span className="text-xs text-neutral-500 bg-neutral-100 px-2 py-1 rounded">
+                    <Link
+                      href={`/?type=${similarJob.job_type.toLowerCase()}`}
+                      className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+                    >
                       {toTitleCase(similarJob.job_type)}
-                    </span>
+                    </Link>
+                  )}
+                  {similarJob.experience_level && (
+                    <Link
+                      href={`/?experience=${similarJob.experience_level.toLowerCase()}`}
+                      className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+                    >
+                      {toTitleCase(similarJob.experience_level)}
+                    </Link>
                   )}
                 </div>
               </Link>

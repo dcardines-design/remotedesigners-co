@@ -43,6 +43,7 @@ export interface RegionalPage {
   intro: string
   locationKeywords: string[]
   faqs: FAQ[]
+  breadcrumbName?: string // Optional: use this for breadcrumb if different from h1 extraction
 }
 
 export const jobTypePages: Record<string, JobTypePage> = {
@@ -199,6 +200,7 @@ export const regionalPages: Record<string, RegionalPage> = {
     h1: 'Remote Design Jobs in UK',
     intro: 'Work with innovative British companies from anywhere. These UK-based remote design roles offer competitive packages and flexible working.',
     locationKeywords: ['uk', 'united kingdom', 'london', 'manchester', 'birmingham', 'edinburgh', 'britain', 'british', 'england', 'scotland', 'wales'],
+    breadcrumbName: 'United Kingdom',
     faqs: [
       { question: 'What are design salaries like in the UK?', answer: 'UK design salaries typically range from £40,000-£90,000, with London roles often paying 20-30% more than other regions.' },
       { question: 'Do UK companies hire designers from outside the UK?', answer: 'Post-Brexit, some UK companies still hire EU and international designers, though visa sponsorship requirements vary by company.' },
