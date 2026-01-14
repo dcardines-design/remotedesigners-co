@@ -265,6 +265,93 @@ export const regionalPages: Record<string, RegionalPage> = {
   },
 }
 
+// Combination Pages (Job Type + Region)
+export interface CombinationPage {
+  jobTypeSlug: string
+  regionSlug: string
+  slug: string
+  title: string
+  metaDescription: string
+  h1: string
+  intro: string
+  faqs: FAQ[]
+}
+
+export const combinationPages: Record<string, CombinationPage> = {
+  'product-design-usa': {
+    jobTypeSlug: 'product-design',
+    regionSlug: 'usa',
+    slug: 'product-design-usa',
+    title: 'Remote Product Design Jobs in USA',
+    metaDescription: 'Find remote product design jobs at US-based companies. Browse product designer positions at American startups and tech companies hiring remotely.',
+    h1: 'Remote Product Design Jobs in USA',
+    intro: 'Join top US companies as a remote product designer. These positions combine competitive American salaries with the flexibility of remote work.',
+    faqs: [
+      { question: 'What is the average salary for remote product designers in the US?', answer: 'Remote product designers at US companies typically earn $100,000-$180,000+ annually, with top tech companies offering even higher compensation.' },
+      { question: 'Do US product design jobs require US residency?', answer: 'Some positions require US work authorization, while others are open to global candidates. Check each job listing for specific requirements.' },
+      { question: 'What timezone overlap is expected?', answer: 'Most US companies prefer 4+ hours overlap with US timezones (PT to ET). Some fully distributed teams are async-friendly.' },
+    ],
+  },
+  'ui-ux-design-uk': {
+    jobTypeSlug: 'ui-ux-design',
+    regionSlug: 'uk',
+    slug: 'ui-ux-design-uk',
+    title: 'Remote UI/UX Design Jobs in UK',
+    metaDescription: 'Browse remote UI/UX design jobs from UK companies. Find user interface and user experience designer positions at British startups and agencies.',
+    h1: 'Remote UI/UX Design Jobs in UK',
+    intro: 'Design for innovative British companies from anywhere. These UK-based UI/UX roles offer competitive packages and the chance to work with world-class brands.',
+    faqs: [
+      { question: 'What are typical UK UI/UX designer salaries?', answer: 'UK UI/UX designers earn £45,000-£85,000 typically, with London-based companies often paying 20-30% more. Senior roles can exceed £100,000.' },
+      { question: 'Can non-UK residents apply for UK remote jobs?', answer: 'Many UK companies hire internationally, though some may require right-to-work in the UK. Remote-first companies are often more flexible.' },
+      { question: 'What design tools are popular in UK companies?', answer: 'Figma dominates the UK design scene, with Sketch still used in some agencies. Proficiency in prototyping tools like Principle is a plus.' },
+    ],
+  },
+  'product-design-europe': {
+    jobTypeSlug: 'product-design',
+    regionSlug: 'europe',
+    slug: 'product-design-europe',
+    title: 'Remote Product Design Jobs in Europe',
+    metaDescription: 'Discover remote product design jobs at European companies. Find product designer roles at startups across Germany, France, Netherlands, and more.',
+    h1: 'Remote Product Design Jobs in Europe',
+    intro: 'Join the European tech scene as a remote product designer. From Berlin to Amsterdam, these companies offer great work-life balance and competitive compensation.',
+    faqs: [
+      { question: 'Which European countries have the most product design jobs?', answer: 'Germany, Netherlands, UK, and France lead in product design opportunities. Berlin, Amsterdam, and London are major tech hubs.' },
+      { question: 'What languages are required for European product design jobs?', answer: 'English is typically sufficient for international companies. Local language skills are a bonus but rarely required for design roles.' },
+      { question: 'How do European design salaries compare to US?', answer: 'European salaries are typically lower in raw numbers (€50,000-€100,000) but often come with better benefits, more vacation, and lower living costs.' },
+    ],
+  },
+  'graphic-design-usa': {
+    jobTypeSlug: 'graphic-design',
+    regionSlug: 'usa',
+    slug: 'graphic-design-usa',
+    title: 'Remote Graphic Design Jobs in USA',
+    metaDescription: 'Find remote graphic design jobs at US companies. Browse graphic designer positions in brand design, marketing, and visual communications.',
+    h1: 'Remote Graphic Design Jobs in USA',
+    intro: 'Create stunning visuals for American brands from anywhere. These US-based graphic design roles span agencies, startups, and enterprise companies.',
+    faqs: [
+      { question: 'What types of graphic design work are most in demand in the US?', answer: 'Brand identity, marketing collateral, social media graphics, and packaging design are highly sought after. Digital-first skills are increasingly important.' },
+      { question: 'What is the salary range for remote graphic designers in the US?', answer: 'Remote graphic designers earn $50,000-$100,000+ depending on experience and specialization. Senior and specialized roles command higher rates.' },
+      { question: 'Do US graphic design jobs require specific software skills?', answer: 'Adobe Creative Suite proficiency is essential. Figma skills are increasingly valued. Motion graphics capabilities (After Effects) are a strong differentiator.' },
+    ],
+  },
+  'ui-ux-design-worldwide': {
+    jobTypeSlug: 'ui-ux-design',
+    regionSlug: 'worldwide',
+    slug: 'ui-ux-design-worldwide',
+    title: 'Worldwide Remote UI/UX Design Jobs',
+    metaDescription: 'Browse fully remote UI/UX design jobs open worldwide. Find global positions at distributed companies with no location restrictions.',
+    h1: 'Worldwide Remote UI/UX Design Jobs',
+    intro: 'Work from anywhere in the world as a UI/UX designer. These fully distributed companies hire globally and embrace async-first culture.',
+    faqs: [
+      { question: 'What does "worldwide" mean for remote UI/UX jobs?', answer: 'Worldwide positions have no geographic restrictions - you can work from any country. These are typically at fully distributed, async-friendly companies.' },
+      { question: 'How is compensation handled for worldwide remote positions?', answer: 'Varies by company: some pay US-equivalent rates globally, others adjust for local cost of living, and some use standardized global pay bands.' },
+      { question: 'What challenges come with worldwide remote UI/UX work?', answer: 'Main challenges include timezone coordination for meetings, async communication skills, and potentially complex tax situations. Strong written communication is essential.' },
+    ],
+  },
+}
+
+export const combinationSlugs = Object.keys(combinationPages)
+
 // Helper to get all slugs for static generation
 export const jobTypeSlugs = Object.keys(jobTypePages)
 export const regionalSlugs = Object.keys(regionalPages)

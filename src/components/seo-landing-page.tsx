@@ -147,9 +147,10 @@ interface SEOLandingPageProps {
   pageType: 'jobType' | 'regional'
   faqs?: FAQ[]
   breadcrumbLabel: string
+  parentPage?: { label: string; href: string }
 }
 
-export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageType, faqs, breadcrumbLabel }: SEOLandingPageProps) {
+export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageType, faqs, breadcrumbLabel, parentPage }: SEOLandingPageProps) {
   return (
     <div className="bg-neutral-50 min-h-screen">
       <div className="max-w-6xl mx-auto px-8 py-16">
@@ -162,12 +163,25 @@ export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageT
               </Link>
             </li>
             <li className="text-neutral-300">/</li>
-            <li>
-              <Link href="/" className="hover:text-neutral-900 transition-colors">
-                Remote Design Jobs
-              </Link>
-            </li>
-            <li className="text-neutral-300">/</li>
+            {parentPage ? (
+              <>
+                <li>
+                  <Link href={parentPage.href} className="hover:text-neutral-900 transition-colors">
+                    {parentPage.label}
+                  </Link>
+                </li>
+                <li className="text-neutral-300">/</li>
+              </>
+            ) : (
+              <>
+                <li>
+                  <Link href="/" className="hover:text-neutral-900 transition-colors">
+                    Remote Design Jobs
+                  </Link>
+                </li>
+                <li className="text-neutral-300">/</li>
+              </>
+            )}
             <li className="text-neutral-900 font-medium">
               {breadcrumbLabel}
             </li>
