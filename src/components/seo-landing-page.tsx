@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useState } from 'react'
 import { generateJobSlug } from '@/lib/slug'
-import { jobTypePages, jobTypeSlugs, regionalPages, regionalSlugs } from '@/config/seo-pages'
 
 // Helper functions
 const getInitials = (company: string) => company.substring(0, 2).toUpperCase()
@@ -299,50 +298,6 @@ export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageT
         {faqs && faqs.length > 0 && (
           <FAQSection faqs={faqs} />
         )}
-
-        {/* Related Pages - Internal Linking */}
-        <div className="border-t border-neutral-200 pt-12">
-          <h2 className="text-xl font-medium text-neutral-900 mb-6">Explore More Remote Design Jobs</h2>
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Job Type Pages */}
-            <div>
-              <h3 className="text-sm font-medium text-neutral-700 mb-3">By Specialty</h3>
-              <div className="flex flex-wrap gap-2">
-                {jobTypeSlugs.filter(slug => pageType !== 'jobType' || slug !== currentSlug).slice(0, 6).map(slug => {
-                  const p = jobTypePages[slug]
-                  return (
-                    <Link
-                      key={slug}
-                      href={`/remote-${slug}-jobs`}
-                      className="px-3 py-1.5 text-sm text-neutral-600 bg-white rounded-md border border-neutral-200 hover:border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] transition-all"
-                    >
-                      {p.title.replace('Remote ', '').replace(' Jobs', '')}
-                    </Link>
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* Regional Pages */}
-            <div>
-              <h3 className="text-sm font-medium text-neutral-700 mb-3">By Region</h3>
-              <div className="flex flex-wrap gap-2">
-                {regionalSlugs.filter(slug => pageType !== 'regional' || slug !== currentSlug).slice(0, 6).map(slug => {
-                  const p = regionalPages[slug]
-                  return (
-                    <Link
-                      key={slug}
-                      href={`/remote-design-jobs-${slug}`}
-                      className="px-3 py-1.5 text-sm text-neutral-600 bg-white rounded-md border border-neutral-200 hover:border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] transition-all"
-                    >
-                      {p.title.replace('Remote Design Jobs in ', '').replace('Worldwide Remote Design Jobs', 'Worldwide')}
-                    </Link>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   )
