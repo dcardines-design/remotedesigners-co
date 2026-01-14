@@ -2,7 +2,7 @@
 
 export interface NormalizedJob {
   id: string
-  source: 'remotive' | 'remoteok' | 'arbeitnow' | 'jsearch' | 'himalayas' | 'jobicy' | 'greenhouse' | 'lever' | 'ashby' | 'adzuna' | 'authenticjobs' | 'workingnomads' | 'themuse'
+  source: 'remotive' | 'remoteok' | 'arbeitnow' | 'jsearch' | 'himalayas' | 'jobicy' | 'greenhouse' | 'lever' | 'ashby' | 'adzuna' | 'authenticjobs' | 'workingnomads' | 'themuse' | 'glints' | 'tokyodev' | 'nodeflairsg'
   title: string
   company: string
   company_logo?: string
@@ -1470,6 +1470,290 @@ export async function fetchAdzunaJobs(): Promise<NormalizedJob[]> {
   return deduped
 }
 
+// ============ GLINTS API (Southeast Asia) ============
+// Major job board in SEA (Singapore, Indonesia, Malaysia, Vietnam, Taiwan)
+// Public API endpoint for job listings
+
+interface GlintsJob {
+  id: string
+  title: string
+  companyName: string
+  companyLogo?: string
+  city?: { name: string }
+  country?: { name: string }
+  salaryMin?: number
+  salaryMax?: number
+  salaryCurrency?: string
+  description: string
+  createdAt: string
+  links?: { web: string }
+}
+
+export async function fetchGlintsJobs(): Promise<NormalizedJob[]> {
+  console.log('Fetching jobs from Glints...')
+  const allJobs: NormalizedJob[] = []
+
+  try {
+    // Search for design-related jobs
+    const searchQueries = ['designer', 'ux', 'ui', 'graphic design', 'product design']
+
+    for (const query of searchQueries) {
+      const response = await fetch(
+        `https://glints.com/api/jobs?keyword=${encodeURIComponent(query)}&limit=50&offset=0&includeExternalJobs=false`,
+        {
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'RemoteDesigners.co Job Aggregator'
+          }
+        }
+      )
+
+      if (!response.ok) {
+        console.error(`Glints API error for ${query}:`, response.status)
+        continue
+      }
+
+      const data = await response.json()
+      const jobs: GlintsJob[] = data.data || data.jobs || []
+
+      for (const job of jobs) {
+        const title = job.title || ''
+        if (!isDesignJob(title)) continue
+
+        // Build location string
+        const locationParts = []
+        if (job.city?.name) locationParts.push(job.city.name)
+        if (job.country?.name) locationParts.push(job.country.name)
+        const location = locationParts.length > 0 ? locationParts.join(', ') : 'Southeast Asia'
+
+        // Check if remote
+        const isRemote = title.toLowerCase().includes('remote') ||
+          job.description?.toLowerCase().includes('remote') ||
+          location.toLowerCase().includes('remote')
+
+        // Build salary text
+        let salaryText: string | undefined
+        if (job.salaryMin && job.salaryMax) {
+          const currency = job.salaryCurrency || 'SGD'
+          salaryText = `${currency} ${job.salaryMin.toLocaleString()} - ${job.salaryMax.toLocaleString()}`
+        }
+
+        allJobs.push({
+          id: `glints-${job.id}`,
+          source: 'glints' as const,
+          title: title,
+          company: job.companyName || 'Unknown',
+          company_logo: job.companyLogo || getClearbitLogoUrl(job.companyName || ''),
+          location: isRemote ? `Remote (${location})` : location,
+          salary_text: salaryText,
+          salary_min: job.salaryMin,
+          salary_max: job.salaryMax,
+          description: job.description || '',
+          job_type: 'full-time',
+          experience_level: parseExperienceLevel(title),
+          skills: filterSkills(extractSkills(job.description || '')),
+          apply_url: job.links?.web || `https://glints.com/job/${job.id}`,
+          posted_at: job.createdAt || new Date().toISOString(),
+          is_featured: false,
+        })
+      }
+
+      // Small delay between requests
+      await new Promise(resolve => setTimeout(resolve, 200))
+    }
+  } catch (error) {
+    console.error('Glints fetch error:', error)
+  }
+
+  // Deduplicate
+  const seen = new Set<string>()
+  const deduped = allJobs.filter(job => {
+    if (seen.has(job.id)) return false
+    seen.add(job.id)
+    return true
+  })
+
+  console.log(`Glints: Found ${deduped.length} design jobs`)
+  return deduped
+}
+
+// ============ TOKYODEV RSS (Japan Remote Jobs) ============
+// English-friendly remote jobs in Japan
+
+export async function fetchTokyoDevJobs(): Promise<NormalizedJob[]> {
+  console.log('Fetching jobs from TokyoDev...')
+
+  try {
+    const response = await fetch('https://www.tokyodev.com/jobs.rss', {
+      headers: {
+        'Accept': 'application/rss+xml, application/xml, text/xml',
+        'User-Agent': 'RemoteDesigners.co Job Aggregator'
+      }
+    })
+
+    if (!response.ok) {
+      console.error('TokyoDev RSS error:', response.status)
+      return []
+    }
+
+    const xml = await response.text()
+    const items: NormalizedJob[] = []
+    const itemRegex = /<item>([\s\S]*?)<\/item>/g
+    let match
+
+    while ((match = itemRegex.exec(xml)) !== null) {
+      const itemXml = match[1]
+
+      const getTag = (tag: string): string => {
+        const tagMatch = itemXml.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`))
+        return tagMatch ? extractFromCDATA(tagMatch[1]) : ''
+      }
+
+      const title = getTag('title')
+      const link = getTag('link')
+      const pubDate = getTag('pubDate')
+      const description = getTag('description')
+      const guid = getTag('guid')
+
+      // TokyoDev job titles are often "Job Title at Company"
+      const atMatch = title.match(/^(.+?)\s+at\s+(.+)$/i)
+      const jobTitle = atMatch ? atMatch[1].trim() : title
+      const company = atMatch ? atMatch[2].trim() : 'Unknown'
+
+      // Only include design jobs
+      if (!isDesignJob(jobTitle)) continue
+
+      items.push({
+        id: `tokyodev-${Buffer.from(guid || link).toString('base64').slice(0, 20)}`,
+        source: 'tokyodev' as const,
+        title: jobTitle,
+        company: company,
+        company_logo: company !== 'Unknown' ? getClearbitLogoUrl(company) : undefined,
+        location: 'Remote (Japan)',
+        description: description.replace(/<[^>]*>/g, '').slice(0, 2000),
+        job_type: 'full-time',
+        experience_level: parseExperienceLevel(jobTitle),
+        skills: filterSkills(extractSkills(description)),
+        apply_url: link,
+        posted_at: parseRSSDate(pubDate),
+        is_featured: false,
+      })
+    }
+
+    console.log(`TokyoDev: Found ${items.length} design jobs`)
+    return items
+  } catch (error) {
+    console.error('TokyoDev fetch error:', error)
+    return []
+  }
+}
+
+// ============ NODEFLAIR API (Singapore Tech Jobs) ============
+// Major tech job board in Singapore
+
+interface NodeFlairJob {
+  id: string
+  title: string
+  company: {
+    name: string
+    logo?: string
+  }
+  location?: string
+  salary?: {
+    min?: number
+    max?: number
+    currency?: string
+  }
+  description: string
+  createdAt: string
+  url?: string
+  jobType?: string
+}
+
+export async function fetchNodeFlairJobs(): Promise<NormalizedJob[]> {
+  console.log('Fetching jobs from NodeFlair...')
+  const allJobs: NormalizedJob[] = []
+
+  try {
+    // NodeFlair has a public jobs page we can scrape via their API
+    const searchQueries = ['designer', 'ux', 'ui', 'product design']
+
+    for (const query of searchQueries) {
+      const response = await fetch(
+        `https://nodeflair.com/api/v2/jobs?query=${encodeURIComponent(query)}&page=1&sort_by=date`,
+        {
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'RemoteDesigners.co Job Aggregator'
+          }
+        }
+      )
+
+      if (!response.ok) {
+        console.error(`NodeFlair API error for ${query}:`, response.status)
+        continue
+      }
+
+      const data = await response.json()
+      const jobs: NodeFlairJob[] = data.jobs || data.data || []
+
+      for (const job of jobs) {
+        const title = job.title || ''
+        if (!isDesignJob(title)) continue
+
+        const companyName = job.company?.name || 'Unknown'
+        const location = job.location || 'Singapore'
+
+        // Check if remote
+        const isRemote = location.toLowerCase().includes('remote') ||
+          title.toLowerCase().includes('remote')
+
+        // Build salary text
+        let salaryText: string | undefined
+        if (job.salary?.min && job.salary?.max) {
+          const currency = job.salary.currency || 'SGD'
+          salaryText = `${currency} ${job.salary.min.toLocaleString()} - ${job.salary.max.toLocaleString()}`
+        }
+
+        allJobs.push({
+          id: `nodeflair-${job.id}`,
+          source: 'nodeflairsg' as const,
+          title: title,
+          company: companyName,
+          company_logo: job.company?.logo || getClearbitLogoUrl(companyName),
+          location: isRemote ? `Remote (${location})` : location,
+          salary_text: salaryText,
+          salary_min: job.salary?.min,
+          salary_max: job.salary?.max,
+          description: job.description || '',
+          job_type: job.jobType?.toLowerCase() || 'full-time',
+          experience_level: parseExperienceLevel(title),
+          skills: filterSkills(extractSkills(job.description || '')),
+          apply_url: job.url || `https://nodeflair.com/jobs/${job.id}`,
+          posted_at: job.createdAt || new Date().toISOString(),
+          is_featured: false,
+        })
+      }
+
+      // Small delay between requests
+      await new Promise(resolve => setTimeout(resolve, 200))
+    }
+  } catch (error) {
+    console.error('NodeFlair fetch error:', error)
+  }
+
+  // Deduplicate
+  const seen = new Set<string>()
+  const deduped = allJobs.filter(job => {
+    if (seen.has(job.id)) return false
+    seen.add(job.id)
+    return true
+  })
+
+  console.log(`NodeFlair: Found ${deduped.length} design jobs`)
+  return deduped
+}
+
 // ============ FETCH ALL JOBS ============
 
 export async function fetchAllJobs(): Promise<NormalizedJob[]> {
@@ -1490,6 +1774,10 @@ export async function fetchAllJobs(): Promise<NormalizedJob[]> {
     fetchAuthenticJobs(),
     fetchWorkingNomadsJobs(),
     fetchMuseJobs(),
+    // Asia job boards
+    fetchGlintsJobs(),
+    fetchTokyoDevJobs(),
+    fetchNodeFlairJobs(),
   ])
 
   // Extract successful results
@@ -1507,6 +1795,10 @@ export async function fetchAllJobs(): Promise<NormalizedJob[]> {
     authenticResult,
     nomadsResult,
     museResult,
+    // Asia
+    glintsResult,
+    tokyodevResult,
+    nodeflairResult,
   ] = results
 
   const remotiveJobs = remotiveResult.status === 'fulfilled' ? remotiveResult.value : []
@@ -1522,8 +1814,12 @@ export async function fetchAllJobs(): Promise<NormalizedJob[]> {
   const authenticJobs = authenticResult.status === 'fulfilled' ? authenticResult.value : []
   const nomadsJobs = nomadsResult.status === 'fulfilled' ? nomadsResult.value : []
   const museJobs = museResult.status === 'fulfilled' ? museResult.value : []
+  // Asia
+  const glintsJobs = glintsResult.status === 'fulfilled' ? glintsResult.value : []
+  const tokyodevJobs = tokyodevResult.status === 'fulfilled' ? tokyodevResult.value : []
+  const nodeflairJobs = nodeflairResult.status === 'fulfilled' ? nodeflairResult.value : []
 
-  console.log(`Fetched: Remotive(${remotiveJobs.length}), RemoteOK(${remoteokJobs.length}), Arbeitnow(${arbeitnowJobs.length}), JSearch(${jsearchJobs.length}), Himalayas(${himalayasJobs.length}), Jobicy(${jobicyJobs.length}), Greenhouse(${greenhouseJobs.length}), Lever(${leverJobs.length}), Ashby(${ashbyJobs.length}), Adzuna(${adzunaJobs.length}), Authentic(${authenticJobs.length}), Nomads(${nomadsJobs.length}), Muse(${museJobs.length})`)
+  console.log(`Fetched: Remotive(${remotiveJobs.length}), RemoteOK(${remoteokJobs.length}), Arbeitnow(${arbeitnowJobs.length}), JSearch(${jsearchJobs.length}), Himalayas(${himalayasJobs.length}), Jobicy(${jobicyJobs.length}), Greenhouse(${greenhouseJobs.length}), Lever(${leverJobs.length}), Ashby(${ashbyJobs.length}), Adzuna(${adzunaJobs.length}), Authentic(${authenticJobs.length}), Nomads(${nomadsJobs.length}), Muse(${museJobs.length}), Glints(${glintsJobs.length}), TokyoDev(${tokyodevJobs.length}), NodeFlair(${nodeflairJobs.length})`)
 
   // Combine all jobs
   const allJobs = [
@@ -1540,6 +1836,10 @@ export async function fetchAllJobs(): Promise<NormalizedJob[]> {
     ...authenticJobs,
     ...nomadsJobs,
     ...museJobs,
+    // Asia
+    ...glintsJobs,
+    ...tokyodevJobs,
+    ...nodeflairJobs,
   ]
 
   // Sort by posted date (newest first)
