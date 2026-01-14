@@ -102,6 +102,42 @@ interface FAQ {
   answer: string
 }
 
+function FAQSection({ faqs }: { faqs: FAQ[] }) {
+  const [openFaq, setOpenFaq] = useState<number>(0)
+
+  return (
+    <div className="mb-16">
+      <h2 className="text-2xl font-medium text-neutral-900 mb-8">Frequently Asked Questions</h2>
+      <div className="space-y-0">
+        {faqs.map((faq, index) => (
+          <div key={index} className="border-t border-neutral-200">
+            <button
+              onClick={() => setOpenFaq(openFaq === index ? -1 : index)}
+              className="w-full py-6 flex items-center justify-between text-left"
+            >
+              <span className="font-medium text-neutral-900">{faq.question}</span>
+              <div className="w-8 h-8 rounded-full border border-neutral-200 flex items-center justify-center flex-shrink-0">
+                {openFaq === index ? (
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 7H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7 3V11M3 7H11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                )}
+              </div>
+            </button>
+            {openFaq === index && (
+              <p className="pb-6 text-neutral-600 pr-12">{faq.answer}</p>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 interface SEOLandingPageProps {
   h1: string
   intro: string
@@ -247,32 +283,7 @@ export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageT
 
         {/* FAQ Section */}
         {faqs && faqs.length > 0 && (
-          <div className="mb-16">
-            <h2 className="text-2xl font-medium text-neutral-900 mb-6">Frequently Asked Questions</h2>
-            <div className="space-y-4">
-              {faqs.map((faq, index) => (
-                <details
-                  key={index}
-                  className="group border border-neutral-200 rounded-lg bg-white"
-                >
-                  <summary className="flex items-center justify-between cursor-pointer p-5 text-neutral-900 font-medium hover:bg-neutral-50 transition-colors rounded-lg">
-                    <span>{faq.question}</span>
-                    <svg
-                      className="w-5 h-5 text-neutral-400 transition-transform group-open:rotate-180"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </summary>
-                  <div className="px-5 pb-5 text-neutral-600">
-                    {faq.answer}
-                  </div>
-                </details>
-              ))}
-            </div>
-          </div>
+          <FAQSection faqs={faqs} />
         )}
 
         {/* Related Pages - Internal Linking */}
