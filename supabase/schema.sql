@@ -354,3 +354,29 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER update_auto_apply_sessions_timestamp
   BEFORE UPDATE ON auto_apply_sessions
   FOR EACH ROW EXECUTE FUNCTION update_auto_apply_session_timestamp();
+
+-- =====================================================
+-- Newsletter Subscribers
+-- =====================================================
+
+CREATE TABLE subscribers (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  email VARCHAR(255) NOT NULL UNIQUE,
+  is_active BOOLEAN DEFAULT TRUE,
+  frequency VARCHAR(20) DEFAULT 'daily', -- daily, weekly
+  preferences JSONB DEFAULT '{}', -- job type preferences, skills, etc.
+  last_email_sent_at TIMESTAMP WITH TIME ZONE,
+  unsubscribe_token UUID DEFAULT uuid_generate_v4(),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_subscribers_email ON subscribers(email);
+CREATE INDEX idx_subscribers_is_active ON subscribers(is_active);
+CREATE INDEX idx_subscribers_frequency ON subscribers(frequency);
+
+-- Allow public to subscribe (no auth required)
+ALTER TABLE subscribers ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can subscribe" ON subscribers FOR INSERT WITH CHECK (true);
+CREATE POLICY "Anyone can view by unsubscribe token" ON subscribers FOR SELECT USING (true);
+CREATE POLICY "Anyone can unsubscribe" ON subscribers FOR UPDATE USING (true);
