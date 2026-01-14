@@ -1,4 +1,7 @@
+'use client'
+
 import Link from 'next/link'
+import { useState } from 'react'
 import { generateJobSlug } from '@/lib/slug'
 import { jobTypePages, jobTypeSlugs, regionalPages, regionalSlugs } from '@/config/seo-pages'
 
@@ -8,6 +11,44 @@ const getInitials = (company: string) => company.substring(0, 2).toUpperCase()
 const getCompanyLogoUrl = (company: string): string => {
   const cleanName = company.toLowerCase().replace(/[^a-z0-9]/g, '').replace(/\s+/g, '')
   return `https://logo.clearbit.com/${cleanName}.com`
+}
+
+const getGoogleFaviconUrl = (company: string): string => {
+  const cleanName = company.toLowerCase().replace(/[^a-z0-9]/g, '').replace(/\s+/g, '')
+  return `https://www.google.com/s2/favicons?domain=${cleanName}.com&sz=128`
+}
+
+// Company logo component with fallback
+function CompanyLogo({ company, companyLogo }: { company: string; companyLogo?: string }) {
+  const [imgSrc, setImgSrc] = useState(companyLogo || getCompanyLogoUrl(company))
+  const [fallbackAttempted, setFallbackAttempted] = useState(false)
+  const [showInitials, setShowInitials] = useState(false)
+
+  const handleError = () => {
+    if (!fallbackAttempted) {
+      setFallbackAttempted(true)
+      setImgSrc(getGoogleFaviconUrl(company))
+    } else {
+      setShowInitials(true)
+    }
+  }
+
+  if (showInitials) {
+    return (
+      <span className="text-sm font-medium text-neutral-400">
+        {getInitials(company)}
+      </span>
+    )
+  }
+
+  return (
+    <img
+      src={imgSrc}
+      alt={company}
+      className="w-full h-full object-contain"
+      onError={handleError}
+    />
+  )
 }
 
 const toTitleCase = (str: string) =>
@@ -56,6 +97,11 @@ const cleanJobTitle = (title: string): string => {
   return cleaned.trim()
 }
 
+interface FAQ {
+  question: string
+  answer: string
+}
+
 interface SEOLandingPageProps {
   h1: string
   intro: string
@@ -63,12 +109,35 @@ interface SEOLandingPageProps {
   totalCount: number
   currentSlug: string
   pageType: 'jobType' | 'regional'
+  faqs?: FAQ[]
+  breadcrumbLabel: string
 }
 
-export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageType }: SEOLandingPageProps) {
+export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageType, faqs, breadcrumbLabel }: SEOLandingPageProps) {
   return (
     <div className="bg-neutral-50 min-h-screen">
       <div className="max-w-6xl mx-auto px-8 py-16">
+        {/* Breadcrumbs */}
+        <nav aria-label="Breadcrumb" className="mb-6">
+          <ol className="flex items-center gap-2 text-sm text-neutral-500">
+            <li>
+              <Link href="/" className="hover:text-neutral-900 transition-colors">
+                Home
+              </Link>
+            </li>
+            <li className="text-neutral-300">/</li>
+            <li>
+              <Link href="/" className="hover:text-neutral-900 transition-colors">
+                Remote Design Jobs
+              </Link>
+            </li>
+            <li className="text-neutral-300">/</li>
+            <li className="text-neutral-900 font-medium">
+              {breadcrumbLabel}
+            </li>
+          </ol>
+        </nav>
+
         {/* Hero Section */}
         <div className="mb-12">
           <div className="max-w-2xl">
@@ -107,11 +176,7 @@ export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageT
                   <div className={`absolute left-0 top-0 bottom-0 w-1 ${isNew ? 'bg-green-500' : 'bg-neutral-200'}`} />
                   <div className="flex gap-4 pl-3">
                     <div className="w-12 h-12 rounded-full bg-white border border-neutral-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                      <img
-                        src={job.company_logo || getCompanyLogoUrl(job.company)}
-                        alt={job.company}
-                        className="w-full h-full object-contain"
-                      />
+                      <CompanyLogo company={job.company} companyLogo={job.company_logo} />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-4 mb-1">
@@ -130,9 +195,22 @@ export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageT
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {job.job_type && (
-                          <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200">
+                          <Link
+                            href={`/?type=${job.job_type.toLowerCase()}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+                          >
                             {toTitleCase(job.job_type)}
-                          </span>
+                          </Link>
+                        )}
+                        {job.experience_level && (
+                          <Link
+                            href={`/?experience=${job.experience_level.toLowerCase()}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+                          >
+                            {toTitleCase(job.experience_level)}
+                          </Link>
                         )}
                         {salary && (
                           <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200">
@@ -140,10 +218,24 @@ export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageT
                           </span>
                         )}
                         {remote && (
-                          <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200">
+                          <Link
+                            href="/?remote_type=remote"
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+                          >
                             Remote
-                          </span>
+                          </Link>
                         )}
+                        {job.skills && job.skills.slice(0, 3).map((skill: string, index: number) => (
+                          <Link
+                            key={index}
+                            href={`/?skill=${encodeURIComponent(skill)}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+                          >
+                            {toTitleCase(skill)}
+                          </Link>
+                        ))}
                       </div>
                     </div>
                   </div>
@@ -152,6 +244,36 @@ export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageT
             })
           )}
         </div>
+
+        {/* FAQ Section */}
+        {faqs && faqs.length > 0 && (
+          <div className="mb-16">
+            <h2 className="text-2xl font-medium text-neutral-900 mb-6">Frequently Asked Questions</h2>
+            <div className="space-y-4">
+              {faqs.map((faq, index) => (
+                <details
+                  key={index}
+                  className="group border border-neutral-200 rounded-lg bg-white"
+                >
+                  <summary className="flex items-center justify-between cursor-pointer p-5 text-neutral-900 font-medium hover:bg-neutral-50 transition-colors rounded-lg">
+                    <span>{faq.question}</span>
+                    <svg
+                      className="w-5 h-5 text-neutral-400 transition-transform group-open:rotate-180"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </summary>
+                  <div className="px-5 pb-5 text-neutral-600">
+                    {faq.answer}
+                  </div>
+                </details>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Related Pages - Internal Linking */}
         <div className="border-t border-neutral-200 pt-12">

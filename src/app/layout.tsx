@@ -3,6 +3,7 @@ import { Inter, DM_Sans } from 'next/font/google'
 import './globals.css'
 import { Navbar } from '@/components/navbar'
 import { NewsletterBar } from '@/components/newsletter-bar'
+import { Footer } from '@/components/footer'
 
 const inter = Inter({ subsets: ['latin'] })
 const dmSans = DM_Sans({
@@ -123,6 +124,7 @@ export default function RootLayout({
         <main className="min-h-screen pb-16">
           {children}
         </main>
+        <Footer />
         <NewsletterBar />
       </body>
     </html>

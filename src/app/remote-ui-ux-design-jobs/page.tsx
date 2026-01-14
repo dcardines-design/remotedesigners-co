@@ -3,7 +3,9 @@ import { jobTypePages } from '@/config/seo-pages'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import { SEOLandingPage } from '@/components/seo-landing-page'
 
+const BASE_URL = 'https://remotedesigners.co'
 const page = jobTypePages['ui-ux-design']
+const pageUrl = `${BASE_URL}/remote-ui-ux-design-jobs`
 
 export const metadata: Metadata = {
   title: page.title,
@@ -14,8 +16,32 @@ export const metadata: Metadata = {
     type: 'website',
   },
   alternates: {
-    canonical: 'https://remotedesigners.co/remote-ui-ux-design-jobs',
+    canonical: pageUrl,
   },
+}
+
+function generateStructuredData() {
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: BASE_URL },
+      { '@type': 'ListItem', position: 2, name: 'Remote Design Jobs', item: BASE_URL },
+      { '@type': 'ListItem', position: 3, name: page.title, item: pageUrl },
+    ],
+  }
+
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: page.faqs.map(faq => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+    })),
+  }
+
+  return { breadcrumbSchema, faqSchema }
 }
 
 export default async function Page() {
@@ -30,14 +56,22 @@ export default async function Page() {
     .order('posted_at', { ascending: false })
     .limit(50)
 
+  const { breadcrumbSchema, faqSchema } = generateStructuredData()
+
   return (
-    <SEOLandingPage
-      h1={page.h1}
-      intro={page.intro}
-      jobs={jobs || []}
-      totalCount={count || 0}
-      currentSlug="ui-ux-design"
-      pageType="jobType"
-    />
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <SEOLandingPage
+        h1={page.h1}
+        intro={page.intro}
+        jobs={jobs || []}
+        totalCount={count || 0}
+        currentSlug="ui-ux-design"
+        pageType="jobType"
+        faqs={page.faqs}
+        breadcrumbLabel="UI/UX Design"
+      />
+    </>
   )
 }
