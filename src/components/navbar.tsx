@@ -1,10 +1,36 @@
 'use client'
 
 import Link from 'next/link'
+import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 
 export function Navbar() {
+  const [scrolled, setScrolled] = useState(false)
+  const pathname = usePathname()
+  const isHomePage = pathname === '/'
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50)
+    }
+
+    window.addEventListener('scroll', handleScroll)
+    handleScroll() // Check initial state
+
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  const isTransparent = isHomePage && !scrolled
+
   return (
-    <nav className="bg-neutral-50 border-b border-neutral-200 sticky top-0 z-50">
+    <nav
+      className={`sticky top-0 z-50 transition-all duration-150 border-b ${
+        isTransparent
+          ? 'border-transparent'
+          : 'border-neutral-200'
+      }`}
+      style={{ backgroundColor: isTransparent ? 'rgba(250,250,250,0)' : 'rgba(250,250,250,1)' }}
+    >
       <div className="max-w-6xl mx-auto px-8">
         <div className="flex justify-between items-center h-16">
           <Link href="/" className="font-medium text-neutral-900 text-lg tracking-tight">

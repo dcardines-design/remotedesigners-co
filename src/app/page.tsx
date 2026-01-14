@@ -485,8 +485,22 @@ function HomeContent() {
     <div className="bg-neutral-50 min-h-screen">
       <div className="max-w-6xl mx-auto px-8 py-16">
         {/* Hero Section */}
-        <div className="mb-16">
-          <div className="max-w-2xl mx-auto text-center">
+        <div className="mb-16 relative">
+          {/* Background Image */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-screen -mt-40 max-h-[480px] overflow-hidden pointer-events-none">
+            <img
+              src="/hero-bg.png"
+              alt=""
+              className="w-full h-auto opacity-[0.15]"
+            />
+            {/* Fade overlay - gradient from transparent to background color (bottom only) */}
+            <div
+              className="absolute inset-0"
+              style={{ background: 'linear-gradient(to bottom, rgba(250,250,250,0) 0%, rgba(250,250,250,0) 60%, rgba(250,250,250,1) 100%)' }}
+            />
+          </div>
+
+          <div className="max-w-2xl mx-auto text-center relative z-10">
             <div className="flex items-center justify-center gap-2 mb-10">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse-glow" />
               <span className="text-sm text-neutral-500">
@@ -496,7 +510,10 @@ function HomeContent() {
 
             <h1 className="text-6xl font-medium text-neutral-900 leading-tight mb-6">
               The{' '}
-              <span className="bg-gradient-primary bg-clip-text text-transparent">
+              <span
+                className="bg-clip-text text-transparent animate-gradient"
+                style={{ backgroundImage: 'linear-gradient(135deg, #22c55e 0%, #f97316 50%, #ea580c 100%)' }}
+              >
                 Best and Latest
               </span>
               <br />
