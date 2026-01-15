@@ -195,7 +195,7 @@ interface SEOLandingPageProps {
   jobs: any[]
   totalCount: number
   currentSlug: string
-  pageType: 'jobType' | 'regional'
+  pageType: 'jobType' | 'regional' | 'experienceLevel' | 'employmentType'
   faqs?: FAQ[]
   breadcrumbLabel: string
   parentPage?: { label: string; href: string }

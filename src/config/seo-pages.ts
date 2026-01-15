@@ -352,6 +352,179 @@ for (const jobType of allJobTypes) {
 
 export const combinationSlugs = Object.keys(combinationPages)
 
+// Experience Level Pages
+export interface ExperienceLevelPage {
+  slug: string
+  title: string
+  metaDescription: string
+  h1: string
+  intro: string
+  filterValue: string
+  faqs: FAQ[]
+}
+
+export const experienceLevelPages: Record<string, ExperienceLevelPage> = {
+  'entry-level': {
+    slug: 'entry-level',
+    title: 'Entry Level Design Jobs - No Experience Required',
+    metaDescription: 'Find entry level design jobs perfect for recent graduates and career changers. Browse junior designer positions that welcome candidates with no professional experience.',
+    h1: 'Entry Level Design Jobs',
+    intro: 'Start your design career with these entry-level positions. Perfect for recent graduates, bootcamp grads, and career changers looking to break into the design industry.',
+    filterValue: 'entry',
+    faqs: [
+      { question: 'What qualifies as an entry-level design job?', answer: 'Entry-level positions typically require 0-1 years of experience. They focus on your portfolio, potential, and willingness to learn rather than extensive work history.' },
+      { question: 'Do I need a degree for entry-level design jobs?', answer: 'Not necessarily. Many companies value a strong portfolio and relevant skills over formal education. Bootcamp graduates and self-taught designers are welcomed.' },
+      { question: 'What salary can I expect at entry level?', answer: 'Entry-level design salaries typically range from $45,000-$70,000 USD, depending on location and company size. Remote positions may vary based on your location.' },
+    ],
+  },
+  'junior-designer': {
+    slug: 'junior-designer',
+    title: 'Junior Designer Jobs - Remote Positions',
+    metaDescription: 'Browse junior designer jobs for early-career designers. Find remote positions with 1-3 years experience at companies investing in growing design talent.',
+    h1: 'Junior Designer Jobs',
+    intro: 'Take the next step in your design career. These junior designer positions offer mentorship, growth opportunities, and the chance to work on real products.',
+    filterValue: 'junior',
+    faqs: [
+      { question: 'What experience do junior designer roles require?', answer: 'Junior roles typically require 1-3 years of experience or equivalent project work. A solid portfolio showing your design process is essential.' },
+      { question: 'How do I grow from junior to mid-level?', answer: 'Focus on owning projects end-to-end, improving your craft, learning from senior designers, and building expertise in your area of interest.' },
+      { question: 'What should a junior designer portfolio include?', answer: 'Include 3-5 case studies showing your process, decisions, and outcomes. Personal projects and redesigns are valuable if you lack professional work.' },
+    ],
+  },
+  'mid-level-designer': {
+    slug: 'mid-level-designer',
+    title: 'Mid-Level Designer Jobs - Remote Opportunities',
+    metaDescription: 'Find mid-level designer jobs for experienced designers. Browse remote positions requiring 3-5 years experience at growing companies.',
+    h1: 'Mid-Level Designer Jobs',
+    intro: 'You\'ve built your foundation—now take on more ownership. These mid-level positions offer autonomy, interesting challenges, and room to grow into leadership.',
+    filterValue: 'mid',
+    faqs: [
+      { question: 'What is expected of mid-level designers?', answer: 'Mid-level designers work independently, own features or product areas, contribute to design systems, and may begin mentoring junior designers.' },
+      { question: 'What experience do mid-level roles require?', answer: 'Typically 3-5 years of professional experience with a track record of shipping products and collaborating with cross-functional teams.' },
+      { question: 'How do mid-level salaries compare?', answer: 'Mid-level designers typically earn $80,000-$120,000 USD, with higher compensation at well-funded startups and larger tech companies.' },
+    ],
+  },
+  'senior-designer': {
+    slug: 'senior-designer',
+    title: 'Senior Designer Jobs - Remote Positions',
+    metaDescription: 'Discover senior designer jobs at top companies. Find remote leadership positions for experienced designers with 5+ years of professional experience.',
+    h1: 'Senior Designer Jobs',
+    intro: 'Lead design at innovative companies. These senior positions offer the opportunity to shape product direction, mentor teams, and work on complex challenges.',
+    filterValue: 'senior',
+    faqs: [
+      { question: 'What do senior designers do differently?', answer: 'Senior designers lead projects, set design direction, mentor others, influence product strategy, and often work across multiple product areas or teams.' },
+      { question: 'What experience is needed for senior roles?', answer: 'Most senior positions require 5-8+ years of experience, though exceptional candidates with strong portfolios may qualify earlier.' },
+      { question: 'What is the salary range for senior designers?', answer: 'Senior designers typically earn $120,000-$180,000+ USD, with staff and principal levels earning even higher at top companies.' },
+    ],
+  },
+  'design-lead': {
+    slug: 'design-lead',
+    title: 'Design Lead Jobs - Leadership Positions',
+    metaDescription: 'Find design lead jobs combining hands-on design with team leadership. Browse remote positions for senior designers ready to lead teams and projects.',
+    h1: 'Design Lead Jobs',
+    intro: 'Bridge the gap between individual contribution and management. Design lead roles let you guide teams while staying close to the craft.',
+    filterValue: 'lead',
+    faqs: [
+      { question: 'What is the difference between senior designer and design lead?', answer: 'Design leads typically manage a small team or major project, set direction for others, and have more organizational influence while still doing hands-on design work.' },
+      { question: 'Do design leads manage people?', answer: 'It varies—some leads focus on project leadership without direct reports, while others manage 2-5 designers. Many roles blend both IC and management responsibilities.' },
+      { question: 'What skills do design leads need?', answer: 'Beyond strong design skills, leads need communication, project management, mentorship abilities, and the capacity to represent design in leadership discussions.' },
+    ],
+  },
+  'design-director': {
+    slug: 'design-director',
+    title: 'Design Director Jobs - Executive Design Roles',
+    metaDescription: 'Browse design director jobs at leading companies. Find executive-level remote positions shaping design vision and building world-class design teams.',
+    h1: 'Design Director Jobs',
+    intro: 'Shape the future of design organizations. Director-level roles focus on vision, strategy, team building, and elevating design across the company.',
+    filterValue: 'director',
+    faqs: [
+      { question: 'What do design directors do?', answer: 'Directors set design vision, build and manage teams, represent design at the executive level, establish processes, and ensure design quality across products.' },
+      { question: 'What experience do director roles require?', answer: 'Most director positions require 8-12+ years of experience including people management, with a track record of building teams and shipping successful products.' },
+      { question: 'What is the salary range for design directors?', answer: 'Design directors typically earn $180,000-$300,000+ USD, often with significant equity compensation at startups and tech companies.' },
+    ],
+  },
+}
+
+// Employment Type Pages
+export interface EmploymentTypePage {
+  slug: string
+  title: string
+  metaDescription: string
+  h1: string
+  intro: string
+  filterValue: string
+  faqs: FAQ[]
+}
+
+export const employmentTypePages: Record<string, EmploymentTypePage> = {
+  'full-time': {
+    slug: 'full-time',
+    title: 'Full-Time Remote Design Jobs',
+    metaDescription: 'Find full-time remote design jobs with benefits and stability. Browse permanent positions at companies offering competitive packages for designers.',
+    h1: 'Full-Time Remote Design Jobs',
+    intro: 'Find stable, full-time positions with benefits, equity, and career growth. These permanent roles offer the security of traditional employment with remote flexibility.',
+    filterValue: 'full-time',
+    faqs: [
+      { question: 'What benefits do full-time remote design jobs offer?', answer: 'Benefits typically include health insurance, 401k/retirement plans, paid time off, equity/stock options, equipment budgets, and professional development funds.' },
+      { question: 'Are full-time remote jobs truly remote?', answer: 'Most positions listed as remote are fully remote, though some may require occasional office visits or have timezone restrictions. Check each listing for specifics.' },
+      { question: 'How do salaries compare to in-office roles?', answer: 'Remote salaries are often comparable to in-office roles, though some companies adjust based on location. Many offer competitive rates regardless of where you live.' },
+    ],
+  },
+  'part-time': {
+    slug: 'part-time',
+    title: 'Part-Time Remote Design Jobs',
+    metaDescription: 'Discover part-time remote design jobs for flexible work schedules. Find 10-30 hour per week positions perfect for work-life balance.',
+    h1: 'Part-Time Remote Design Jobs',
+    intro: 'Balance work with life. These part-time design positions offer flexibility for parents, students, freelancers building their practice, or anyone seeking reduced hours.',
+    filterValue: 'part-time',
+    faqs: [
+      { question: 'How many hours are part-time design jobs?', answer: 'Part-time positions typically range from 10-30 hours per week. Some offer fixed schedules while others provide flexibility in when you work those hours.' },
+      { question: 'Do part-time design jobs offer benefits?', answer: 'Benefits vary—some part-time roles offer prorated benefits, while others are benefits-free. Contract and freelance arrangements are common for part-time work.' },
+      { question: 'Can part-time roles lead to full-time?', answer: 'Many part-time positions can convert to full-time as company needs grow or as a trial period before permanent employment.' },
+    ],
+  },
+  'contract': {
+    slug: 'contract',
+    title: 'Contract Design Jobs - Remote Opportunities',
+    metaDescription: 'Browse contract design jobs for project-based work. Find remote contract positions lasting 3-12 months at companies needing specialized design talent.',
+    h1: 'Contract Design Jobs',
+    intro: 'Take on focused projects with defined timelines. Contract roles offer higher rates, diverse experience, and flexibility between engagements.',
+    filterValue: 'contract',
+    faqs: [
+      { question: 'How long do design contracts typically last?', answer: 'Most contracts run 3-12 months, though some extend longer. Many contracts convert to full-time if there\'s mutual interest.' },
+      { question: 'What are contract design rates?', answer: 'Contract rates are typically 20-40% higher than equivalent salaries to account for lack of benefits. Senior designers often charge $75-150+/hour.' },
+      { question: 'Do contractors work with multiple clients?', answer: 'Most contracts are exclusive during their term, but some designers maintain multiple part-time contracts or do moonlighting with permission.' },
+    ],
+  },
+  'freelance': {
+    slug: 'freelance',
+    title: 'Freelance Design Jobs - Remote Projects',
+    metaDescription: 'Find freelance design jobs and remote projects. Browse opportunities for independent designers seeking client work and project-based income.',
+    h1: 'Freelance Design Jobs',
+    intro: 'Build your independent design practice. These freelance opportunities connect you with clients seeking talented designers for projects big and small.',
+    filterValue: 'freelance',
+    faqs: [
+      { question: 'What is the difference between freelance and contract?', answer: 'Freelancers typically work with multiple clients on shorter projects, while contractors usually work exclusively with one company for an extended period.' },
+      { question: 'How do freelance designers find clients?', answer: 'Beyond job boards, freelancers find work through referrals, portfolios, social media presence, communities, and platforms like Toptal or Contra.' },
+      { question: 'What should freelance designers charge?', answer: 'Rates vary widely based on experience and specialization. Project rates or day rates are common, ranging from $500-$2000+ per day for experienced designers.' },
+    ],
+  },
+  'internship': {
+    slug: 'internship',
+    title: 'Design Internships - Remote Opportunities',
+    metaDescription: 'Find remote design internships at top companies. Browse paid internship opportunities for students and early-career designers.',
+    h1: 'Design Internships',
+    intro: 'Launch your design career with hands-on experience. These internships offer mentorship, real projects, and often lead to full-time opportunities.',
+    filterValue: 'internship',
+    faqs: [
+      { question: 'Are remote design internships paid?', answer: 'Most legitimate design internships at tech companies are paid, often $25-50+/hour. Be cautious of unpaid internships, which may not provide valuable experience.' },
+      { question: 'How long do design internships last?', answer: 'Summer internships typically run 10-12 weeks. Some companies offer fall/spring internships or extended programs lasting 6 months.' },
+      { question: 'Can internships lead to full-time offers?', answer: 'Yes, many companies use internships as a pipeline for full-time hires. Strong performers often receive return offers before their internship ends.' },
+    ],
+  },
+}
+
 // Helper to get all slugs for static generation
 export const jobTypeSlugs = Object.keys(jobTypePages)
 export const regionalSlugs = Object.keys(regionalPages)
+export const experienceLevelSlugs = Object.keys(experienceLevelPages)
+export const employmentTypeSlugs = Object.keys(employmentTypePages)

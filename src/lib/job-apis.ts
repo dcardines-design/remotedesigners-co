@@ -1175,63 +1175,73 @@ const LEVER_COMPANIES = [
 
 export async function fetchLeverJobs(): Promise<NormalizedJob[]> {
   console.log('Fetching jobs from Lever boards...')
-  const allJobs: NormalizedJob[] = []
 
-  for (const company of LEVER_COMPANIES) {
-    try {
-      const response = await fetch(`https://api.lever.co/v0/postings/${company.slug}?mode=json`)
-      if (!response.ok) continue
+  // Fetch all companies in parallel for speed
+  const results = await Promise.allSettled(
+    LEVER_COMPANIES.map(async (company) => {
+      try {
+        const response = await fetch(`https://api.lever.co/v0/postings/${company.slug}?mode=json`)
+        if (!response.ok) return []
 
-      const jobs = await response.json()
-      if (!Array.isArray(jobs)) continue
+        const jobs = await response.json()
+        if (!Array.isArray(jobs)) return []
 
-      // Get company logo URL using Clearbit
-      const companyLogo = getClearbitLogoUrl(company.name)
+        // Get company logo URL using Clearbit
+        const companyLogo = getClearbitLogoUrl(company.name)
+        const companyJobs: NormalizedJob[] = []
 
-      for (const job of jobs) {
-        const title = job.text || ''
-        // Only include design-related jobs
-        if (!isDesignJob(title)) continue
+        for (const job of jobs) {
+          const title = job.text || ''
+          // Only include design-related jobs
+          if (!isDesignJob(title)) continue
 
-        // Extract location
-        let location = 'Remote'
-        if (job.categories?.location) {
-          location = job.categories.location
+          // Extract location
+          let location = 'Remote'
+          if (job.categories?.location) {
+            location = job.categories.location
+          }
+
+          // The apply URL is the Lever job page
+          const applyUrl = job.hostedUrl || job.applyUrl
+
+          // Get description from lists
+          let description = ''
+          if (job.descriptionPlain) {
+            description = job.descriptionPlain
+          } else if (job.lists) {
+            description = job.lists.map((list: any) =>
+              `**${list.text}**\n${list.content}`
+            ).join('\n\n')
+          }
+
+          companyJobs.push({
+            id: `lever-${company.slug}-${job.id}`,
+            source: 'lever' as any,
+            title: title,
+            company: company.name,
+            company_logo: companyLogo,
+            location: location,
+            description: htmlToStructuredText(description),
+            job_type: job.categories?.commitment?.toLowerCase() || 'full-time',
+            experience_level: parseExperienceLevel(title),
+            skills: filterSkills(extractSkills(description)),
+            apply_url: applyUrl,  // Direct apply URL!
+            posted_at: new Date(job.createdAt).toISOString(),
+            is_featured: false,
+          })
         }
-
-        // The apply URL is the Lever job page
-        const applyUrl = job.hostedUrl || job.applyUrl
-
-        // Get description from lists
-        let description = ''
-        if (job.descriptionPlain) {
-          description = job.descriptionPlain
-        } else if (job.lists) {
-          description = job.lists.map((list: any) =>
-            `**${list.text}**\n${list.content}`
-          ).join('\n\n')
-        }
-
-        allJobs.push({
-          id: `lever-${company.slug}-${job.id}`,
-          source: 'lever' as any,
-          title: title,
-          company: company.name,
-          company_logo: companyLogo,
-          location: location,
-          description: htmlToStructuredText(description),
-          job_type: job.categories?.commitment?.toLowerCase() || 'full-time',
-          experience_level: parseExperienceLevel(title),
-          skills: filterSkills(extractSkills(description)),
-          apply_url: applyUrl,  // Direct apply URL!
-          posted_at: new Date(job.createdAt).toISOString(),
-          is_featured: false,
-        })
+        return companyJobs
+      } catch (error) {
+        console.error(`Lever ${company.name} error:`, error)
+        return []
       }
-    } catch (error) {
-      console.error(`Lever ${company.name} error:`, error)
-    }
-  }
+    })
+  )
+
+  // Collect all jobs from successful fetches
+  const allJobs = results.flatMap(result =>
+    result.status === 'fulfilled' ? result.value : []
+  )
 
   console.log(`Lever: Found ${allJobs.length} design jobs`)
   return allJobs

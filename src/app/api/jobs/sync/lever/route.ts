@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { fetchLeverJobs } from '@/lib/job-apis'
 import { syncJobs } from '@/lib/sync-jobs'
 
+// Increase timeout for this route (Vercel Pro: up to 300s)
+export const maxDuration = 60
+
 async function handleSync() {
   try {
     const jobs = await fetchLeverJobs()

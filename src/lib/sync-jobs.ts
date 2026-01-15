@@ -1,5 +1,6 @@
 import { createAdminSupabaseClient } from '@/lib/supabase'
 import { NormalizedJob } from '@/lib/job-apis'
+import { postJobToTwitter } from '@/lib/twitter-service'
 
 export async function syncJobs(jobs: NormalizedJob[], sourceName: string) {
   console.log(`Starting ${sourceName} sync...`)
@@ -50,20 +51,35 @@ export async function syncJobs(jobs: NormalizedJob[], sourceName: string) {
   // Insert new jobs in batches
   let inserted = 0
   let skipped = 0
+  let tweeted = false
   const batchSize = 20
 
   for (let i = 0; i < jobsToInsert.length; i += batchSize) {
     const batch = jobsToInsert.slice(i, i + batchSize)
-    const { error } = await supabase.from('jobs').insert(batch)
+    const { data: insertedJobs, error } = await supabase
+      .from('jobs')
+      .insert(batch)
+      .select('id, title, company, location, salary_min, salary_max, salary_text')
+
     if (error) {
       console.error(`${sourceName} batch error:`, error.message)
       skipped += batch.length
     } else {
       inserted += batch.length
+
+      // Tweet one job per sync (to avoid rate limits)
+      if (!tweeted && insertedJobs && insertedJobs.length > 0) {
+        try {
+          await postJobToTwitter(insertedJobs[0])
+          tweeted = true
+        } catch (e) {
+          console.error('Twitter post failed:', e)
+        }
+      }
     }
   }
 
-  console.log(`${sourceName} sync complete: ${inserted} inserted, ${skipped} skipped`)
+  console.log(`${sourceName} sync complete: ${inserted} inserted, ${skipped} skipped${tweeted ? ', tweeted' : ''}`)
 
   return { source: sourceName, fetched: jobs.length, inserted, skipped }
 }

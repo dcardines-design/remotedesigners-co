@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import { generateJobSlug } from '@/lib/slug'
-import { jobTypeSlugs, regionalSlugs, combinationSlugs, combinationPages } from '@/config/seo-pages'
+import { jobTypeSlugs, regionalSlugs, combinationSlugs, combinationPages, experienceLevelPages, employmentTypePages } from '@/config/seo-pages'
 
 const BASE_URL = 'https://remotedesigners.co'
 
@@ -75,6 +75,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   })
 
+  // SEO Landing Pages - Experience Level
+  const experienceLevelLandingPages: MetadataRoute.Sitemap = Object.values(experienceLevelPages).map((page) => ({
+    url: `${BASE_URL}/${page.slug === 'entry-level' ? 'entry-level-design-jobs' : page.slug === 'junior-designer' ? 'junior-designer-jobs' : page.slug === 'mid-level-designer' ? 'mid-level-designer-jobs' : page.slug === 'senior-designer' ? 'senior-designer-jobs' : page.slug === 'design-lead' ? 'design-lead-jobs' : 'design-director-jobs'}`,
+    lastModified: new Date(),
+    changeFrequency: 'daily' as const,
+    priority: 0.85,
+  }))
+
+  // SEO Landing Pages - Employment Type
+  const employmentTypeLandingPages: MetadataRoute.Sitemap = Object.values(employmentTypePages).map((page) => ({
+    url: `${BASE_URL}/${page.slug === 'full-time' ? 'full-time-design-jobs' : page.slug === 'part-time' ? 'part-time-design-jobs' : page.slug === 'contract' ? 'contract-design-jobs' : page.slug === 'freelance' ? 'freelance-design-jobs' : 'design-internships'}`,
+    lastModified: new Date(),
+    changeFrequency: 'daily' as const,
+    priority: 0.85,
+  }))
+
   // Fetch all jobs for dynamic pages
   const { data: jobs, error } = await supabase
     .from('jobs')
@@ -95,5 +111,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }))
 
-  return [...staticPages, ...jobTypePages, ...regionalLandingPages, ...combinationLandingPages, ...jobPages]
+  return [...staticPages, ...jobTypePages, ...regionalLandingPages, ...combinationLandingPages, ...experienceLevelLandingPages, ...employmentTypeLandingPages, ...jobPages]
 }

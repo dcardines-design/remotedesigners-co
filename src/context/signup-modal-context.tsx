@@ -2,30 +2,54 @@
 
 import { createContext, useContext, useState, ReactNode } from 'react'
 import { SignupModal } from '@/components/ui/signup-modal'
+import { LoginModal } from '@/components/ui/login-modal'
 
-interface SignupModalContextType {
+interface AuthModalContextType {
   openSignupModal: () => void
   closeSignupModal: () => void
+  openLoginModal: () => void
+  closeLoginModal: () => void
 }
 
-const SignupModalContext = createContext<SignupModalContextType | undefined>(undefined)
+const AuthModalContext = createContext<AuthModalContextType | undefined>(undefined)
 
 export function SignupModalProvider({ children }: { children: ReactNode }) {
-  const [isOpen, setIsOpen] = useState(false)
+  const [isSignupOpen, setIsSignupOpen] = useState(false)
+  const [isLoginOpen, setIsLoginOpen] = useState(false)
 
-  const openSignupModal = () => setIsOpen(true)
-  const closeSignupModal = () => setIsOpen(false)
+  const openSignupModal = () => {
+    setIsLoginOpen(false)
+    setIsSignupOpen(true)
+  }
+  const closeSignupModal = () => setIsSignupOpen(false)
+
+  const openLoginModal = () => {
+    setIsSignupOpen(false)
+    setIsLoginOpen(true)
+  }
+  const closeLoginModal = () => setIsLoginOpen(false)
+
+  const handleSwitchToSignup = () => {
+    setIsLoginOpen(false)
+    setIsSignupOpen(true)
+  }
+
+  const handleSwitchToLogin = () => {
+    setIsSignupOpen(false)
+    setIsLoginOpen(true)
+  }
 
   return (
-    <SignupModalContext.Provider value={{ openSignupModal, closeSignupModal }}>
+    <AuthModalContext.Provider value={{ openSignupModal, closeSignupModal, openLoginModal, closeLoginModal }}>
       {children}
-      <SignupModal isOpen={isOpen} onClose={closeSignupModal} />
-    </SignupModalContext.Provider>
+      <SignupModal isOpen={isSignupOpen} onClose={closeSignupModal} onSwitchToLogin={handleSwitchToLogin} />
+      <LoginModal isOpen={isLoginOpen} onClose={closeLoginModal} onSwitchToSignup={handleSwitchToSignup} />
+    </AuthModalContext.Provider>
   )
 }
 
 export function useSignupModal() {
-  const context = useContext(SignupModalContext)
+  const context = useContext(AuthModalContext)
   if (!context) {
     throw new Error('useSignupModal must be used within SignupModalProvider')
   }

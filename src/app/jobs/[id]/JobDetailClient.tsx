@@ -734,7 +734,7 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
                   disabled={isSaving}
                   className={`flex items-center justify-center gap-2 w-full px-6 py-3 rounded-lg font-medium border transition-all ${
                     isSaved
-                      ? 'bg-neutral-900 text-white border-neutral-900 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3)]'
+                      ? 'bg-white text-neutral-700 border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]'
                       : 'bg-white text-neutral-700 border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.05)] hover:translate-y-[1px]'
                   } ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
@@ -742,8 +742,8 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
                     width="18"
                     height="18"
                     viewBox="0 0 24 24"
-                    fill={isSaved ? 'currentColor' : 'none'}
-                    stroke="currentColor"
+                    fill={isSaved ? '#ef4444' : 'none'}
+                    stroke={isSaved ? '#ef4444' : 'currentColor'}
                     strokeWidth="2"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -835,7 +835,7 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
           {/* Left Content Card */}
           <div className="bg-white border border-neutral-200 rounded-2xl p-12 w-1/2 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]">
             <h2 className="text-4xl font-medium text-neutral-900 text-left mb-10 font-dm-sans">
-              Land Your Dream Remote Design Job.
+              Land Your Dream<br />Remote Design Job
             </h2>
 
             <div className="space-y-5 mb-10">
@@ -853,7 +853,7 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
             </div>
 
             <div className="text-left">
-              <RainbowButton onClick={openSignupModal}>
+              <RainbowButton onClick={openSignupModal} fullWidth>
                 Unlock Full Access
               </RainbowButton>
 

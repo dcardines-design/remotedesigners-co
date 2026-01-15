@@ -5,13 +5,13 @@ import Link from 'next/link'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import { Input, RainbowButton } from '@/components/ui'
 
-interface SignupModalProps {
+interface LoginModalProps {
   isOpen: boolean
   onClose: () => void
-  onSwitchToLogin?: () => void
+  onSwitchToSignup: () => void
 }
 
-export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalProps) {
+export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProps) {
   const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
@@ -52,7 +52,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
     } else {
       setMessage({
         type: 'success',
-        text: 'Check your email for the magic link to create your account.',
+        text: 'Check your email for the magic link to sign in.',
       })
       setEmail('')
     }
@@ -82,8 +82,10 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
 
         {/* Header */}
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-medium text-neutral-900 tracking-tight">Create your account</h2>
-          <p className="mt-2 text-neutral-500">Start your journey to your dream design job</p>
+          <h2 className="text-2xl font-medium text-neutral-900 tracking-tight">
+            Welcome back <span className="inline-block animate-wave origin-[70%_70%]">👋</span>
+          </h2>
+          <p className="mt-2 text-neutral-500">Sign in to your account</p>
         </div>
 
         {/* Form */}
@@ -110,17 +112,17 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
           )}
 
           <RainbowButton type="submit" disabled={isLoading} fullWidth>
-            {isLoading ? 'Sending magic link...' : 'Get started'}
+            {isLoading ? 'Sending magic link...' : 'Send magic link'}
           </RainbowButton>
         </form>
 
         <p className="mt-6 text-center text-sm text-neutral-500">
-          We'll send you a magic link to create your account.<br />No password needed.
+          We'll send you a magic link to sign in instantly. No password needed.
         </p>
 
         <div className="mt-6 pt-6 border-t border-neutral-200">
           <p className="text-xs text-neutral-400 text-center">
-            By signing up, you agree to our<br />
+            By signing in, you agree to our<br />
             <Link href="/terms" className="text-neutral-600 hover:underline">
               Terms of Service
             </Link>{' '}
@@ -132,12 +134,12 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
         </div>
 
         <p className="mt-6 text-center text-neutral-500 text-sm">
-          Already have an account?{' '}
+          Don't have an account?{' '}
           <button
-            onClick={onSwitchToLogin || onClose}
+            onClick={onSwitchToSignup}
             className="text-neutral-900 font-medium hover:underline"
           >
-            Sign in
+            Sign up
           </button>
         </p>
       </div>

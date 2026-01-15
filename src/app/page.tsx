@@ -6,6 +6,9 @@ import Link from 'next/link'
 import { generateJobSlug } from '@/lib/slug'
 import { HeroBackground } from '@/components/hero-background'
 import { SocialProof, RainbowButton } from '@/components/ui'
+import { useSignupModal } from '@/context/signup-modal-context'
+import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
+import { toast } from 'sonner'
 
 // Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -434,6 +437,10 @@ function HomeContent() {
   const [totalPlatformJobs, setTotalPlatformJobs] = useState<number>(0)
   const [availableSkills, setAvailableSkills] = useState<{ skill: string; count: number }[]>([])
   const [newsletterVisible, setNewsletterVisible] = useState(true)
+  const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set())
+  const [savingJobId, setSavingJobId] = useState<string | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
+  const { openSignupModal } = useSignupModal()
 
   // Track newsletter bar visibility (respects 24h dismissal)
   useEffect(() => {
@@ -450,6 +457,69 @@ function HomeContent() {
     window.addEventListener('newsletter-visibility', handleVisibilityChange as EventListener)
     return () => window.removeEventListener('newsletter-visibility', handleVisibilityChange as EventListener)
   }, [])
+
+  // Check auth status and load saved jobs
+  useEffect(() => {
+    const checkAuthAndSavedJobs = async () => {
+      const supabase = createBrowserSupabaseClient()
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (user) {
+        setUserId(user.id)
+        const { data } = await supabase
+          .from('saved_jobs')
+          .select('job_id')
+          .eq('user_id', user.id)
+
+        if (data) {
+          setSavedJobIds(new Set(data.map(d => d.job_id)))
+        }
+      }
+    }
+    checkAuthAndSavedJobs()
+  }, [])
+
+  // Handle save/unsave job
+  const handleSaveJob = async (e: React.MouseEvent, jobId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!userId) {
+      openSignupModal()
+      return
+    }
+
+    setSavingJobId(jobId)
+    const supabase = createBrowserSupabaseClient()
+    const isSaved = savedJobIds.has(jobId)
+
+    try {
+      if (isSaved) {
+        await supabase
+          .from('saved_jobs')
+          .delete()
+          .eq('user_id', userId)
+          .eq('job_id', jobId)
+        setSavedJobIds(prev => {
+          const next = new Set(prev)
+          next.delete(jobId)
+          return next
+        })
+        toast.success('Job removed from saved')
+      } else {
+        await supabase
+          .from('saved_jobs')
+          .insert({ user_id: userId, job_id: jobId })
+        setSavedJobIds(prev => new Set(prev).add(jobId))
+        toast.success('Job saved! 🔖')
+      }
+    } catch (err) {
+      console.error('Failed to save job:', err)
+      toast.error('Failed to save job')
+    } finally {
+      setSavingJobId(null)
+    }
+  }
 
   // Initialize filters from URL
   // Collapsible filter sections
@@ -775,10 +845,10 @@ function HomeContent() {
                 <Link
                   key={job.id}
                   href={`/jobs/${generateJobSlug(job.title, job.company, job.id)}`}
-                  className="block border border-neutral-200 rounded-xl bg-white p-5 relative overflow-hidden hover:border-neutral-300 hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08),0px_1px_2px_0px_rgba(0,0,0,0.05)] transition-all duration-200 cursor-pointer"
+                  className="block border border-neutral-200 rounded-xl bg-white p-5 relative hover:border-neutral-300 hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08),0px_1px_2px_0px_rgba(0,0,0,0.05)] transition-all duration-200 cursor-pointer"
                 >
                   {/* Left border indicator */}
-                  <div className={`absolute left-0 top-0 bottom-0 w-1 ${isNew ? 'bg-green-500' : 'bg-neutral-200'}`} />
+                  <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl ${isNew ? 'bg-green-500' : 'bg-neutral-200'}`} />
 
                   <div className="flex gap-4 pl-3">
                     {/* Company Avatar */}
@@ -827,93 +897,191 @@ function HomeContent() {
                       </p>
 
                       <div className="flex items-end justify-between gap-4">
-                        <div className="flex flex-wrap gap-2 max-w-[70%]">
-                          {job.is_featured && (
-                            <a
-                              href="/?featured=true"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className="bg-yellow-400 text-neutral-900 text-xs font-medium px-2.5 py-1 rounded border border-yellow-500 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.15)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+                        {(() => {
+                          const MAX_CHIPS = 5
+                          const regionChip = getRegionChip(job.location)
+
+                          // Build array of all chips
+                          const allChips: { key: string; element: React.ReactNode }[] = []
+
+                          if (job.is_featured) {
+                            allChips.push({
+                              key: 'featured',
+                              element: (
+                                <a
+                                  href="/?featured=true"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="bg-yellow-400 text-neutral-900 text-xs font-medium px-2.5 py-1 rounded border border-yellow-500 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.15)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+                                >
+                                  Featured
+                                </a>
+                              )
+                            })
+                          }
+
+                          if (job.job_type) {
+                            allChips.push({
+                              key: 'job_type',
+                              element: (
+                                <a
+                                  href={`/?type=${job.job_type.toLowerCase()}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+                                >
+                                  {toTitleCase(job.job_type)}
+                                </a>
+                              )
+                            })
+                          }
+
+                          if (job.experience_level) {
+                            allChips.push({
+                              key: 'experience',
+                              element: (
+                                <a
+                                  href={`/?experience=${job.experience_level.toLowerCase()}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+                                >
+                                  {toTitleCase(job.experience_level)}
+                                </a>
+                              )
+                            })
+                          }
+
+                          if (regionChip) {
+                            allChips.push({
+                              key: 'region',
+                              element: (
+                                <a
+                                  href={`/?location=${encodeURIComponent(regionChip.value)}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+                                >
+                                  {regionChip.label}
+                                </a>
+                              )
+                            })
+                          }
+
+                          if (salary) {
+                            allChips.push({
+                              key: 'salary',
+                              element: (
+                                <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 cursor-default">
+                                  {salary}
+                                </span>
+                              )
+                            })
+                          }
+
+                          if (remote) {
+                            allChips.push({
+                              key: 'remote',
+                              element: (
+                                <a
+                                  href="/?remote_type=remote"
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+                                >
+                                  Remote
+                                </a>
+                              )
+                            })
+                          }
+
+                          if (job.skills) {
+                            job.skills.forEach((skill, index) => {
+                              allChips.push({
+                                key: `skill-${index}`,
+                                element: (
+                                  <a
+                                    href={`/?skill=${encodeURIComponent(skill)}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+                                  >
+                                    {toTitleCase(skill)}
+                                  </a>
+                                )
+                              })
+                            })
+                          }
+
+                          const visibleChips = allChips.slice(0, MAX_CHIPS)
+                          const hiddenChips = allChips.slice(MAX_CHIPS)
+                          const remainingCount = hiddenChips.length
+
+                          return (
+                            <div className="flex flex-wrap gap-2 max-w-[70%]">
+                              {visibleChips.map(chip => (
+                                <span key={chip.key}>{chip.element}</span>
+                              ))}
+                              {remainingCount > 0 && (
+                                <div className="relative group/chips">
+                                  <span className="bg-white text-neutral-400 text-xs px-2.5 py-1 rounded border border-neutral-200 cursor-default group-hover/chips:border-neutral-300 group-hover/chips:text-neutral-500 transition-all">
+                                    +{remainingCount}
+                                  </span>
+                                  <div className="absolute left-0 bottom-full mb-2.5 z-20 opacity-0 invisible group-hover/chips:opacity-100 group-hover/chips:visible transition-all duration-150">
+                                    <div className="bg-neutral-100 border border-neutral-200 rounded-lg shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08)] p-2 flex flex-wrap gap-2 min-w-[280px] max-w-[400px]">
+                                      {hiddenChips.map(chip => (
+                                        <span key={chip.key}>{chip.element}</span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })()}
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={(e) => handleSaveJob(e, job.id)}
+                            disabled={savingJobId === job.id}
+                            className={`flex-shrink-0 flex items-center justify-center w-8 h-8 rounded border transition-all ${
+                              savedJobIds.has(job.id)
+                                ? 'bg-white border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]'
+                                : 'bg-white border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.05)]'
+                            } ${savingJobId === job.id ? 'opacity-50' : ''}`}
+                          >
+                            <svg
+                              width="14"
+                              height="14"
+                              viewBox="0 0 24 24"
+                              fill={savedJobIds.has(job.id) ? '#ef4444' : 'none'}
+                              stroke={savedJobIds.has(job.id) ? '#ef4444' : '#737373'}
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
                             >
-                              Featured
-                            </a>
-                          )}
-                          {job.job_type && (
-                            <a
-                              href={`/?type=${job.job_type.toLowerCase()}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
-                            >
-                              {toTitleCase(job.job_type)}
-                            </a>
-                          )}
-                          {job.experience_level && (
-                            <a
-                              href={`/?experience=${job.experience_level.toLowerCase()}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
-                            >
-                              {toTitleCase(job.experience_level)}
-                            </a>
-                          )}
-                          {getRegionChip(job.location) && (
-                            <a
-                              href={`/?location=${encodeURIComponent(getRegionChip(job.location)!.value)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
-                            >
-                              {getRegionChip(job.location)!.label}
-                            </a>
-                          )}
-                          {salary && (
-                            <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 cursor-default">
-                              {salary}
-                            </span>
-                          )}
-                          {remote && (
-                            <a
-                              href="/?remote_type=remote"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
-                            >
-                              Remote
-                            </a>
-                          )}
-                          {job.skills && job.skills.slice(0, 3).map((skill, index) => (
-                            <a
-                              key={index}
-                              href={`/?skill=${encodeURIComponent(skill)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(e) => e.stopPropagation()}
-                              className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
-                            >
-                              {toTitleCase(skill)}
-                            </a>
-                          ))}
+                              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                            </svg>
+                          </button>
+                          <a
+                            href={job.apply_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white rounded border border-white/10 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3)] hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.3)] active:translate-y-[2px] active:shadow-none transition-all"
+                            style={{ backgroundImage: 'linear-gradient(165deg, #3a3a3a 0%, #1a1a1a 100%)' }}
+                          >
+                            Apply
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17L17 7M17 7H7M17 7v10" />
+                            </svg>
+                          </a>
                         </div>
-                        <a
-                          href={job.apply_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white rounded border border-white/10 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3)] hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.3)] active:translate-y-[2px] active:shadow-none transition-all"
-                          style={{ backgroundImage: 'linear-gradient(165deg, #3a3a3a 0%, #1a1a1a 100%)' }}
-                        >
-                          Apply
-                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17L17 7M17 7H7M17 7v10" />
-                          </svg>
-                        </a>
                       </div>
                     </div>
                   </div>

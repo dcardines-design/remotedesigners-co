@@ -5,6 +5,7 @@ import { Navbar } from '@/components/navbar'
 import { NewsletterBar } from '@/components/newsletter-bar'
 import { Footer } from '@/components/footer'
 import { SignupModalProvider } from '@/context/signup-modal-context'
+import { Toaster } from 'sonner'
 
 const inter = Inter({ subsets: ['latin'] })
 const dmSans = DM_Sans({
@@ -128,6 +129,9 @@ export default function RootLayout({
           </main>
           <Footer />
           <NewsletterBar />
+          <Toaster
+            position="bottom-right"
+          />
         </SignupModalProvider>
       </body>
     </html>

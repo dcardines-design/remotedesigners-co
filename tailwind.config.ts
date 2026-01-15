@@ -30,6 +30,7 @@ const config: Config = {
       },
       animation: {
         'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+        'wave': 'wave 2.5s ease-in-out infinite',
       },
       keyframes: {
         'pulse-glow': {
@@ -39,6 +40,16 @@ const config: Config = {
           '50%': {
             boxShadow: '0 0 8px 4px rgba(34, 197, 94, 0.6)',
           },
+        },
+        'wave': {
+          '0%': { transform: 'rotate(0deg)' },
+          '10%': { transform: 'rotate(14deg)' },
+          '20%': { transform: 'rotate(-8deg)' },
+          '30%': { transform: 'rotate(14deg)' },
+          '40%': { transform: 'rotate(-4deg)' },
+          '50%': { transform: 'rotate(10deg)' },
+          '60%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(0deg)' },
         },
       },
     },

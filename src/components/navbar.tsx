@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import type { User } from '@supabase/supabase-js'
-import { RainbowButton } from '@/components/ui'
+import { Button, RainbowButton } from '@/components/ui'
 import { useSignupModal } from '@/context/signup-modal-context'
 
 function UserDropdown({ email, onSignOut }: { email: string; onSignOut: () => void }) {
@@ -60,7 +60,7 @@ export function Navbar() {
   const [user, setUser] = useState<User | null>(null)
   const pathname = usePathname()
   const router = useRouter()
-  const { openSignupModal } = useSignupModal()
+  const { openSignupModal, openLoginModal } = useSignupModal()
   const isHomePage = pathname === '/'
   const isSEOPage = pathname?.startsWith('/remote-')
 
@@ -119,15 +119,15 @@ export function Navbar() {
               <UserDropdown email={user.email || ''} onSignOut={handleSignOut} />
             ) : (
               <>
-                <Link
-                  href="/login"
+                <button
+                  onClick={openLoginModal}
                   className="px-4 py-2 text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
                 >
                   Log in
-                </Link>
-                <RainbowButton onClick={openSignupModal} size="sm">
+                </button>
+                <Button onClick={openSignupModal} variant="secondary" size="sm">
                   Sign up
-                </RainbowButton>
+                </Button>
               </>
             )}
             <RainbowButton href="/post-job" size="sm">
