@@ -139,9 +139,15 @@ function generateEmailHTML(jobs: Job[], unsubscribeToken: string): string {
 }
 
 export async function GET(request: NextRequest) {
-  // Verify this is a legitimate cron request
-  if (process.env.CRON_SECRET && !verifyCronSecret(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  // Check for test mode - allows sending a test email without auth
+  const testEmail = request.nextUrl.searchParams.get('test')
+
+  // Skip auth check in test mode
+  if (!testEmail) {
+    // Verify this is a legitimate cron request
+    if (process.env.CRON_SECRET && !verifyCronSecret(request)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
   }
 
   try {
@@ -164,7 +170,51 @@ export async function GET(request: NextRequest) {
     }
 
     if (!jobs || jobs.length === 0) {
+      // In test mode, get recent jobs instead
+      if (testEmail) {
+        const { data: recentJobs } = await supabase
+          .from('jobs')
+          .select('id, title, company, company_logo, location, salary_min, salary_max, salary_text, job_type, posted_at')
+          .order('posted_at', { ascending: false })
+          .limit(10)
+
+        if (recentJobs && recentJobs.length > 0) {
+          // Send test email with recent jobs
+          if (!sesClient) {
+            return NextResponse.json({ error: 'AWS SES not configured' }, { status: 500 })
+          }
+          const fromEmail = process.env.SES_FROM_EMAIL || 'hello@remotedesigners.co'
+          const command = new SendEmailCommand({
+            Source: `RemoteDesigners.co <${fromEmail}>`,
+            Destination: { ToAddresses: [testEmail] },
+            Message: {
+              Subject: { Data: `[TEST] ${recentJobs.length} Remote Design Jobs 🎨`, Charset: 'UTF-8' },
+              Body: { Html: { Data: generateEmailHTML(recentJobs as Job[], 'test-token'), Charset: 'UTF-8' } },
+            },
+          })
+          await sesClient.send(command)
+          return NextResponse.json({ success: true, message: `Test email sent to ${testEmail}`, jobs: recentJobs.length })
+        }
+      }
       return NextResponse.json({ message: 'No new jobs to send', sent: 0 })
+    }
+
+    // In test mode, just send to the test email
+    if (testEmail) {
+      if (!sesClient) {
+        return NextResponse.json({ error: 'AWS SES not configured' }, { status: 500 })
+      }
+      const fromEmail = process.env.SES_FROM_EMAIL || 'hello@remotedesigners.co'
+      const command = new SendEmailCommand({
+        Source: `RemoteDesigners.co <${fromEmail}>`,
+        Destination: { ToAddresses: [testEmail] },
+        Message: {
+          Subject: { Data: `[TEST] ${jobs.length} Remote Design Jobs 🎨`, Charset: 'UTF-8' },
+          Body: { Html: { Data: generateEmailHTML(jobs as Job[], 'test-token'), Charset: 'UTF-8' } },
+        },
+      })
+      await sesClient.send(command)
+      return NextResponse.json({ success: true, message: `Test email sent to ${testEmail}`, jobs: jobs.length })
     }
 
     // Get active subscribers

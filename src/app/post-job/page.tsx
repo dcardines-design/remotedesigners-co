@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { Input } from '@/components/ui'
+import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 
 const JOB_TYPES = ['full-time', 'part-time', 'contract', 'freelance', 'internship']
 
@@ -55,6 +56,8 @@ function getInitials(company: string) {
 export default function PostJobPage() {
   const [loading, setLoading] = useState(false)
   const [logoError, setLogoError] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [form, setForm] = useState({
     title: '',
     company: '',
@@ -125,6 +128,55 @@ export default function PostJobPage() {
     setForm({ ...form, company: value })
   }
 
+  // Handle logo upload
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file')
+      return
+    }
+
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      alert('Image must be less than 2MB')
+      return
+    }
+
+    setUploading(true)
+    try {
+      const supabase = createBrowserSupabaseClient()
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
+
+      const { error: uploadError } = await supabase.storage
+        .from('company-logos')
+        .upload(fileName, file, { cacheControl: '3600', upsert: false })
+
+      if (uploadError) throw uploadError
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('company-logos')
+        .getPublicUrl(fileName)
+
+      setForm({ ...form, company_logo: publicUrl })
+      setLogoError(false)
+    } catch (error) {
+      console.error('Upload error:', error)
+      alert('Failed to upload logo. Please try again or use a URL instead.')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const removeLogo = () => {
+    setForm({ ...form, company_logo: '' })
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
   const salary = formatSalary(form.salary_min, form.salary_max)
 
   return (
@@ -173,13 +225,50 @@ export default function PostJobPage() {
                 value={form.company}
                 onChange={e => handleCompanyChange(e.target.value)}
               />
-              <Input
-                label="Company Logo URL"
-                type="url"
-                placeholder="https://..."
-                value={form.company_logo}
-                onChange={e => setForm({ ...form, company_logo: e.target.value })}
-              />
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Company Logo
+                </label>
+                {form.company_logo ? (
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-lg border border-neutral-200 overflow-hidden bg-white flex items-center justify-center">
+                      <img
+                        src={form.company_logo}
+                        alt="Logo preview"
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={removeLogo}
+                      className="text-sm text-red-500 hover:text-red-600 transition-colors"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <label className={`flex items-center justify-center gap-2 px-4 py-2.5 border border-neutral-200 rounded-lg cursor-pointer hover:border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.04)] transition-all ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      disabled={uploading}
+                      className="hidden"
+                    />
+                    {uploading ? (
+                      <span className="text-sm text-neutral-500">Uploading...</span>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span className="text-sm text-neutral-500">Upload logo</span>
+                      </>
+                    )}
+                  </label>
+                )}
+              </div>
             </div>
 
             <Input
