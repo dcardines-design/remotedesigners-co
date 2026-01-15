@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import Link from 'next/link'
 import { Input, Select } from '@/components/ui'
+import { SKILLS_BY_CATEGORY, ALL_SKILLS } from '@/lib/skills'
 
 const JOB_TYPES = ['full-time', 'part-time', 'contract', 'freelance', 'internship']
 
@@ -17,12 +18,6 @@ const inputStyles = `
   transition-all
 `
 const EXPERIENCE_LEVELS = ['entry', 'mid', 'senior', 'lead', 'executive']
-const COMMON_SKILLS = [
-  'Figma', 'Sketch', 'Adobe XD', 'Photoshop', 'Illustrator',
-  'UI Design', 'UX Design', 'Product Design', 'Brand Design',
-  'Design Systems', 'Prototyping', 'User Research', 'Wireframing',
-  'Motion Design', 'Interaction Design', 'Visual Design',
-]
 
 function toTitleCase(str: string) {
   return str.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
@@ -56,6 +51,7 @@ export default function PostJobPage() {
   const [loading, setLoading] = useState(false)
   const [logoError, setLogoError] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [customSkill, setCustomSkill] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [form, setForm] = useState({
     title: '',
@@ -90,6 +86,23 @@ export default function PostJobPage() {
         : [...prev.skills, skill],
     }))
   }
+
+  const addCustomSkill = () => {
+    const skill = customSkill.trim()
+    if (skill && !form.skills.includes(skill)) {
+      setForm(prev => ({ ...prev, skills: [...prev.skills, skill] }))
+      setCustomSkill('')
+    }
+  }
+
+  const handleCustomSkillKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      addCustomSkill()
+    }
+  }
+
+  // ALL_SKILLS imported from @/lib/skills for checking custom skills
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -255,13 +268,13 @@ export default function PostJobPage() {
                       className="hidden"
                     />
                     {uploading ? (
-                      <span className="text-sm text-neutral-500">Uploading...</span>
+                      <span className="text-neutral-400">Uploading...</span>
                     ) : (
                       <>
-                        <svg className="w-5 h-5 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className="w-4 h-4 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
-                        <span className="text-sm text-neutral-500">Upload logo</span>
+                        <span className="text-neutral-400">Upload logo</span>
                       </>
                     )}
                   </label>
@@ -338,24 +351,71 @@ export default function PostJobPage() {
           </div>
 
           {/* Skills */}
-          <div className="bg-white rounded-2xl border border-neutral-200 p-6 space-y-4">
-            <h2 className="text-lg font-medium text-neutral-900">Skills</h2>
-            <p className="text-sm text-neutral-500">Select relevant skills for this role</p>
-            <div className="flex flex-wrap gap-2">
-              {COMMON_SKILLS.map(skill => (
+          <div className="bg-white rounded-2xl border border-neutral-200 p-6 space-y-5">
+            <div>
+              <h2 className="text-lg font-medium text-neutral-900">Skills</h2>
+              <p className="text-sm text-neutral-500">Select relevant skills for this role</p>
+            </div>
+
+            {/* Skills by Category */}
+            {Object.entries(SKILLS_BY_CATEGORY).map(([category, skills]) => (
+              <div key={category}>
+                <p className="text-xs font-medium text-neutral-400 uppercase tracking-wide mb-2">{category}</p>
+                <div className="flex flex-wrap gap-2">
+                  {skills.map(skill => (
+                    <button
+                      key={skill}
+                      type="button"
+                      onClick={() => toggleSkill(skill)}
+                      className={`px-2.5 py-1 text-xs rounded border transition-all ${
+                        form.skills.includes(skill)
+                          ? 'bg-neutral-900 text-white border-neutral-900'
+                          : 'bg-white text-neutral-600 border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none'
+                      }`}
+                    >
+                      {skill}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            {/* Custom Skills */}
+            <div className="border-t border-neutral-100 pt-5">
+              <p className="text-xs font-medium text-neutral-400 uppercase tracking-wide mb-2">Add Custom Skills</p>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={customSkill}
+                  onChange={(e) => setCustomSkill(e.target.value)}
+                  onKeyDown={handleCustomSkillKeyDown}
+                  placeholder="Type a skill and press Enter"
+                  className={`${inputStyles} flex-1`}
+                />
                 <button
-                  key={skill}
                   type="button"
-                  onClick={() => toggleSkill(skill)}
-                  className={`px-2.5 py-1 text-xs rounded border transition-all ${
-                    form.skills.includes(skill)
-                      ? 'bg-neutral-900 text-white border-neutral-900'
-                      : 'bg-white text-neutral-600 border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none'
-                  }`}
+                  onClick={addCustomSkill}
+                  disabled={!customSkill.trim()}
+                  className="px-4 py-2.5 bg-neutral-900 text-white text-sm font-medium rounded-lg hover:bg-neutral-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {skill}
+                  Add
                 </button>
-              ))}
+              </div>
+              {/* Show custom skills that have been added */}
+              {form.skills.filter(s => !ALL_SKILLS.includes(s)).length > 0 && (
+                <div className="flex flex-wrap gap-2 mt-3">
+                  {form.skills.filter(s => !ALL_SKILLS.includes(s)).map(skill => (
+                    <button
+                      key={skill}
+                      type="button"
+                      onClick={() => toggleSkill(skill)}
+                      className="px-2.5 py-1 text-xs rounded border bg-neutral-900 text-white border-neutral-900 transition-all"
+                    >
+                      {skill} ×
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
