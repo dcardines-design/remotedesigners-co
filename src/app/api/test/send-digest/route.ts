@@ -1,3 +1,4 @@
+// Test endpoint for sending newsletter digest emails
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses'
