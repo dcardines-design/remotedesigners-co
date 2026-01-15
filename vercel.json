@@ -1,38 +1,6 @@
 {
   "crons": [
     {
-      "path": "/api/jobs/sync/remotive",
-      "schedule": "0 1 * * *"
-    },
-    {
-      "path": "/api/jobs/sync/remoteok",
-      "schedule": "0 2 * * *"
-    },
-    {
-      "path": "/api/jobs/sync/greenhouse?batch=1",
-      "schedule": "0 3 * * *"
-    },
-    {
-      "path": "/api/jobs/sync/greenhouse?batch=2",
-      "schedule": "0 4 * * *"
-    },
-    {
-      "path": "/api/jobs/sync/greenhouse?batch=3",
-      "schedule": "0 5 * * *"
-    },
-    {
-      "path": "/api/jobs/sync/lever",
-      "schedule": "0 6 * * *"
-    },
-    {
-      "path": "/api/jobs/sync/others",
-      "schedule": "0 7 * * *"
-    },
-    {
-      "path": "/api/jobs/sync/asia",
-      "schedule": "0 8 * * *"
-    },
-    {
       "path": "/api/cron/daily-digest",
       "schedule": "0 9 * * *"
     }
