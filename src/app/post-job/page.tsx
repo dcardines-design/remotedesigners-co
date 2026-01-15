@@ -324,9 +324,9 @@ export default function PostJobPage() {
 
           {/* Description */}
           <div className="bg-white rounded-2xl border border-neutral-200 p-6 space-y-4">
-            <label className="block text-sm font-medium text-neutral-700">
+            <h2 className="text-lg font-medium text-neutral-900">
               Job Description<span className="text-red-500"> *</span>
-            </label>
+            </h2>
             <textarea
               required
               rows={10}
@@ -347,10 +347,10 @@ export default function PostJobPage() {
                   key={skill}
                   type="button"
                   onClick={() => toggleSkill(skill)}
-                  className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
+                  className={`px-2.5 py-1 text-xs rounded border transition-all ${
                     form.skills.includes(skill)
-                      ? 'bg-neutral-900 text-white'
-                      : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                      ? 'bg-neutral-900 text-white border-neutral-900'
+                      : 'bg-white text-neutral-600 border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none'
                   }`}
                 >
                   {skill}
@@ -479,7 +479,7 @@ export default function PostJobPage() {
 
       {/* Preview Column */}
       <div className="w-80 flex-shrink-0 hidden lg:block">
-        <div className="sticky top-8">
+        <div className="sticky top-24">
           <p className="text-sm text-neutral-500 mb-3">Preview</p>
 
           {/* Job Card Preview */}
