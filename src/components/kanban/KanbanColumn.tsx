@@ -26,13 +26,14 @@ interface KanbanColumnProps {
   jobs: SavedJob[]
   color: string
   bgColor: string
+  onDeleteJob?: (savedJobId: string) => void
 }
 
-export function KanbanColumn({ id, title, jobs, color, bgColor }: KanbanColumnProps) {
+export function KanbanColumn({ id, title, jobs, color, bgColor, onDeleteJob }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id })
 
   return (
-    <div className="flex-shrink-0 w-72">
+    <div className="flex-shrink-0 flex-grow-0 w-72 min-w-[288px] max-w-[288px]">
       {/* Column Header */}
       <div className="flex items-center gap-2 mb-3">
         <span className={`px-2 py-0.5 text-[10px] font-medium tracking-wider rounded ${color} ${bgColor}`}>
@@ -45,12 +46,12 @@ export function KanbanColumn({ id, title, jobs, color, bgColor }: KanbanColumnPr
       <div
         ref={setNodeRef}
         className={`
-          h-[calc(100vh-320px)] rounded-2xl transition-colors duration-150 overflow-y-auto overflow-x-hidden
+          h-[calc(100vh-320px)] rounded-2xl transition-colors duration-150 overflow-auto
           ${isOver ? 'bg-neutral-200' : 'bg-neutral-100'}
         `}
       >
         <SortableContext items={jobs.map(j => j.savedJobId)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-2 p-2">
+          <div className="space-y-2 p-3">
             {jobs.map((job) => (
               <KanbanCard
                 key={job.savedJobId}
@@ -63,6 +64,7 @@ export function KanbanColumn({ id, title, jobs, color, bgColor }: KanbanColumnPr
                 job_type={job.job_type}
                 experience_level={job.experience_level}
                 skills={job.skills}
+                onDelete={onDeleteJob}
               />
             ))}
             {jobs.length === 0 && (

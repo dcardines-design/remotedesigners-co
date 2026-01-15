@@ -14,6 +14,7 @@ interface KanbanCardProps {
   job_type?: string
   experience_level?: string
   skills?: string[]
+  onDelete?: (id: string) => void
 }
 
 // Helper to convert to title case
@@ -39,7 +40,7 @@ const getGoogleFaviconUrl = (company: string): string => {
 
 const getInitials = (company: string) => company.substring(0, 2).toUpperCase()
 
-export function KanbanCard({ id, title, company, company_logo, location, apply_url, job_type, experience_level, skills }: KanbanCardProps) {
+export function KanbanCard({ id, title, company, company_logo, location, apply_url, job_type, experience_level, skills, onDelete }: KanbanCardProps) {
   const {
     attributes,
     listeners,
@@ -73,7 +74,7 @@ export function KanbanCard({ id, title, company, company_logo, location, apply_u
       {...listeners}
       className={`
         bg-white border border-neutral-200 rounded-xl p-3 cursor-grab active:cursor-grabbing
-        shadow-[0px_3px_0px_0px_rgba(0,0,0,0.08)] hover:border-neutral-300
+        shadow-[0px_3px_0px_0px_rgba(0,0,0,0.08)] hover:shadow-[0px_3px_0px_0px_rgba(0,0,0,0)] hover:border-neutral-300
         transition-all duration-200
         ${isDragging ? 'opacity-50 shadow-lg scale-105' : ''}
       `}
@@ -122,8 +123,8 @@ export function KanbanCard({ id, title, company, company_logo, location, apply_u
               <span className="bg-white text-neutral-400 text-[10px] px-2 py-0.5 rounded border border-neutral-200 cursor-default group-hover/chips:border-neutral-300 group-hover/chips:text-neutral-500 transition-all">
                 +{remainingCount}
               </span>
-              <div className="absolute left-0 bottom-full mb-1.5 z-20 opacity-0 invisible group-hover/chips:opacity-100 group-hover/chips:visible transition-all duration-150">
-                <div className="bg-neutral-100 border border-neutral-200 rounded-lg shadow-[0px_3px_0px_0px_rgba(0,0,0,0.08)] p-2 flex flex-wrap gap-1.5 min-w-[140px] max-w-[220px]">
+              <div className="absolute right-0 bottom-full mb-1.5 z-50 opacity-0 invisible group-hover/chips:opacity-100 group-hover/chips:visible transition-all duration-150">
+                <div className="bg-neutral-100 border border-neutral-200 rounded-lg shadow-[0px_3px_0px_0px_rgba(0,0,0,0.08)] p-2 flex flex-wrap gap-1.5 min-w-[140px] max-w-[200px]">
                   {hiddenChips.map((chip, i) => (
                     <span
                       key={i}
@@ -139,19 +140,45 @@ export function KanbanCard({ id, title, company, company_logo, location, apply_u
         </div>
       )}
 
-      {/* View Job Button */}
-      <a
-        href={apply_url}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={(e) => e.stopPropagation()}
-        onPointerDown={(e) => e.stopPropagation()}
-        className="mt-3 block"
-      >
-        <Button variant="secondary" size="sm" className="w-full !py-1.5 !text-xs">
-          View job
-        </Button>
-      </a>
+      {/* Action Buttons */}
+      <div className="flex gap-2 mt-3">
+        <a
+          href={apply_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={(e) => e.stopPropagation()}
+          className="flex-1"
+        >
+          <Button variant="secondary" size="sm" className="w-full !py-1.5 !text-xs">
+            View job
+          </Button>
+        </a>
+        {onDelete && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete(id)
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="flex-shrink-0 flex items-center justify-center w-8 h-8 rounded border bg-white border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.05)] hover:translate-y-[1px] transition-all"
+            title="Remove saved job"
+          >
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="#ef4444"
+              stroke="#ef4444"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+            </svg>
+          </button>
+        )}
+      </div>
     </div>
   )
 }

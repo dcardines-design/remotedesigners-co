@@ -12,7 +12,7 @@ import {
   DragStartEvent,
   DragEndEvent,
 } from '@dnd-kit/core'
-import { sortableKeyboardCoordinates } from '@dnd-kit/sortable'
+import { sortableKeyboardCoordinates, arrayMove } from '@dnd-kit/sortable'
 import { toast } from 'sonner'
 import { KanbanColumn, ColumnStatus } from './KanbanColumn'
 import { KanbanCard } from './KanbanCard'
@@ -70,6 +70,30 @@ export function KanbanBoard({ initialJobs }: KanbanBoardProps) {
     return jobs.filter(job => job.status === status)
   }
 
+  const handleDeleteJob = async (savedJobId: string) => {
+    const previousJobs = [...jobs]
+
+    // Optimistic update
+    setJobs(jobs.filter(j => j.savedJobId !== savedJobId))
+    toast.success('Job removed from saved')
+
+    try {
+      const response = await fetch('/api/saved-jobs', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ savedJobId }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete')
+      }
+    } catch (error) {
+      // Revert on error
+      setJobs(previousJobs)
+      toast.error('Failed to remove job')
+    }
+  }
+
   const handleDragStart = (event: DragStartEvent) => {
     const job = jobs.find(j => j.savedJobId === event.active.id)
     if (job) setActiveJob(job)
@@ -101,10 +125,21 @@ export function KanbanBoard({ initialJobs }: KanbanBoardProps) {
       targetStatus = targetJob.status
     }
 
-    // Don't update if same column
-    if (draggedJob.status === targetStatus) return
+    // Same column - reorder
+    if (draggedJob.status === targetStatus) {
+      const columnJobs = jobs.filter(j => j.status === targetStatus)
+      const oldIndex = columnJobs.findIndex(j => j.savedJobId === activeJobId)
+      const newIndex = columnJobs.findIndex(j => j.savedJobId === overId)
 
-    // Optimistic update
+      if (oldIndex !== newIndex && newIndex !== -1) {
+        const reorderedColumnJobs = arrayMove(columnJobs, oldIndex, newIndex)
+        const otherJobs = jobs.filter(j => j.status !== targetStatus)
+        setJobs([...otherJobs, ...reorderedColumnJobs])
+      }
+      return
+    }
+
+    // Different column - change status
     const previousJobs = [...jobs]
     setJobs(jobs.map(j =>
       j.savedJobId === activeJobId
@@ -142,8 +177,9 @@ export function KanbanBoard({ initialJobs }: KanbanBoardProps) {
       collisionDetection={closestCorners}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      autoScroll={false}
     >
-      <div className="flex gap-4 pb-4">
+      <div className="flex gap-4 pb-4" style={{ minWidth: 'max-content' }}>
         {COLUMNS.map(column => (
           <KanbanColumn
             key={column.id}
@@ -152,6 +188,7 @@ export function KanbanBoard({ initialJobs }: KanbanBoardProps) {
             jobs={getJobsByStatus(column.id)}
             color={column.color}
             bgColor={column.bgColor}
+            onDeleteJob={handleDeleteJob}
           />
         ))}
       </div>

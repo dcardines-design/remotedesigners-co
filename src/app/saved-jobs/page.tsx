@@ -145,7 +145,7 @@ export default function SavedJobsPage() {
             </svg>
             Back to jobs
           </Link>
-          <h1 className="text-3xl font-medium text-neutral-900">Saved Jobs</h1>
+          <h1 className="text-4xl font-semibold text-neutral-900">Saved Jobs</h1>
           <p className="text-neutral-500 mt-1">
             Drag jobs between columns to track your application progress
           </p>
@@ -169,8 +169,8 @@ export default function SavedJobsPage() {
             </Link>
           </div>
         ) : (
-          <div className="overflow-x-auto pb-4">
-            <div className="inline-flex">
+          <div className="overflow-x-auto pb-4 -mx-6">
+            <div className="px-6">
               <KanbanBoard initialJobs={jobs} />
             </div>
           </div>

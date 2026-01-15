@@ -125,3 +125,48 @@ export async function PATCH(request: NextRequest) {
     )
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = await createAuthSupabaseClient()
+
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    const { savedJobId } = await request.json()
+
+    if (!savedJobId) {
+      return NextResponse.json(
+        { error: 'savedJobId is required' },
+        { status: 400 }
+      )
+    }
+
+    // Delete the saved job
+    const { error } = await supabase
+      .from('saved_jobs')
+      .delete()
+      .eq('id', savedJobId)
+      .eq('user_id', user.id)
+
+    if (error) {
+      console.error('Error deleting saved job:', error)
+      throw error
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Saved jobs DELETE error:', error)
+    return NextResponse.json(
+      { error: 'Failed to delete saved job' },
+      { status: 500 }
+    )
+  }
+}

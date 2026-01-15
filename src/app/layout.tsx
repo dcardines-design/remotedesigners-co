@@ -131,6 +131,11 @@ export default function RootLayout({
           <NewsletterBar />
           <Toaster
             position="bottom-right"
+            toastOptions={{
+              style: {
+                padding: '12px 16px',
+              },
+            }}
           />
         </SignupModalProvider>
       </body>

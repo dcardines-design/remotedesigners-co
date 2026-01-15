@@ -21,11 +21,12 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20')
     const offset = (page - 1) * limit
 
-    // Build query
+    // Build query - featured jobs first, then by date
     let query = supabase
       .from('jobs')
       .select('*', { count: 'exact' })
       .eq('is_active', true)
+      .order('is_featured', { ascending: false })
       .order('posted_at', { ascending: false })
 
     // Apply filters

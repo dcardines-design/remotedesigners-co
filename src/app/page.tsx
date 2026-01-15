@@ -845,10 +845,16 @@ function HomeContent() {
                 <Link
                   key={job.id}
                   href={`/jobs/${generateJobSlug(job.title, job.company, job.id)}`}
-                  className="block border border-neutral-200 rounded-xl bg-white p-5 relative hover:border-neutral-300 hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08),0px_1px_2px_0px_rgba(0,0,0,0.05)] transition-all duration-200 cursor-pointer"
+                  className={`block border rounded-xl p-5 relative hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08),0px_1px_2px_0px_rgba(0,0,0,0.05)] transition-all duration-200 cursor-pointer ${
+                    job.is_featured
+                      ? 'bg-amber-50 border-amber-200 hover:border-amber-300'
+                      : 'bg-white border-neutral-200 hover:border-neutral-300'
+                  }`}
                 >
                   {/* Left border indicator */}
-                  <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl ${isNew ? 'bg-green-500' : 'bg-neutral-200'}`} />
+                  <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl ${
+                    job.is_featured ? 'bg-amber-400' : isNew ? 'bg-green-500' : 'bg-neutral-200'
+                  }`} />
 
                   <div className="flex gap-4 pl-3">
                     {/* Company Avatar */}
