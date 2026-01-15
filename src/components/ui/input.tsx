@@ -12,7 +12,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       <div className="w-full">
         {label && (
           <label className="block text-sm font-medium text-neutral-700 mb-2">
-            {label}
+            {label.endsWith(' *') ? (
+              <>
+                {label.slice(0, -2)}
+                <span className="text-red-500"> *</span>
+              </>
+            ) : (
+              label
+            )}
           </label>
         )}
         <input

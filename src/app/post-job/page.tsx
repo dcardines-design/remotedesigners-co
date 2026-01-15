@@ -211,7 +211,7 @@ export default function PostJobPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Job Type *
+                  Job Type<span className="text-red-500"> *</span>
                 </label>
                 <select
                   required
@@ -228,7 +228,7 @@ export default function PostJobPage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Experience Level *
+                  Experience Level<span className="text-red-500"> *</span>
                 </label>
                 <select
                   required
@@ -258,7 +258,7 @@ export default function PostJobPage() {
           {/* Description */}
           <div className="bg-white rounded-2xl border border-neutral-200 p-6 space-y-4">
             <label className="block text-sm font-medium text-neutral-700">
-              Job Description *
+              Job Description<span className="text-red-500"> *</span>
             </label>
             <textarea
               required
