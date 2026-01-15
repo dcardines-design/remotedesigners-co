@@ -2,8 +2,7 @@
 
 import { useState, useRef } from 'react'
 import Link from 'next/link'
-import { Input } from '@/components/ui'
-import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
+import { Input, Select } from '@/components/ui'
 
 const JOB_TYPES = ['full-time', 'part-time', 'contract', 'freelance', 'internship']
 
@@ -147,26 +146,25 @@ export default function PostJobPage() {
 
     setUploading(true)
     try {
-      const supabase = createBrowserSupabaseClient()
-      const fileExt = file.name.split('.').pop()
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`
+      const formData = new FormData()
+      formData.append('file', file)
 
-      const { error: uploadError } = await supabase.storage
-        .from('company-logos')
-        .upload(fileName, file, { cacheControl: '3600', upsert: false })
+      const response = await fetch('/api/upload-logo', {
+        method: 'POST',
+        body: formData,
+      })
 
-      if (uploadError) throw uploadError
+      const data = await response.json()
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('company-logos')
-        .getPublicUrl(fileName)
+      if (!response.ok) {
+        throw new Error(data.error || 'Upload failed')
+      }
 
-      setForm({ ...form, company_logo: publicUrl })
+      setForm({ ...form, company_logo: data.url })
       setLogoError(false)
     } catch (error) {
       console.error('Upload error:', error)
-      alert('Failed to upload logo. Please try again or use a URL instead.')
+      alert('Failed to upload logo. Please try again.')
     } finally {
       setUploading(false)
     }
@@ -298,40 +296,20 @@ export default function PostJobPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Job Type<span className="text-red-500"> *</span>
-                </label>
-                <select
-                  required
-                  value={form.job_type}
-                  onChange={e => setForm({ ...form, job_type: e.target.value })}
-                  className={inputStyles}
-                >
-                  {JOB_TYPES.map(type => (
-                    <option key={type} value={type}>
-                      {toTitleCase(type)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Experience Level<span className="text-red-500"> *</span>
-                </label>
-                <select
-                  required
-                  value={form.experience_level}
-                  onChange={e => setForm({ ...form, experience_level: e.target.value })}
-                  className={inputStyles}
-                >
-                  {EXPERIENCE_LEVELS.map(level => (
-                    <option key={level} value={level}>
-                      {toTitleCase(level)}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <Select
+                label="Job Type *"
+                value={form.job_type}
+                onChange={(value) => setForm({ ...form, job_type: value })}
+                options={JOB_TYPES.map(type => ({ value: type, label: toTitleCase(type) }))}
+                required
+              />
+              <Select
+                label="Experience Level *"
+                value={form.experience_level}
+                onChange={(value) => setForm({ ...form, experience_level: value })}
+                options={EXPERIENCE_LEVELS.map(level => ({ value: level, label: toTitleCase(level) }))}
+                required
+              />
             </div>
 
             <Input
