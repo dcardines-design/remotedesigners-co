@@ -173,8 +173,8 @@ function PremiumContent() {
                     onClick={() => setSelectedPlan(plan.id)}
                     className={`relative p-4 rounded-xl border text-center transition-all ${
                       selectedPlan === plan.id
-                        ? 'border-neutral-900 bg-white shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08)] -translate-y-1'
-                        : 'border-neutral-200 bg-white shadow-[0px_4px_0px_0px_rgba(0,0,0,0.03)] hover:-translate-y-1 hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.06)]'
+                        ? 'border-neutral-900 bg-white shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08)]'
+                        : 'border-neutral-200 bg-white shadow-[0px_4px_0px_0px_rgba(0,0,0,0.03)] hover:translate-y-[1px] hover:shadow-[0px_3px_0px_0px_rgba(0,0,0,0.03)]'
                     }`}
                   >
                     {plan.savings && (

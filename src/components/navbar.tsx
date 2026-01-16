@@ -175,9 +175,9 @@ export function Navbar() {
             <Link href="/" className="font-medium text-neutral-900 text-lg tracking-tight">
               remotedesigners.co
             </Link>
-            <RainbowButton href="/post-job" size="sm">
+            <Button variant="secondary" size="sm" onClick={() => window.location.href = '/post-job'}>
               Post a job
-            </RainbowButton>
+            </Button>
           </div>
 
           <div className="flex items-center gap-3">
