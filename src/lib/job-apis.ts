@@ -1,5 +1,87 @@
 // Job API integrations - Multiple free sources
 
+// ============ AI CATEGORIZATION ============
+interface AIJobCategorization {
+  experience_level: 'entry' | 'mid' | 'senior' | 'lead'
+  job_type: 'full-time' | 'part-time' | 'contract' | 'freelance' | 'internship'
+  skills: string[]
+  salary_min?: number
+  salary_max?: number
+}
+
+async function categorizeJobWithAI(
+  title: string,
+  company: string,
+  description: string
+): Promise<AIJobCategorization | null> {
+  const apiKey = process.env.OPENROUTER_API_KEY
+  if (!apiKey) return null
+
+  try {
+    const prompt = `Analyze this job posting and extract structured data. Return ONLY valid JSON, no markdown.
+
+Job Title: ${title}
+Company: ${company}
+Description: ${description.slice(0, 3000)}
+
+Return JSON with these exact fields:
+{
+  "experience_level": "entry" | "mid" | "senior" | "lead",
+  "job_type": "full-time" | "part-time" | "contract" | "freelance" | "internship",
+  "skills": ["skill1", "skill2", ...] (max 10 relevant design/tech skills),
+  "salary_min": number or null (annual USD, extract if mentioned),
+  "salary_max": number or null (annual USD, extract if mentioned)
+}
+
+Rules:
+- experience_level: "entry" for 0-2 years, "mid" for 2-5 years, "senior" for 5+ years, "lead" for management/principal
+- skills: Only include relevant skills like Figma, Sketch, Adobe XD, Photoshop, etc. Max 10.
+- salary: Convert to annual USD if possible. If hourly, multiply by 2080. If monthly, multiply by 12.`
+
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'https://remotedesigners.co',
+      },
+      body: JSON.stringify({
+        model: 'anthropic/claude-3-haiku',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 500,
+        temperature: 0,
+      }),
+    })
+
+    if (!response.ok) {
+      console.error('OpenRouter API error:', response.status)
+      return null
+    }
+
+    const data = await response.json()
+    const content = data.choices?.[0]?.message?.content
+
+    if (!content) return null
+
+    // Parse JSON from response (handle potential markdown wrapping)
+    const jsonMatch = content.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) return null
+
+    const parsed = JSON.parse(jsonMatch[0])
+
+    return {
+      experience_level: parsed.experience_level || 'mid',
+      job_type: parsed.job_type || 'full-time',
+      skills: Array.isArray(parsed.skills) ? parsed.skills.slice(0, 10) : [],
+      salary_min: typeof parsed.salary_min === 'number' ? parsed.salary_min : undefined,
+      salary_max: typeof parsed.salary_max === 'number' ? parsed.salary_max : undefined,
+    }
+  } catch (error) {
+    console.error('AI categorization error:', error)
+    return null
+  }
+}
+
 export interface NormalizedJob {
   id: string
   source: 'remotive' | 'remoteok' | 'arbeitnow' | 'jsearch' | 'himalayas' | 'jobicy' | 'greenhouse' | 'lever' | 'ashby' | 'adzuna' | 'authenticjobs' | 'workingnomads' | 'themuse' | 'glints' | 'tokyodev' | 'nodeflairsg' | 'jooble' | 'jobstreet' | 'kalibrr' | 'instahyre' | 'wantedly' | 'linkedin'
@@ -250,6 +332,16 @@ function parseExperienceLevel(text: string): string {
   if (lower.includes('junior') || lower.includes('jr.') || lower.includes('entry')) return 'entry'
   if (lower.includes('principal') || lower.includes('staff') || lower.includes('director')) return 'lead'
   return 'mid'
+}
+
+function parseJobType(text: string): string {
+  const lower = text.toLowerCase()
+  if (lower.includes('contract') || lower.includes('contractor')) return 'contract'
+  if (lower.includes('part-time') || lower.includes('part time')) return 'part-time'
+  if (lower.includes('freelance')) return 'freelance'
+  if (lower.includes('internship') || lower.includes('intern ')) return 'internship'
+  if (lower.includes('temporary') || lower.includes('temp ')) return 'contract'
+  return 'full-time'
 }
 
 // ============ REMOTIVE API ============
@@ -2500,11 +2592,25 @@ export async function fetchLinkedInJobs(): Promise<NormalizedJob[]> {
     return true
   })
 
-  console.log(`LinkedIn: Found ${uniqueCandidates.length} unique job candidates, fetching descriptions...`)
+  console.log(`LinkedIn: Found ${uniqueCandidates.length} unique job candidates, fetching descriptions and categorizing with AI...`)
 
-  // Second pass: fetch descriptions for each job (with rate limiting)
+  // Second pass: fetch descriptions and categorize each job
   for (const candidate of uniqueCandidates) {
     const description = await fetchLinkedInJobDescription(candidate.jobId)
+
+    // Use AI to categorize the job
+    const aiCategorization = await categorizeJobWithAI(
+      candidate.title,
+      candidate.company,
+      description
+    )
+
+    // Use AI results with fallback to regex-based parsing
+    const job_type = aiCategorization?.job_type || parseJobType(candidate.title + ' ' + description)
+    const experience_level = aiCategorization?.experience_level || parseExperienceLevel(candidate.title)
+    const skills = aiCategorization?.skills?.length
+      ? aiCategorization.skills
+      : extractSkills(candidate.title + ' ' + description)
 
     jobs.push({
       id: `linkedin-${candidate.jobId}`,
@@ -2513,17 +2619,20 @@ export async function fetchLinkedInJobs(): Promise<NormalizedJob[]> {
       company: candidate.company,
       location: candidate.location || 'Remote',
       description,
-      job_type: 'full-time',
-      skills: extractSkills(candidate.title + ' ' + description),
+      job_type,
+      experience_level,
+      skills,
+      salary_min: aiCategorization?.salary_min,
+      salary_max: aiCategorization?.salary_max,
       apply_url: `https://www.linkedin.com/jobs/view/${candidate.jobId}`,
       posted_at: new Date().toISOString(),
       is_featured: false,
     })
 
-    // Rate limit: 200ms between job detail requests
-    await new Promise(resolve => setTimeout(resolve, 200))
+    // Rate limit: 300ms between jobs (for LinkedIn + AI calls)
+    await new Promise(resolve => setTimeout(resolve, 300))
   }
 
-  console.log(`LinkedIn: Fetched ${jobs.length} jobs with descriptions`)
+  console.log(`LinkedIn: Fetched ${jobs.length} jobs with AI categorization`)
   return jobs
 }

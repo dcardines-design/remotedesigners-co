@@ -10,7 +10,6 @@ async function handleSync() {
 
     return NextResponse.json({
       success: true,
-      source: 'linkedin',
       ...result,
     })
   } catch (error) {

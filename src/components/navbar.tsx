@@ -75,6 +75,7 @@ export function Navbar() {
   const { openSignupModal, openLoginModal } = useSignupModal()
   const isHomePage = pathname === '/'
   const isSEOPage = pathname?.startsWith('/remote-')
+  const isPremiumPage = pathname === '/premium'
 
   useEffect(() => {
     const handleScroll = () => {
@@ -157,7 +158,7 @@ export function Navbar() {
     router.refresh()
   }
 
-  const isTransparent = (isHomePage || isSEOPage) && !scrolled
+  const isTransparent = (isHomePage || isSEOPage || isPremiumPage) && !scrolled
 
   return (
     <nav
