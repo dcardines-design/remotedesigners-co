@@ -60,7 +60,7 @@ export default function SignupPage() {
 
             {message && (
               <div
-                className={`p-4 rounded-lg text-sm ${
+                className={`px-4 py-2.5 rounded-lg text-sm ${
                   message.type === 'success'
                     ? 'bg-green-50 text-green-800 border border-green-200'
                     : 'bg-red-50 text-red-800 border border-red-200'

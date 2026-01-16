@@ -8,7 +8,12 @@ import type { User } from '@supabase/supabase-js'
 import { Button, RainbowButton } from '@/components/ui'
 import { useSignupModal } from '@/context/signup-modal-context'
 
-function UserDropdown({ email, onSignOut }: { email: string; onSignOut: () => void }) {
+function UserDropdown({ email, onSignOut, hasSubscription, billingUrl }: {
+  email: string
+  onSignOut: () => void
+  hasSubscription: boolean
+  billingUrl: string | null
+}) {
   const [open, setOpen] = useState(false)
 
   return (
@@ -31,20 +36,24 @@ function UserDropdown({ email, onSignOut }: { email: string; onSignOut: () => vo
       {open && (
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 mt-1 w-full bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] z-20">
-            <Link
-              href="/saved-jobs"
-              onClick={() => setOpen(false)}
-              className="block w-full px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 transition-colors rounded-lg"
-            >
-              Saved Jobs
-            </Link>
+          <div className="absolute right-0 mt-1 w-48 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] z-20 overflow-hidden">
+            {billingUrl && (
+              <a
+                href={billingUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setOpen(false)}
+                className="block w-full px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
+              >
+                Manage Billing
+              </a>
+            )}
             <button
               onClick={() => {
                 setOpen(false)
                 onSignOut()
               }}
-              className="w-full px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 transition-colors rounded-lg"
+              className="w-full px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
             >
               Logout
             </button>
@@ -58,6 +67,9 @@ function UserDropdown({ email, onSignOut }: { email: string; onSignOut: () => vo
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [user, setUser] = useState<User | null>(null)
+  const [savedCount, setSavedCount] = useState(0)
+  const [hasSubscription, setHasSubscription] = useState(false)
+  const [billingUrl, setBillingUrl] = useState<string | null>(null)
   const pathname = usePathname()
   const router = useRouter()
   const { openSignupModal, openLoginModal } = useSignupModal()
@@ -91,6 +103,54 @@ export function Navbar() {
     return () => subscription.unsubscribe()
   }, [])
 
+  // Fetch saved jobs count
+  useEffect(() => {
+    const fetchSavedCount = async () => {
+      if (!user) {
+        setSavedCount(0)
+        return
+      }
+      const supabase = createBrowserSupabaseClient()
+      const { count } = await supabase
+        .from('saved_jobs')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+      setSavedCount(count || 0)
+    }
+    fetchSavedCount()
+
+    // Listen for saved jobs changes
+    const handleSavedJobsChange = () => fetchSavedCount()
+    window.addEventListener('saved-jobs-changed', handleSavedJobsChange)
+    return () => window.removeEventListener('saved-jobs-changed', handleSavedJobsChange)
+  }, [user])
+
+  // Fetch subscription status
+  useEffect(() => {
+    const fetchSubscription = async () => {
+      if (!user) {
+        setHasSubscription(false)
+        setBillingUrl(null)
+        return
+      }
+      const supabase = createBrowserSupabaseClient()
+      const { data } = await supabase
+        .from('subscriptions')
+        .select('status, customer_portal_url')
+        .eq('user_id', user.id)
+        .single()
+
+      if (data && data.status === 'active') {
+        setHasSubscription(true)
+        setBillingUrl(data.customer_portal_url)
+      } else {
+        setHasSubscription(false)
+        setBillingUrl(null)
+      }
+    }
+    fetchSubscription()
+  }, [user])
+
   const handleSignOut = async () => {
     const supabase = createBrowserSupabaseClient()
     await supabase.auth.signOut()
@@ -116,7 +176,34 @@ export function Navbar() {
 
           <div className="flex items-center gap-3">
             {user ? (
-              <UserDropdown email={user.email || ''} onSignOut={handleSignOut} />
+              <>
+                <Link
+                  href="/saved-jobs"
+                  className="px-4 py-2 text-sm text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-all"
+                >
+                  Saved Jobs{savedCount > 0 && ` (${savedCount})`}
+                </Link>
+                <Link
+                  href="/posted-jobs"
+                  className="px-4 py-2 text-sm text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 rounded-lg transition-all"
+                >
+                  Jobs Posted
+                </Link>
+                {!hasSubscription && (
+                  <Link
+                    href="/pricing"
+                    className="px-4 py-2 text-sm font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-all"
+                  >
+                    Get Pro
+                  </Link>
+                )}
+                <UserDropdown
+                  email={user.email || ''}
+                  onSignOut={handleSignOut}
+                  hasSubscription={hasSubscription}
+                  billingUrl={billingUrl}
+                />
+              </>
             ) : (
               <>
                 <button

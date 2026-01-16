@@ -50,7 +50,7 @@ export function Select({ label, value, onChange, options, placeholder = 'Select.
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full bg-white border border-neutral-200 rounded-lg px-4 py-2.5 text-sm text-left hover:border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.04)] transition-all focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 flex items-center justify-between"
+          className="w-full bg-white border border-neutral-200 rounded-lg px-4 py-2.5 text-left hover:border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.04)] transition-all focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400 flex items-center justify-between"
         >
           <span className={selectedOption ? 'text-neutral-900' : 'text-neutral-400'}>
             {selectedOption ? selectedOption.label : placeholder}
@@ -65,13 +65,13 @@ export function Select({ label, value, onChange, options, placeholder = 'Select.
           </svg>
         </button>
         {isOpen && (
-          <div className="absolute z-50 w-full mt-1 bg-white border border-neutral-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+          <div className="absolute z-50 w-full mt-1 bg-white border border-neutral-200 rounded-lg shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08)] max-h-60 overflow-y-auto">
             {options.map(opt => (
               <button
                 key={opt.value}
                 type="button"
                 onClick={() => { onChange(opt.value); setIsOpen(false) }}
-                className={`w-full px-4 py-2.5 text-sm text-left hover:bg-neutral-50 transition-colors ${
+                className={`w-full px-4 py-2.5 text-left hover:bg-neutral-50 transition-colors ${
                   value === opt.value ? 'bg-neutral-50 text-neutral-900 font-medium' : 'text-neutral-700'
                 }`}
               >

@@ -58,7 +58,7 @@ function UnsubscribeContent() {
             <p className="text-neutral-500 mb-8">You won't receive any more emails from us. We're sorry to see you go!</p>
             <Link
               href="/"
-              className="inline-block px-6 py-3 bg-neutral-900 text-white rounded-lg font-medium hover:bg-neutral-800 transition-colors"
+              className="inline-block px-6 py-3 bg-[#2a2a2a] text-white rounded-lg font-medium hover:bg-[#3a3a3a] transition-colors"
             >
               Back to Homepage
             </Link>
@@ -76,7 +76,7 @@ function UnsubscribeContent() {
             <p className="text-neutral-500 mb-8">We couldn't process your unsubscribe request. Please try again or contact support.</p>
             <Link
               href="/"
-              className="inline-block px-6 py-3 bg-neutral-900 text-white rounded-lg font-medium hover:bg-neutral-800 transition-colors"
+              className="inline-block px-6 py-3 bg-[#2a2a2a] text-white rounded-lg font-medium hover:bg-[#3a3a3a] transition-colors"
             >
               Back to Homepage
             </Link>
@@ -95,7 +95,7 @@ function UnsubscribeContent() {
             <p className="text-neutral-500 mb-8">This unsubscribe link is invalid or has expired.</p>
             <Link
               href="/"
-              className="inline-block px-6 py-3 bg-neutral-900 text-white rounded-lg font-medium hover:bg-neutral-800 transition-colors"
+              className="inline-block px-6 py-3 bg-[#2a2a2a] text-white rounded-lg font-medium hover:bg-[#3a3a3a] transition-colors"
             >
               Back to Homepage
             </Link>

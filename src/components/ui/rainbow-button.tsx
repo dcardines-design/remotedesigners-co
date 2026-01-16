@@ -43,7 +43,7 @@ export function RainbowButton({
     if (external) {
       return (
         <div className={wrapperClasses}>
-          <a href={href} target="_blank" rel="noopener noreferrer" className={innerClasses}>
+          <a href={href} target="_blank" rel="noopener noreferrer" onClick={onClick} className={innerClasses}>
             {children}
           </a>
         </div>
@@ -51,7 +51,7 @@ export function RainbowButton({
     }
     return (
       <div className={wrapperClasses}>
-        <Link href={href} className={innerClasses}>
+        <Link href={href} onClick={onClick} className={innerClasses}>
           {children}
         </Link>
       </div>

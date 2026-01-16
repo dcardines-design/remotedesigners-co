@@ -15,6 +15,7 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
   const [email, setEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [emailError, setEmailError] = useState<string | null>(null)
 
   // Close on escape key
   useEffect(() => {
@@ -35,20 +36,31 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
     e.preventDefault()
     setIsLoading(true)
     setMessage(null)
+    setEmailError(null)
 
     const supabase = createBrowserSupabaseClient()
 
+    // First check if user exists by trying to sign in with OTP
+    // If signups are disabled for OTP, Supabase returns an error for non-existent users
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback`,
+        shouldCreateUser: false, // Don't create new user, just sign in existing
       },
     })
 
     setIsLoading(false)
 
     if (error) {
-      setMessage({ type: 'error', text: error.message })
+      // Check if it's a "user not found" type error
+      if (error.message.toLowerCase().includes('signup') ||
+          error.message.toLowerCase().includes('not found') ||
+          error.message.toLowerCase().includes('no user')) {
+        setEmailError('No account found with this email. Please sign up first.')
+      } else {
+        setMessage({ type: 'error', text: error.message })
+      }
     } else {
       setMessage({
         type: 'success',
@@ -94,14 +106,18 @@ export function LoginModal({ isOpen, onClose, onSwitchToSignup }: LoginModalProp
             label="Email"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value)
+              setEmailError(null) // Clear error when typing
+            }}
             placeholder="you@example.com"
             required
+            error={emailError || undefined}
           />
 
           {message && (
             <div
-              className={`p-4 rounded-lg text-sm ${
+              className={`px-4 py-2.5 rounded-lg text-sm ${
                 message.type === 'success'
                   ? 'bg-green-50 text-green-800 border border-green-200'
                   : 'bg-red-50 text-red-800 border border-red-200'

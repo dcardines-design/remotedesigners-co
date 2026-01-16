@@ -120,6 +120,8 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
+        {/* Lemon Squeezy checkout overlay */}
+        <script src="https://app.lemonsqueezy.com/js/lemon.js" defer></script>
       </head>
       <body className={`${inter.className} ${dmSans.variable}`}>
         <SignupModalProvider>

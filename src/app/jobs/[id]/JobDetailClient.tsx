@@ -26,6 +26,9 @@ interface Job {
   posted_at: string
   is_featured: boolean
   is_active: boolean
+  is_sticky?: boolean
+  sticky_until?: string
+  is_rainbow?: boolean
 }
 
 const getInitials = (company: string) => company.substring(0, 2).toUpperCase()
@@ -356,7 +359,7 @@ const faqs = [
   },
   // {
   //   question: 'Is Remote Designers free to use?',
-  //   answer: 'Yes, browsing and applying to jobs is completely free for job seekers. Employers pay a one-time fee of $299 to post a job listing.',
+  //   answer: 'Yes, browsing and applying to jobs is completely free for job seekers. Employers pay a one-time fee of $99 to post a job listing.',
   // },
   {
     question: 'What types of design roles are available?',
@@ -386,6 +389,16 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
   const [userId, setUserId] = useState<string | null>(null)
   const { openSignupModal } = useSignupModal()
   const error = initialError
+
+  // Track page view
+  useEffect(() => {
+    if (!initialJob) return
+    fetch(`/api/jobs/${initialJob.id}/track`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'view' })
+    }).catch(() => {}) // Silent fail
+  }, [initialJob])
 
   // Check auth status and saved state
   useEffect(() => {
@@ -462,11 +475,13 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
           .eq('user_id', userId)
           .eq('job_id', job.id)
         setIsSaved(false)
+        window.dispatchEvent(new Event('saved-jobs-changed'))
       } else {
         await supabase
           .from('saved_jobs')
           .insert({ user_id: userId, job_id: job.id })
         setIsSaved(true)
+        window.dispatchEvent(new Event('saved-jobs-changed'))
       }
     } catch (err) {
       console.error('Failed to save job:', err)
@@ -617,11 +632,13 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
                 />
               </div>
 
-              {/* Featured Badge */}
+              {/* Badges */}
               {job.is_featured && (
-                <span className="inline-block bg-yellow-400 text-neutral-900 text-xs font-medium px-3 py-1 rounded mb-4">
-                  Featured
-                </span>
+                <div className="mb-4">
+                  <span className="inline-block bg-yellow-400 text-neutral-900 text-xs font-medium px-3 py-1 rounded">
+                    Featured
+                  </span>
+                </div>
               )}
 
               {/* Company Name */}
@@ -725,7 +742,19 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
 
               {/* Action Buttons */}
               <div className="space-y-3">
-                <RainbowButton href={job.apply_url} external fullWidth size="md">
+                <RainbowButton
+                  href={job.apply_url}
+                  external
+                  fullWidth
+                  size="md"
+                  onClick={() => {
+                    fetch(`/api/jobs/${job.id}/track`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ type: 'click' })
+                    }).catch(() => {})
+                  }}
+                >
                   Apply now
                 </RainbowButton>
 

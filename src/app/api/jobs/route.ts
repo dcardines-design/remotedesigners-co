@@ -21,11 +21,12 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20')
     const offset = (page - 1) * limit
 
-    // Build query - featured jobs first, then by date
+    // Build query - sticky jobs first, then featured, then by date
     let query = supabase
       .from('jobs')
       .select('*', { count: 'exact' })
       .eq('is_active', true)
+      .order('is_sticky', { ascending: false, nullsFirst: false })
       .order('is_featured', { ascending: false })
       .order('posted_at', { ascending: false })
 
@@ -126,6 +127,9 @@ export async function GET(request: NextRequest) {
       apply_url: job.apply_url,
       posted_at: job.posted_at,
       is_featured: job.is_featured,
+      is_sticky: job.is_sticky || false,
+      sticky_until: job.sticky_until,
+      is_rainbow: job.is_rainbow || false,
     }))
 
     return NextResponse.json({

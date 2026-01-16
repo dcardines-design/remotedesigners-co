@@ -1,22 +1,22 @@
 import { NextResponse } from 'next/server'
 import {
-  fetchGlintsJobs,
-  fetchTokyoDevJobs,
-  fetchNodeFlairJobs,
-  fetchJoobleJobs,
+  fetchJobStreetJobs,
+  fetchKalibrrJobs,
+  fetchInstahyreJobs,
+  fetchWantedlyJobs,
 } from '@/lib/job-apis'
 import { syncJobs } from '@/lib/sync-jobs'
 
-// Asia Part 1: Southeast Asia + Japan
+// Asia Part 2: JobStreet, Kalibrr, Instahyre, Wantedly
 async function handleSync() {
   try {
     const results = []
 
     const sources = [
-      { name: 'glints', fn: fetchGlintsJobs },
-      { name: 'tokyodev', fn: fetchTokyoDevJobs },
-      { name: 'nodeflairsg', fn: fetchNodeFlairJobs },
-      { name: 'jooble', fn: fetchJoobleJobs },
+      { name: 'jobstreet', fn: fetchJobStreetJobs },
+      { name: 'kalibrr', fn: fetchKalibrrJobs },
+      { name: 'instahyre', fn: fetchInstahyreJobs },
+      { name: 'wantedly', fn: fetchWantedlyJobs },
     ]
 
     for (const source of sources) {
@@ -42,7 +42,7 @@ async function handleSync() {
       results,
     })
   } catch (error) {
-    console.error('Asia sync error:', error)
+    console.error('Asia-2 sync error:', error)
     return NextResponse.json({ error: 'Failed to sync', details: String(error) }, { status: 500 })
   }
 }

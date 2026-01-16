@@ -9,7 +9,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variants = {
   primary: `
-    text-white bg-neutral-900
+    text-white bg-[#2a2a2a]
     shadow-[0px_3px_0px_0px_rgba(0,0,0,0.3)]
     hover:translate-y-[1px] hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3)]
     active:translate-y-[2px] active:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.3)]

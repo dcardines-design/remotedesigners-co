@@ -5,10 +5,11 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { generateJobSlug } from '@/lib/slug'
 import { HeroBackground } from '@/components/hero-background'
-import { SocialProof, RainbowButton } from '@/components/ui'
+import { SocialProof, RainbowButton, SubscribeModal } from '@/components/ui'
 import { useSignupModal } from '@/context/signup-modal-context'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import { toast } from 'sonner'
+import { FREE_JOBS_LIMIT } from '@/lib/lemonsqueezy'
 
 // Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -237,7 +238,7 @@ function LocationSearchDropdown({ locations, onToggle }: { locations: string[], 
               <button
                 key={loc}
                 onClick={() => onToggle(loc)}
-                className="flex items-center gap-1 px-2 py-1 text-xs bg-neutral-900 text-white rounded-md border border-neutral-900 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.3)] hover:translate-y-[1px] active:shadow-none active:translate-y-[2px] transition-all"
+                className="flex items-center gap-1 px-2 py-1 text-xs bg-[#2a2a2a] text-white rounded-md border border-[#2a2a2a] shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.3)] hover:translate-y-[1px] active:shadow-none active:translate-y-[2px] transition-all"
               >
                 {option?.emoji} {option?.label || loc}
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -269,6 +270,9 @@ interface NormalizedJob {
   posted_at: string
   apply_url: string
   is_featured: boolean
+  is_sticky?: boolean
+  sticky_until?: string
+  is_rainbow?: boolean
 }
 
 interface Pagination {
@@ -440,6 +444,10 @@ function HomeContent() {
   const [savedJobIds, setSavedJobIds] = useState<Set<string>>(new Set())
   const [savingJobId, setSavingJobId] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
+  const [userEmail, setUserEmail] = useState<string | null>(null)
+  const [isSubscribed, setIsSubscribed] = useState(false)
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false)
+  const [selectedLockedJob, setSelectedLockedJob] = useState<{ title: string; company: string } | null>(null)
   const { openSignupModal } = useSignupModal()
 
   // Track newsletter bar visibility (respects 24h dismissal)
@@ -458,7 +466,7 @@ function HomeContent() {
     return () => window.removeEventListener('newsletter-visibility', handleVisibilityChange as EventListener)
   }, [])
 
-  // Check auth status and load saved jobs
+  // Check auth status, subscription, and load saved jobs
   useEffect(() => {
     const checkAuthAndSavedJobs = async () => {
       const supabase = createBrowserSupabaseClient()
@@ -466,6 +474,19 @@ function HomeContent() {
 
       if (user) {
         setUserId(user.id)
+        setUserEmail(user.email || null)
+
+        // Check subscription status
+        const { data: subscription } = await supabase
+          .from('subscriptions')
+          .select('status')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .single()
+
+        setIsSubscribed(!!subscription)
+
+        // Load saved jobs
         const { data } = await supabase
           .from('saved_jobs')
           .select('job_id')
@@ -506,12 +527,14 @@ function HomeContent() {
           return next
         })
         toast.success('Job removed from saved')
+        window.dispatchEvent(new Event('saved-jobs-changed'))
       } else {
         await supabase
           .from('saved_jobs')
           .insert({ user_id: userId, job_id: jobId })
         setSavedJobIds(prev => new Set(prev).add(jobId))
         toast.success('Job saved! 🔖')
+        window.dispatchEvent(new Event('saved-jobs-changed'))
       }
     } catch (err) {
       console.error('Failed to save job:', err)
@@ -731,6 +754,7 @@ function HomeContent() {
   const newJobsCount = jobs.filter(j => isNewJob(j.posted_at)).length
 
   return (
+    <>
     <div className="bg-neutral-50 min-h-screen">
       <div className="max-w-6xl mx-auto px-8 py-16">
         {/* Hero Section */}
@@ -764,7 +788,7 @@ function HomeContent() {
             </p>
 
             <RainbowButton href="/post-job" size="md">
-              Post a job for $299
+              Post a job for $99
             </RainbowButton>
 
             {/* Social Proof */}
@@ -784,7 +808,7 @@ function HomeContent() {
           {/* Job Listings */}
           <div className="flex-1 space-y-4">
             {/* Post a Job Card */}
-            <Link href="/post-job" className="block border border-neutral-200 rounded-lg bg-neutral-50/20 p-8 hover:border-neutral-300 transition-colors relative overflow-hidden">
+            <Link href="/post-job" className="block border border-neutral-200 rounded-xl bg-neutral-50/20 p-8 hover:border-neutral-300 hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08),0px_1px_2px_0px_rgba(0,0,0,0.05)] transition-all duration-200 relative overflow-hidden">
               <div className="absolute left-0 top-0 bottom-0 w-1 bg-neutral-400/40 rounded-l-lg" />
               <div className="text-center text-neutral-500">
                 <p className="text-2xl mb-1">+</p>
@@ -835,11 +859,66 @@ function HomeContent() {
             )}
 
             {/* Job Cards */}
-            {!loading && jobs.map(job => {
+            {!loading && jobs.map((job, index) => {
+              const isLocked = !isSubscribed && index >= FREE_JOBS_LIMIT
               const isNew = isNewJob(job.posted_at)
               const salary = formatSalary(job)
               const remote = isRemoteJob(job.location)
               const timeAgo = formatTimeAgo(job.posted_at)
+              // Determine sticky type: 24h = blue, 7d = purple
+              // Determine sticky type: 24h = blue, 7d = purple
+              const is7DaySticky = job.is_sticky && job.sticky_until && job.posted_at
+                ? (new Date(job.sticky_until).getTime() - new Date(job.posted_at).getTime()) > 2 * 24 * 60 * 60 * 1000
+                : false
+              const stickyPinColor = is7DaySticky ? 'text-purple-500' : 'text-blue-500'
+
+              // For locked jobs, show a blurred card with subscribe overlay
+              if (isLocked) {
+                return (
+                  <div
+                    key={job.id}
+                    onClick={() => {
+                      router.push(`/premium?skip_url=${encodeURIComponent(window.location.href)}`)
+                    }}
+                    className="block border rounded-xl p-5 relative cursor-pointer bg-white border-neutral-200 hover:border-neutral-300 hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08),0px_1px_2px_0px_rgba(0,0,0,0.05)] transition-all duration-200"
+                  >
+                    {/* Left border indicator */}
+                    <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl bg-neutral-200" />
+
+                    {/* Blurred content */}
+                    <div className="flex gap-4 pl-3 blur-[6px] select-none pointer-events-none">
+                      <div className="w-12 h-12 rounded-full bg-neutral-200 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-4 mb-1">
+                          <h3 className="text-lg font-normal text-neutral-900">{cleanJobTitle(job.title)}</h3>
+                          <span className="text-sm text-neutral-400">{timeAgo}</span>
+                        </div>
+                        <p className="text-sm text-neutral-500 mb-3">{job.company} · {formatLocation(job.location)}</p>
+                        <div className="flex gap-2">
+                          <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200">
+                            {toTitleCase(job.job_type)}
+                          </span>
+                          {salary && (
+                            <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200">
+                              {salary}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Lock overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-gradient-to-t from-white/90 via-white/60 to-transparent">
+                      <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-neutral-200 shadow-sm">
+                        <svg className="w-4 h-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        <span className="text-sm font-medium text-neutral-900">Subscribe to view</span>
+                      </div>
+                    </div>
+                  </div>
+                )
+              }
 
               return (
                 <Link
@@ -852,9 +931,22 @@ function HomeContent() {
                   }`}
                 >
                   {/* Left border indicator */}
-                  <div className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl ${
-                    job.is_featured ? 'bg-amber-400' : isNew ? 'bg-green-500' : 'bg-neutral-200'
-                  }`} />
+                  <div
+                    className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl ${
+                      job.is_rainbow
+                        ? ''
+                        : job.is_featured
+                          ? 'bg-amber-400'
+                          : isNew
+                            ? 'bg-green-500'
+                            : 'bg-neutral-200'
+                    }`}
+                    style={job.is_rainbow ? {
+                      background: 'linear-gradient(180deg, #ec4899 0%, #8b5cf6 20%, #3b82f6 40%, #10b981 60%, #eab308 80%, #ec4899 100%)',
+                      backgroundSize: '100% 300%',
+                      animation: 'rainbowFlow 2s linear infinite'
+                    } : {}}
+                  />
 
                   <div className="flex gap-4 pl-3">
                     {/* Company Avatar */}
@@ -883,6 +975,13 @@ function HomeContent() {
                       <div className="flex items-start justify-between gap-4 mb-1">
                         <h3 className="text-lg font-normal text-neutral-900">{cleanJobTitle(job.title)}</h3>
                         <div className="flex items-center gap-2 flex-shrink-0">
+                          {job.is_sticky && (
+                            <span className={`${stickyPinColor} flex items-center`}>
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M16 4l4 4-1.5 1.5-1-1L14 12l1 5-3 3-2.5-5L5 19.5 4.5 19l4.5-4.5-5-2.5 3-3 5 1 3.5-3.5-1-1L16 4z"/>
+                              </svg>
+                            </span>
+                          )}
                           {isNew && (
                             <a
                               href="/?new=true"
@@ -1039,7 +1138,7 @@ function HomeContent() {
                                   <span className="bg-white text-neutral-400 text-xs px-2.5 py-1 rounded border border-neutral-200 cursor-default group-hover/chips:border-neutral-300 group-hover/chips:text-neutral-500 transition-all">
                                     +{remainingCount}
                                   </span>
-                                  <div className="absolute left-0 bottom-full mb-2.5 z-20 opacity-0 invisible group-hover/chips:opacity-100 group-hover/chips:visible transition-all duration-150">
+                                  <div className="absolute left-0 bottom-full mb-1.5 z-20 opacity-0 invisible group-hover/chips:opacity-100 group-hover/chips:visible transition-all duration-150">
                                     <div className="bg-neutral-100 border border-neutral-200 rounded-lg shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08)] p-2 flex flex-wrap gap-2 min-w-[280px] max-w-[400px]">
                                       {hiddenChips.map(chip => (
                                         <span key={chip.key}>{chip.element}</span>
@@ -1078,9 +1177,15 @@ function HomeContent() {
                             href={job.apply_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white rounded border border-white/10 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3)] hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.3)] active:translate-y-[2px] active:shadow-none transition-all"
-                            style={{ backgroundImage: 'linear-gradient(165deg, #3a3a3a 0%, #1a1a1a 100%)' }}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              fetch(`/api/jobs/${job.id}/track`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ type: 'click' })
+                              }).catch(() => {})
+                            }}
+                            className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-[#2a2a2a] rounded shadow-[0px_2px_0px_0px_rgba(0,0,0,0.2)] hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.2)] active:translate-y-[2px] active:shadow-none transition-all"
                           >
                             Apply
                             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1199,7 +1304,7 @@ function HomeContent() {
                       onClick={() => handleFilterChange('featuredOnly', !filters.featuredOnly)}
                       className={`px-3 py-1.5 text-xs rounded-md border transition-all ${
                         filters.featuredOnly
-                          ? 'bg-neutral-900 text-white border-neutral-900'
+                          ? 'bg-[#2a2a2a] text-white border-[#2a2a2a]'
                           : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none'
                       }`}
                     >
@@ -1209,7 +1314,7 @@ function HomeContent() {
                       onClick={() => handleFilterChange('newOnly', !filters.newOnly)}
                       className={`px-3 py-1.5 text-xs rounded-md border transition-all ${
                         filters.newOnly
-                          ? 'bg-neutral-900 text-white border-neutral-900'
+                          ? 'bg-[#2a2a2a] text-white border-[#2a2a2a]'
                           : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none'
                       }`}
                     >
@@ -1240,7 +1345,7 @@ function HomeContent() {
                         onClick={() => toggleJobType(type)}
                         className={`px-3 py-1.5 text-xs rounded-md border transition-all capitalize ${
                           filters.jobTypes.includes(type)
-                            ? 'bg-neutral-900 text-white border-neutral-900'
+                            ? 'bg-[#2a2a2a] text-white border-[#2a2a2a]'
                             : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none'
                         }`}
                       >
@@ -1277,7 +1382,7 @@ function HomeContent() {
                         onClick={() => handleFilterChange('remoteType', filters.remoteType === option.value ? '' : option.value)}
                         className={`px-3 py-1.5 text-xs rounded-md border transition-all ${
                           filters.remoteType === option.value
-                            ? 'bg-neutral-900 text-white border-neutral-900'
+                            ? 'bg-[#2a2a2a] text-white border-[#2a2a2a]'
                             : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none'
                         }`}
                       >
@@ -1315,7 +1420,7 @@ function HomeContent() {
                         onClick={() => handleFilterChange('experience', filters.experience === option.value ? '' : option.value)}
                         className={`px-3 py-1.5 text-xs rounded-md border transition-all ${
                           filters.experience === option.value
-                            ? 'bg-neutral-900 text-white border-neutral-900'
+                            ? 'bg-[#2a2a2a] text-white border-[#2a2a2a]'
                             : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none'
                         }`}
                       >
@@ -1352,7 +1457,7 @@ function HomeContent() {
                         onClick={() => handleFilterChange('datePosted', option.value)}
                         className={`px-3 py-1.5 text-xs rounded-md border transition-all ${
                           filters.datePosted === option.value
-                            ? 'bg-neutral-900 text-white border-neutral-900'
+                            ? 'bg-[#2a2a2a] text-white border-[#2a2a2a]'
                             : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none'
                         }`}
                       >
@@ -1398,7 +1503,7 @@ function HomeContent() {
                           onClick={() => toggleSkill(skill)}
                           className={`px-3 py-1.5 text-xs rounded-md border transition-all ${
                             filters.skills.includes(skill)
-                              ? 'bg-neutral-900 text-white border-neutral-900'
+                              ? 'bg-[#2a2a2a] text-white border-[#2a2a2a]'
                               : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none'
                           }`}
                           title={`${count} jobs`}
@@ -1416,6 +1521,19 @@ function HomeContent() {
         </div>
       </div>
     </div>
+
+    {/* Subscribe Modal */}
+    <SubscribeModal
+      isOpen={showSubscribeModal}
+      onClose={() => {
+        setShowSubscribeModal(false)
+        setSelectedLockedJob(null)
+      }}
+      jobTeaser={selectedLockedJob || undefined}
+      userEmail={userEmail}
+      isLoggedIn={!!userId}
+    />
+    </>
   )
 }
 

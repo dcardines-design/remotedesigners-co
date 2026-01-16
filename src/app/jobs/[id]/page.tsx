@@ -24,6 +24,9 @@ interface Job {
   posted_at: string
   is_featured: boolean
   is_active: boolean
+  is_sticky?: boolean
+  sticky_until?: string
+  is_rainbow?: boolean
 }
 
 async function getJob(slug: string): Promise<Job | null> {

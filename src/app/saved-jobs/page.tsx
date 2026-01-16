@@ -76,7 +76,7 @@ export default function SavedJobsPage() {
             <p className="text-neutral-500 mb-8">Sign in to track your job applications</p>
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-neutral-900 rounded-lg hover:bg-neutral-800 transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-[#2a2a2a] rounded-lg hover:bg-[#3a3a3a] transition-colors"
             >
               Sign in
             </Link>
@@ -121,7 +121,7 @@ export default function SavedJobsPage() {
                 setLoading(true)
                 fetchSavedJobs()
               }}
-              className="px-6 py-3 text-sm font-medium text-white bg-neutral-900 rounded-lg hover:bg-neutral-800 transition-colors"
+              className="px-6 py-3 text-sm font-medium text-white bg-[#2a2a2a] rounded-lg hover:bg-[#3a3a3a] transition-colors"
             >
               Try again
             </button>
@@ -132,8 +132,8 @@ export default function SavedJobsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-neutral-50">
-      <div className="max-w-[1600px] mx-auto px-6 pt-12 pb-4">
+    <div className="bg-neutral-50">
+      <div className="max-w-[1600px] mx-auto px-6 pt-12 pb-8">
         {/* Header */}
         <div className="mb-8">
           <Link
@@ -163,7 +163,7 @@ export default function SavedJobsPage() {
             <p className="text-neutral-500 mb-6">Start saving jobs you're interested in to track them here</p>
             <Link
               href="/"
-              className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-neutral-900 rounded-lg hover:bg-neutral-800 transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-[#2a2a2a] rounded-lg hover:bg-[#3a3a3a] transition-colors"
             >
               Browse jobs
             </Link>

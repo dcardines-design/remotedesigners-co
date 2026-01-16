@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { generateJobSlug } from '@/lib/slug'
 import { HeroBackground } from './hero-background'
+import { JobCard } from './job-card'
 
 // Helper functions
 const getInitials = (company: string) => company.substring(0, 2).toUpperCase()
@@ -299,73 +300,13 @@ export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageT
               <p className="text-neutral-500">No jobs found yet. Check back soon!</p>
             </div>
           ) : (
-            jobs.map((job) => {
-              const isNew = isNewJob(job.posted_at)
-              const salary = formatSalary(job)
-              const remote = isRemoteJob(job.location)
-              const timeAgo = formatTimeAgo(job.posted_at)
-
-              return (
-                <Link
-                  key={job.id}
-                  href={`/jobs/${generateJobSlug(job.title, job.company, job.id)}`}
-                  className="block border border-neutral-200 rounded-xl bg-white p-5 relative overflow-hidden hover:border-neutral-300 hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08),0px_1px_2px_0px_rgba(0,0,0,0.05)] transition-all duration-200 cursor-pointer"
-                >
-                  <div className={`absolute left-0 top-0 bottom-0 w-1 ${isNew ? 'bg-green-500' : 'bg-neutral-200'}`} />
-                  <div className="flex gap-4 pl-3">
-                    <div className="w-12 h-12 rounded-full bg-white border border-neutral-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                      <CompanyLogo company={job.company} companyLogo={job.company_logo} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-4 mb-1">
-                        <h3 className="text-lg font-normal text-neutral-900">{cleanJobTitle(job.title)}</h3>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          {isNew && (
-                            <span className="bg-green-500 text-white text-[10px] font-medium tracking-wider px-2 py-0.5 rounded">
-                              NEW
-                            </span>
-                          )}
-                          <span className="text-sm text-neutral-400">{timeAgo}</span>
-                        </div>
-                      </div>
-                      <p className="text-sm text-neutral-500 mb-3">
-                        {job.company} · {formatLocation(job.location)}
-                      </p>
-                      <div className="flex flex-wrap gap-2">
-                        {job.job_type && (
-                          <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200">
-                            {toTitleCase(job.job_type)}
-                          </span>
-                        )}
-                        {job.experience_level && (
-                          <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200">
-                            {toTitleCase(job.experience_level)}
-                          </span>
-                        )}
-                        {salary && (
-                          <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200">
-                            {salary}
-                          </span>
-                        )}
-                        {remote && (
-                          <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200">
-                            Remote
-                          </span>
-                        )}
-                        {job.skills && job.skills.slice(0, 3).map((skill: string, index: number) => (
-                          <span
-                            key={index}
-                            className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200"
-                          >
-                            {toTitleCase(skill)}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              )
-            })
+            jobs.map((job) => (
+              <JobCard
+                key={job.id}
+                job={job}
+                showActions={false}
+              />
+            ))
           )}
         </div>
 
