@@ -53,15 +53,6 @@ const faqs = [
   { question: 'Do you offer refunds?', answer: 'Yes, we offer a 7-day money-back guarantee if you\'re not satisfied with your subscription.' },
 ]
 
-const comparisonFeatures = [
-  'Unlimited job listings',
-  'Instant job alerts',
-  'Early access (24h)',
-  'Salary insights',
-  'Unlimited saved jobs',
-  'Priority support',
-]
-
 function PremiumContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -236,94 +227,6 @@ function PremiumContent() {
               }
             }
           `}</style>
-        </div>
-      </div>
-
-      {/* Comparison Cards - Horizontal */}
-      <div className="px-4 py-20 relative z-10">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-semibold text-neutral-900 text-center mb-2">Free vs Premium</h2>
-          <p className="text-neutral-500 text-center mb-10">See what you&apos;re missing</p>
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Free Plan */}
-            <div className="bg-white rounded-xl border border-neutral-200 p-6 shadow-[0px_4px_0px_0px_rgba(0,0,0,0.03)]">
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold text-neutral-900 mb-1">Free</h3>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-bold text-neutral-900">$0</span>
-                  <span className="text-neutral-500">/forever</span>
-                </div>
-              </div>
-              <ul className="space-y-3">
-                <li className="flex items-center gap-3 text-sm">
-                  <svg className="w-5 h-5 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-neutral-600">20 job listings</span>
-                </li>
-                <li className="flex items-center gap-3 text-sm">
-                  <svg className="w-5 h-5 text-neutral-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  <span className="text-neutral-400">No job alerts</span>
-                </li>
-                <li className="flex items-center gap-3 text-sm">
-                  <svg className="w-5 h-5 text-neutral-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  <span className="text-neutral-400">No early access</span>
-                </li>
-                <li className="flex items-center gap-3 text-sm">
-                  <svg className="w-5 h-5 text-neutral-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                  <span className="text-neutral-400">No salary insights</span>
-                </li>
-                <li className="flex items-center gap-3 text-sm">
-                  <svg className="w-5 h-5 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-neutral-600">5 saved jobs</span>
-                </li>
-                <li className="flex items-center gap-3 text-sm">
-                  <svg className="w-5 h-5 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-neutral-600">Email support</span>
-                </li>
-              </ul>
-            </div>
-
-            {/* Premium Plan */}
-            <div className="bg-neutral-900 rounded-xl p-6 text-white relative overflow-hidden">
-              <div className="absolute top-4 right-4 px-2 py-1 bg-amber-400 text-amber-900 text-xs font-semibold rounded">
-                POPULAR
-              </div>
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-1">Premium</h3>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-3xl font-bold">${SUBSCRIPTION_PRICING.ANNUAL}</span>
-                  <span className="text-neutral-400">/year</span>
-                </div>
-                <p className="text-sm text-green-400 mt-1">Save $107/year vs monthly</p>
-              </div>
-              <ul className="space-y-3">
-                {comparisonFeatures.map((feature) => (
-                  <li key={feature} className="flex items-center gap-3 text-sm">
-                    <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-6">
-                <RainbowButton onClick={handleSubscribe} disabled={isLoading} fullWidth>
-                  {isLoading ? 'Loading...' : 'Get Premium'}
-                </RainbowButton>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
