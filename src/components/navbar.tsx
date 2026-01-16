@@ -189,14 +189,6 @@ export function Navbar() {
                 >
                   Jobs Posted
                 </Link>
-                {!hasSubscription && (
-                  <Link
-                    href="/pricing"
-                    className="px-4 py-2 text-sm font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-all"
-                  >
-                    Get Pro
-                  </Link>
-                )}
                 <UserDropdown
                   email={user.email || ''}
                   onSignOut={handleSignOut}
@@ -216,6 +208,14 @@ export function Navbar() {
                   Sign up
                 </Button>
               </>
+            )}
+            {!hasSubscription && (
+              <Link
+                href="/premium"
+                className="px-4 py-2 text-sm font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-all"
+              >
+                Get Pro
+              </Link>
             )}
             <RainbowButton href="/post-job" size="sm">
               Post a job

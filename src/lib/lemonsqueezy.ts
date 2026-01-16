@@ -6,7 +6,7 @@ lemonSqueezySetup({
 })
 
 // Single variant ID - pricing is calculated dynamically
-export const BASE_VARIANT_ID = process.env.LEMONSQUEEZY_VARIANT_BASE!
+export const BASE_VARIANT_ID = process.env.LEMONSQUEEZY_VARIANT_ID!
 
 // Subscription variant IDs
 export const SUBSCRIPTION_VARIANTS = {
