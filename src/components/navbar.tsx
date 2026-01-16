@@ -171,14 +171,9 @@ export function Navbar() {
     >
       <div className="max-w-6xl mx-auto px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="font-medium text-neutral-900 text-lg tracking-tight">
-              remotedesigners.co
-            </Link>
-            <Button variant="secondary" size="sm" onClick={() => window.location.href = '/post-job'}>
-              Post a job
-            </Button>
-          </div>
+          <Link href="/" className="font-medium text-neutral-900 text-lg tracking-tight">
+            remotedesigners.co
+          </Link>
 
           <div className="flex items-center gap-3">
             {user ? (
@@ -201,6 +196,9 @@ export function Navbar() {
                   hasSubscription={hasSubscription}
                   billingUrl={billingUrl}
                 />
+                <Button variant="secondary" size="sm" onClick={() => window.location.href = '/post-job'}>
+                  Post a job
+                </Button>
               </>
             ) : (
               <>
@@ -212,6 +210,9 @@ export function Navbar() {
                 </button>
                 <Button onClick={openSignupModal} variant="secondary" size="sm">
                   Sign up
+                </Button>
+                <Button variant="secondary" size="sm" onClick={() => window.location.href = '/post-job'}>
+                  Post a job
                 </Button>
               </>
             )}

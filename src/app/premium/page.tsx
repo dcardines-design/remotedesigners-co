@@ -123,7 +123,8 @@ function PremiumContent() {
       {/* Hero */}
       <div className="pt-20 pb-[34px] px-4 relative">
         <div className="max-w-3xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs mb-6 bg-amber-500 overflow-hidden relative">
+          {/* Pro Membership Badge - commented out for future use
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs mb-6 bg-violet-600 overflow-hidden relative">
             <div
               className="absolute animate-diagonal-stripes"
               style={{
@@ -149,6 +150,7 @@ function PremiumContent() {
               animation: diagonal-stripes 3.5s ease-out infinite;
             }
           `}</style>
+          */}
           <h1 className="text-4xl md:text-5xl font-semibold text-neutral-900 tracking-tight mb-4">
             Land Your Dream Design Job
           </h1>
@@ -196,7 +198,7 @@ function PremiumContent() {
               )}
 
               <RainbowButton onClick={handleSubscribe} disabled={isLoading} fullWidth>
-                {isLoading ? 'Loading...' : `Get Premium — $${selectedPlanData.price}${selectedPlanData.period}`}
+                {isLoading ? 'Loading...' : `Get Membership — $${selectedPlanData.price}${selectedPlanData.period}`}
               </RainbowButton>
 
               <p className="mt-4 text-center text-xs text-neutral-400">
@@ -335,7 +337,7 @@ function PremiumContent() {
           <h2 className="text-2xl font-semibold text-neutral-900 mb-3">Ready to Get Started?</h2>
           <p className="text-neutral-500 mb-6">Join 10,000+ designers who upgraded their careers.</p>
           <RainbowButton onClick={handleSubscribe} disabled={isLoading}>
-            {isLoading ? 'Loading...' : `Get Premium — $${selectedPlanData.price}${selectedPlanData.period}`}
+            {isLoading ? 'Loading...' : `Get Membership — $${selectedPlanData.price}${selectedPlanData.period}`}
           </RainbowButton>
           <div className="mt-6">
             <Link href={skipUrl} className="text-sm text-neutral-500 hover:text-neutral-700 underline underline-offset-4">
