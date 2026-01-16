@@ -171,9 +171,14 @@ export function Navbar() {
     >
       <div className="max-w-6xl mx-auto px-8">
         <div className="flex justify-between items-center h-16">
-          <Link href="/" className="font-medium text-neutral-900 text-lg tracking-tight">
-            remotedesigners.co
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/" className="font-medium text-neutral-900 text-lg tracking-tight">
+              remotedesigners.co
+            </Link>
+            <RainbowButton href="/post-job" size="sm">
+              Post a job
+            </RainbowButton>
+          </div>
 
           <div className="flex items-center gap-3">
             {user ? (
@@ -213,14 +218,29 @@ export function Navbar() {
             {!hasSubscription && (
               <Link
                 href="/premium"
-                className="px-4 py-2 text-sm font-medium text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-lg transition-all"
+                className="relative px-4 py-2 text-sm font-medium text-white bg-violet-600 border border-violet-700 rounded-lg shadow-[0px_2px_0px_0px_#8b5cf6] hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_#8b5cf6] active:translate-y-[2px] active:shadow-none transition-all overflow-hidden"
               >
-                Get Pro
+                <span
+                  className="absolute animate-get-pro-shine"
+                  style={{
+                    inset: '-100%',
+                    width: '300%',
+                    backgroundImage: 'linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.2) 40%, rgba(255,255,255,0.2) 45%, transparent 45%, transparent 47%, rgba(255,255,255,0.15) 47%, rgba(255,255,255,0.15) 48%, transparent 48%)',
+                  }}
+                />
+                <span className="relative z-10">Get Membership</span>
               </Link>
             )}
-            <RainbowButton href="/post-job" size="sm">
-              Post a job
-            </RainbowButton>
+            <style jsx global>{`
+              @keyframes get-pro-shine {
+                0% { transform: translateX(-50%); }
+                30% { transform: translateX(50%); }
+                100% { transform: translateX(50%); }
+              }
+              .animate-get-pro-shine {
+                animation: get-pro-shine 3.5s ease-out infinite;
+              }
+            `}</style>
           </div>
         </div>
       </div>

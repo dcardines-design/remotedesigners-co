@@ -121,10 +121,17 @@ function PremiumContent() {
       </div>
 
       {/* Hero */}
-      <div className="pt-12 pb-[34px] px-4 relative">
+      <div className="pt-20 pb-[34px] px-4 relative">
         <div className="max-w-3xl mx-auto text-center relative z-10">
           <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs mb-6 bg-amber-500 overflow-hidden relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent bg-[length:200%_100%] animate-shimmer" />
+            <div
+              className="absolute animate-diagonal-stripes"
+              style={{
+                inset: '-100%',
+                width: '300%',
+                backgroundImage: 'linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.2) 40%, rgba(255,255,255,0.2) 45%, transparent 45%, transparent 47%, rgba(255,255,255,0.15) 47%, rgba(255,255,255,0.15) 48%, transparent 48%)',
+              }}
+            />
             <svg className="w-3 h-3 text-white relative z-10" fill="currentColor" viewBox="0 0 20 20">
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
             </svg>
@@ -133,12 +140,13 @@ function PremiumContent() {
             </span>
           </div>
           <style jsx>{`
-            @keyframes shimmer {
-              0% { background-position: 200% 0; }
-              100% { background-position: -200% 0; }
+            @keyframes diagonal-stripes {
+              0% { transform: translateX(-33%); }
+              30% { transform: translateX(33%); }
+              100% { transform: translateX(33%); }
             }
-            .animate-shimmer {
-              animation: shimmer 2s ease-in-out infinite;
+            .animate-diagonal-stripes {
+              animation: diagonal-stripes 3.5s ease-out infinite;
             }
           `}</style>
           <h1 className="text-4xl md:text-5xl font-semibold text-neutral-900 tracking-tight mb-4">
@@ -163,10 +171,10 @@ function PremiumContent() {
                   <button
                     key={plan.id}
                     onClick={() => setSelectedPlan(plan.id)}
-                    className={`relative p-4 rounded-xl border-2 text-center transition-all ${
+                    className={`relative p-4 rounded-xl border text-center transition-all ${
                       selectedPlan === plan.id
-                        ? 'border-neutral-900 bg-neutral-50'
-                        : 'border-neutral-200 hover:border-neutral-300'
+                        ? 'border-neutral-900 bg-white shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08)] -translate-y-1'
+                        : 'border-neutral-200 bg-white shadow-[0px_4px_0px_0px_rgba(0,0,0,0.03)] hover:-translate-y-1 hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.06)]'
                     }`}
                   >
                     {plan.savings && (
@@ -231,7 +239,7 @@ function PremiumContent() {
       </div>
 
       {/* Testimonials - Masonry Grid */}
-      <div className="px-4 pb-20 relative z-10">
+      <div className="px-4 pt-16 pb-20 relative z-10">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-2xl font-semibold text-neutral-900 text-center mb-2">Loved by Designers</h2>
           <p className="text-neutral-500 text-center mb-10">Join thousands who found their dream jobs</p>
