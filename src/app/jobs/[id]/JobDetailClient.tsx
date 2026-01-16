@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
 import { SocialProof, RainbowButton } from '@/components/ui'
 import { useSignupModal } from '@/context/signup-modal-context'
@@ -387,7 +388,9 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
   const [isSaving, setIsSaving] = useState(false)
   const [similarJobs, setSimilarJobs] = useState<Job[]>([])
   const [userId, setUserId] = useState<string | null>(null)
+  const [isSubscribed, setIsSubscribed] = useState(false)
   const { openSignupModal } = useSignupModal()
+  const router = useRouter()
   const error = initialError
 
   // Track page view
@@ -400,9 +403,9 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
     }).catch(() => {}) // Silent fail
   }, [initialJob])
 
-  // Check auth status and saved state
+  // Check auth status, subscription, and saved state
   useEffect(() => {
-    const checkSavedStatus = async () => {
+    const checkAuthAndStatus = async () => {
       if (!initialJob) return
 
       const supabase = createBrowserSupabaseClient()
@@ -410,6 +413,18 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
 
       if (user) {
         setUserId(user.id)
+
+        // Check subscription status
+        const { data: subscription } = await supabase
+          .from('subscriptions')
+          .select('status')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .single()
+
+        setIsSubscribed(!!subscription)
+
+        // Check saved status
         const { data } = await supabase
           .from('saved_jobs')
           .select('id')
@@ -421,7 +436,7 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
       }
     }
 
-    checkSavedStatus()
+    checkAuthAndStatus()
   }, [initialJob])
 
   // Fetch similar jobs
@@ -743,11 +758,15 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
               {/* Action Buttons */}
               <div className="space-y-3">
                 <RainbowButton
-                  href={job.apply_url}
-                  external
+                  href={isSubscribed ? job.apply_url : undefined}
+                  external={isSubscribed}
                   fullWidth
                   size="md"
                   onClick={() => {
+                    if (!isSubscribed) {
+                      router.push(`/premium?skip_url=${encodeURIComponent(window.location.href)}`)
+                      return
+                    }
                     fetch(`/api/jobs/${job.id}/track`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },

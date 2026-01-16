@@ -2385,6 +2385,48 @@ export async function fetchAllJobs(): Promise<NormalizedJob[]> {
 }
 
 // ============ LINKEDIN (Public Search) ============
+// Helper to fetch job description from LinkedIn guest API
+async function fetchLinkedInJobDescription(jobId: string): Promise<string> {
+  try {
+    const url = `https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/${jobId}`
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      },
+    })
+
+    if (!response.ok) return ''
+
+    const html = await response.text()
+
+    // Extract description from the job posting page
+    const descMatch = html.match(/<div[^>]*class="[^"]*description[^"]*"[^>]*>([\s\S]*?)<\/div>/i)
+    if (descMatch) {
+      // Convert HTML to plain text, preserve some formatting
+      let desc = descMatch[1]
+        .replace(/<br\s*\/?>/gi, '\n')
+        .replace(/<\/p>/gi, '\n\n')
+        .replace(/<\/li>/gi, '\n')
+        .replace(/<li>/gi, '• ')
+        .replace(/<[^>]*>/g, '')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/\n{3,}/g, '\n\n')
+        .trim()
+      return desc
+    }
+
+    return ''
+  } catch {
+    return ''
+  }
+}
+
 export async function fetchLinkedInJobs(): Promise<NormalizedJob[]> {
   const jobs: NormalizedJob[] = []
 
@@ -2396,6 +2438,9 @@ export async function fetchLinkedInJobs(): Promise<NormalizedJob[]> {
     'graphic designer remote',
     'visual designer remote',
   ]
+
+  // First pass: collect job IDs from search results
+  const jobCandidates: { jobId: string; title: string; company: string; location: string }[] = []
 
   for (const query of searchQueries) {
     try {
@@ -2436,37 +2481,49 @@ export async function fetchLinkedInJobs(): Promise<NormalizedJob[]> {
         const hasExcludeKeyword = EXCLUDE_KEYWORDS.some(kw => titleLower.includes(kw.toLowerCase()))
         if (hasExcludeKeyword && !titleLower.includes('design')) continue
 
-        jobs.push({
-          id: `linkedin-${jobId}`,
-          source: 'linkedin',
-          title,
-          company,
-          location: location || 'Remote',
-          description: '', // LinkedIn doesn't provide description in search
-          job_type: 'full-time',
-          skills: extractSkills(title),
-          apply_url: `https://www.linkedin.com/jobs/view/${jobId}`,
-          posted_at: new Date().toISOString(),
-          is_featured: false,
-        })
+        jobCandidates.push({ jobId, title, company, location })
       }
 
-      // Rate limit between queries
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Rate limit between search queries
+      await new Promise(resolve => setTimeout(resolve, 500))
 
     } catch (error) {
       console.error(`LinkedIn fetch error for "${query}":`, error)
     }
   }
 
-  // Deduplicate by job ID
+  // Deduplicate candidates by job ID
   const seen = new Set<string>()
-  const uniqueJobs = jobs.filter(job => {
-    if (seen.has(job.id)) return false
-    seen.add(job.id)
+  const uniqueCandidates = jobCandidates.filter(job => {
+    if (seen.has(job.jobId)) return false
+    seen.add(job.jobId)
     return true
   })
 
-  console.log(`LinkedIn: Fetched ${uniqueJobs.length} jobs`)
-  return uniqueJobs
+  console.log(`LinkedIn: Found ${uniqueCandidates.length} unique job candidates, fetching descriptions...`)
+
+  // Second pass: fetch descriptions for each job (with rate limiting)
+  for (const candidate of uniqueCandidates) {
+    const description = await fetchLinkedInJobDescription(candidate.jobId)
+
+    jobs.push({
+      id: `linkedin-${candidate.jobId}`,
+      source: 'linkedin',
+      title: candidate.title,
+      company: candidate.company,
+      location: candidate.location || 'Remote',
+      description,
+      job_type: 'full-time',
+      skills: extractSkills(candidate.title + ' ' + description),
+      apply_url: `https://www.linkedin.com/jobs/view/${candidate.jobId}`,
+      posted_at: new Date().toISOString(),
+      is_featured: false,
+    })
+
+    // Rate limit: 200ms between job detail requests
+    await new Promise(resolve => setTimeout(resolve, 200))
+  }
+
+  console.log(`LinkedIn: Fetched ${jobs.length} jobs with descriptions`)
+  return jobs
 }
