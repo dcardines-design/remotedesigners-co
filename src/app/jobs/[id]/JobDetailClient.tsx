@@ -732,7 +732,7 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
                   </Link>
                 )}
                 {salary && (
-                  <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200">
+                  <span className="bg-neutral-100 text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 cursor-default">
                     {salary}
                   </span>
                 )}
