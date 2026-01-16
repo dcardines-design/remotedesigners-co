@@ -2,7 +2,7 @@
 
 export interface NormalizedJob {
   id: string
-  source: 'remotive' | 'remoteok' | 'arbeitnow' | 'jsearch' | 'himalayas' | 'jobicy' | 'greenhouse' | 'lever' | 'ashby' | 'adzuna' | 'authenticjobs' | 'workingnomads' | 'themuse' | 'glints' | 'tokyodev' | 'nodeflairsg' | 'jooble' | 'jobstreet' | 'kalibrr' | 'instahyre' | 'wantedly'
+  source: 'remotive' | 'remoteok' | 'arbeitnow' | 'jsearch' | 'himalayas' | 'jobicy' | 'greenhouse' | 'lever' | 'ashby' | 'adzuna' | 'authenticjobs' | 'workingnomads' | 'themuse' | 'glints' | 'tokyodev' | 'nodeflairsg' | 'jooble' | 'jobstreet' | 'kalibrr' | 'instahyre' | 'wantedly' | 'linkedin'
   title: string
   company: string
   company_logo?: string
@@ -2382,4 +2382,91 @@ export async function fetchAllJobs(): Promise<NormalizedJob[]> {
 
   console.log(`Total unique jobs: ${deduped.length}`)
   return deduped
+}
+
+// ============ LINKEDIN (Public Search) ============
+export async function fetchLinkedInJobs(): Promise<NormalizedJob[]> {
+  const jobs: NormalizedJob[] = []
+
+  // Search queries for remote design jobs
+  const searchQueries = [
+    'ux designer remote',
+    'ui designer remote',
+    'product designer remote',
+    'graphic designer remote',
+    'visual designer remote',
+  ]
+
+  for (const query of searchQueries) {
+    try {
+      const encodedQuery = encodeURIComponent(query)
+      const url = `https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=${encodedQuery}&location=&geoId=&f_WT=2&start=0`
+
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        },
+      })
+
+      if (!response.ok) {
+        console.log(`LinkedIn search failed for "${query}": ${response.status}`)
+        continue
+      }
+
+      const html = await response.text()
+
+      // Parse job cards from HTML
+      const jobMatches = html.matchAll(/data-entity-urn="urn:li:jobPosting:(\d+)"[\s\S]*?<h3[^>]*class="[^"]*title[^"]*"[^>]*>\s*([\s\S]*?)\s*<\/h3>[\s\S]*?<h4[^>]*class="[^"]*subtitle[^"]*"[^>]*>[\s\S]*?>\s*([\s\S]*?)\s*<\/a>[\s\S]*?<span[^>]*class="[^"]*location[^"]*"[^>]*>\s*([\s\S]*?)\s*<\/span>/g)
+
+      for (const match of jobMatches) {
+        const [, jobId, rawTitle, rawCompany, rawLocation] = match
+
+        // Clean up extracted text
+        const title = rawTitle.replace(/<[^>]*>/g, '').trim()
+        const company = rawCompany.replace(/<[^>]*>/g, '').trim()
+        const location = rawLocation.replace(/<[^>]*>/g, '').trim()
+
+        // Skip if not a design job
+        const titleLower = title.toLowerCase()
+        const hasDesignKeyword = DESIGN_KEYWORDS.some(kw => titleLower.includes(kw.toLowerCase()))
+        if (!hasDesignKeyword) continue
+
+        // Skip if it's an engineering role
+        const hasExcludeKeyword = EXCLUDE_KEYWORDS.some(kw => titleLower.includes(kw.toLowerCase()))
+        if (hasExcludeKeyword && !titleLower.includes('design')) continue
+
+        jobs.push({
+          id: `linkedin-${jobId}`,
+          source: 'linkedin',
+          title,
+          company,
+          location: location || 'Remote',
+          description: '', // LinkedIn doesn't provide description in search
+          job_type: 'full-time',
+          skills: extractSkills(title),
+          apply_url: `https://www.linkedin.com/jobs/view/${jobId}`,
+          posted_at: new Date().toISOString(),
+          is_featured: false,
+        })
+      }
+
+      // Rate limit between queries
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+    } catch (error) {
+      console.error(`LinkedIn fetch error for "${query}":`, error)
+    }
+  }
+
+  // Deduplicate by job ID
+  const seen = new Set<string>()
+  const uniqueJobs = jobs.filter(job => {
+    if (seen.has(job.id)) return false
+    seen.add(job.id)
+    return true
+  })
+
+  console.log(`LinkedIn: Fetched ${uniqueJobs.length} jobs`)
+  return uniqueJobs
 }
