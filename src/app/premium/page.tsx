@@ -1,12 +1,54 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, Suspense, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { RainbowButton, Button } from '@/components/ui'
 import { HeroBackground } from '@/components/hero-background'
 import { SUBSCRIPTION_PRICING } from '@/lib/lemonsqueezy'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
+
+// Animated gradient text component with fabric-like flowing effect
+function AnimatedGradientText({ children }: { children: React.ReactNode }) {
+  const spanRef = useRef<HTMLSpanElement>(null)
+
+  useEffect(() => {
+    let animationId: number
+    const startTime = Date.now()
+
+    const animate = () => {
+      const elapsed = (Date.now() - startTime) / 1000
+
+      // Use multiple sine waves at different frequencies for organic motion
+      const x = 50 + Math.sin(elapsed * 0.5) * 30 + Math.sin(elapsed * 0.3) * 20
+      const y = 50 + Math.cos(elapsed * 0.4) * 30 + Math.cos(elapsed * 0.6) * 20
+      const angle = 135 + Math.sin(elapsed * 0.2) * 45
+
+      if (spanRef.current) {
+        spanRef.current.style.backgroundPosition = `${x}% ${y}%`
+        spanRef.current.style.backgroundImage = `linear-gradient(${angle}deg, #0D9488 0%, #0891B2 15%, #2563EB 30%, #7C3AED 45%, #EC4899 60%, #F97316 75%, #EAB308 90%, #10B981 100%)`
+      }
+
+      animationId = requestAnimationFrame(animate)
+    }
+
+    animate()
+    return () => cancelAnimationFrame(animationId)
+  }, [])
+
+  return (
+    <span
+      ref={spanRef}
+      className="bg-clip-text text-transparent"
+      style={{
+        backgroundSize: '300% 300%',
+        backgroundImage: 'linear-gradient(135deg, #0D9488 0%, #0891B2 15%, #2563EB 30%, #7C3AED 45%, #EC4899 60%, #F97316 75%, #EAB308 90%, #10B981 100%)'
+      }}
+    >
+      {children}
+    </span>
+  )
+}
 
 type Plan = 'monthly' | 'quarterly' | 'annual'
 
@@ -152,7 +194,7 @@ function PremiumContent() {
           `}</style>
           */}
           <h1 className="text-4xl md:text-5xl font-semibold text-neutral-900 tracking-tight mb-4">
-            Land Your Dream Design Job
+            Land Your <AnimatedGradientText>Dream</AnimatedGradientText> Design Job
           </h1>
           <p className="text-lg text-neutral-500">
             Join 10,000+ designers who found their perfect remote role with Premium.
@@ -173,7 +215,7 @@ function PremiumContent() {
                   <button
                     key={plan.id}
                     onClick={() => setSelectedPlan(plan.id)}
-                    className={`relative p-4 rounded-xl border text-center transition-all ${
+                    className={`relative px-4 py-8 rounded-xl border text-center transition-all ${
                       selectedPlan === plan.id
                         ? 'border-neutral-900 bg-white shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08)]'
                         : 'border-neutral-200 bg-white shadow-[0px_4px_0px_0px_rgba(0,0,0,0.03)] hover:translate-y-[1px] hover:shadow-[0px_3px_0px_0px_rgba(0,0,0,0.03)]'
