@@ -119,7 +119,7 @@ function PremiumContent() {
       {/* Hero Background - contained to hero area */}
       <div className="absolute top-0 left-0 right-0 h-[600px] overflow-hidden pointer-events-none">
         <img
-          src="/hero-bg.png"
+          src="/premium-bg.png"
           alt=""
           className="w-full h-auto opacity-[0.12] object-cover"
         />
@@ -130,76 +130,39 @@ function PremiumContent() {
       </div>
 
       {/* Hero */}
-      <div className="pt-12 pb-20 px-4 relative">
-        <div className="max-w-2xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs mb-6 bg-violet-600">
-            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+      <div className="pt-12 pb-[34px] px-4 relative">
+        <div className="max-w-3xl mx-auto text-center relative z-10">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs mb-6 bg-amber-500 overflow-hidden relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent bg-[length:200%_100%] animate-shimmer" />
+            <svg className="w-3 h-3 text-white relative z-10" fill="currentColor" viewBox="0 0 20 20">
               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
             </svg>
-            <span className="text-white font-medium">
-              Premium Membership
+            <span className="text-white font-medium relative z-10">
+              Pro Membership
             </span>
           </div>
+          <style jsx>{`
+            @keyframes shimmer {
+              0% { background-position: 200% 0; }
+              100% { background-position: -200% 0; }
+            }
+            .animate-shimmer {
+              animation: shimmer 2s ease-in-out infinite;
+            }
+          `}</style>
           <h1 className="text-4xl md:text-5xl font-semibold text-neutral-900 tracking-tight mb-4">
             Land Your Dream Design Job
           </h1>
-          <p className="text-lg text-neutral-500 mb-10">
+          <p className="text-lg text-neutral-500">
             Join 10,000+ designers who found their perfect remote role with Premium.
           </p>
-
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {stats.map((stat, index) => (
-              <div
-                key={stat.label}
-                className="bg-white rounded-xl border border-neutral-200 p-4 shadow-[0px_4px_0px_0px_rgba(0,0,0,0.03)] hover:-translate-y-1 hover:shadow-[0px_6px_0px_0px_rgba(0,0,0,0.05)] transition-all cursor-default"
-                style={{
-                  animation: `bounce-in 0.5s ease-out ${index * 0.1}s both`,
-                }}
-              >
-                <div className="text-lg mb-1">{stat.emoji}</div>
-                <div className="text-2xl font-bold text-neutral-900">{stat.value}</div>
-                <div className="text-sm text-neutral-500">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-          <style jsx>{`
-            @keyframes bounce-in {
-              0% {
-                opacity: 0;
-                transform: translateY(20px) scale(0.95);
-              }
-              60% {
-                transform: translateY(-5px) scale(1.02);
-              }
-              100% {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-              }
-            }
-          `}</style>
         </div>
       </div>
 
-      {/* Pricing Card with Value Props */}
+      {/* Pricing Card */}
       <div className="px-4 -mt-4 relative z-10">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-[1fr_auto_1fr] gap-6 items-center">
-            {/* Left Value Props */}
-            <div className="hidden lg:flex flex-col gap-4">
-              {valueProps.slice(0, 2).map((prop) => (
-                <div key={prop.title} className="bg-white p-5 rounded-xl border border-neutral-200 shadow-[0px_4px_0px_0px_rgba(0,0,0,0.03)]">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-2xl">{prop.icon}</span>
-                    <h3 className="font-medium text-neutral-900">{prop.title}</h3>
-                  </div>
-                  <p className="text-sm text-neutral-500">{prop.description}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Center Pricing Card */}
-            <div className="bg-white rounded-2xl border border-neutral-200 p-8 shadow-[0px_4px_0px_0px_rgba(0,0,0,0.03)] w-full lg:w-[400px]">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-white rounded-2xl border border-neutral-200 p-8 shadow-[0px_4px_0px_0px_rgba(0,0,0,0.03)]">
               <h2 className="text-xl font-semibold text-neutral-900 text-center mb-1">Choose Your Plan</h2>
               <p className="text-neutral-500 text-center text-sm mb-6">Cancel anytime. 7-day money-back guarantee.</p>
 
@@ -240,32 +203,39 @@ function PremiumContent() {
               <p className="mt-4 text-center text-xs text-neutral-400">
                 Secure payment via Lemon Squeezy
               </p>
-            </div>
-
-            {/* Right Value Props */}
-            <div className="hidden lg:flex flex-col gap-4">
-              {valueProps.slice(2, 4).map((prop) => (
-                <div key={prop.title} className="bg-white p-5 rounded-xl border border-neutral-200 shadow-[0px_4px_0px_0px_rgba(0,0,0,0.03)]">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="text-2xl">{prop.icon}</span>
-                    <h3 className="font-medium text-neutral-900">{prop.title}</h3>
-                  </div>
-                  <p className="text-sm text-neutral-500">{prop.description}</p>
-                </div>
-              ))}
-            </div>
           </div>
 
-          {/* Mobile Value Props - show all 4 */}
-          <div className="grid grid-cols-2 gap-4 mt-6 lg:hidden">
-            {valueProps.slice(0, 4).map((prop) => (
-              <div key={prop.title} className="bg-white p-4 rounded-xl border border-neutral-200 shadow-[0px_4px_0px_0px_rgba(0,0,0,0.03)]">
-                <span className="text-xl mb-2 block">{prop.icon}</span>
-                <h3 className="font-medium text-neutral-900 text-sm mb-1">{prop.title}</h3>
-                <p className="text-xs text-neutral-500">{prop.description}</p>
+          {/* Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+            {stats.map((stat, index) => (
+              <div
+                key={stat.label}
+                className="bg-white rounded-xl border border-neutral-200 p-4 shadow-[0px_4px_0px_0px_rgba(0,0,0,0.03)] hover:-translate-y-1 hover:shadow-[0px_6px_0px_0px_rgba(0,0,0,0.05)] transition-all cursor-default"
+                style={{
+                  animation: `bounce-in 0.5s ease-out ${index * 0.1}s both`,
+                }}
+              >
+                <div className="text-lg mb-1">{stat.emoji}</div>
+                <div className="text-2xl font-bold text-neutral-900">{stat.value}</div>
+                <div className="text-sm text-neutral-500">{stat.label}</div>
               </div>
             ))}
           </div>
+          <style jsx>{`
+            @keyframes bounce-in {
+              0% {
+                opacity: 0;
+                transform: translateY(20px) scale(0.95);
+              }
+              60% {
+                transform: translateY(-5px) scale(1.02);
+              }
+              100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+              }
+            }
+          `}</style>
         </div>
       </div>
 
