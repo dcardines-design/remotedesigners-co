@@ -202,12 +202,9 @@ export function Navbar() {
               </>
             ) : (
               <>
-                <button
-                  onClick={openLoginModal}
-                  className="px-4 py-2 text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
-                >
+                <Button onClick={openLoginModal} variant="ghost" size="sm">
                   Log in
-                </button>
+                </Button>
                 <Button onClick={openSignupModal} variant="secondary" size="sm">
                   Sign up
                 </Button>
@@ -219,7 +216,7 @@ export function Navbar() {
             {!hasSubscription && (
               <Link
                 href="/premium"
-                className="relative px-4 py-2 text-sm font-medium text-white bg-violet-600 border border-violet-700 rounded-lg shadow-[0px_2px_0px_0px_#8b5cf6] hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_#8b5cf6] active:translate-y-[2px] active:shadow-none transition-all overflow-hidden"
+                className="relative px-3 py-2 text-sm font-medium text-white bg-violet-600 border border-violet-700 rounded-lg shadow-[0px_2px_0px_0px_#8b5cf6] hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_#8b5cf6] active:translate-y-[2px] active:shadow-none transition-all overflow-hidden"
               >
                 <span
                   className="absolute animate-get-pro-shine"

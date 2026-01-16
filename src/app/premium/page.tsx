@@ -7,6 +7,7 @@ import { RainbowButton, Button } from '@/components/ui'
 import { HeroBackground } from '@/components/hero-background'
 import { SUBSCRIPTION_PRICING } from '@/lib/lemonsqueezy'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
+import { useSignupModal } from '@/context/signup-modal-context'
 
 // Animated gradient text component with fabric-like flowing effect
 function AnimatedGradientText({ children }: { children: React.ReactNode }) {
@@ -104,6 +105,7 @@ function PremiumContent() {
   const [userEmail, setUserEmail] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const { openLoginModal } = useSignupModal()
 
   const skipUrl = searchParams.get('skip_url') || '/'
 
@@ -249,7 +251,7 @@ function PremiumContent() {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
             {stats.map((stat, index) => (
               <div
                 key={stat.label}

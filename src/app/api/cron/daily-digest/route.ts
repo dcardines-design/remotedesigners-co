@@ -217,21 +217,30 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: true, message: `Test email sent to ${testEmail}`, jobs: jobs.length })
     }
 
-    // Get active subscribers
-    const { data: subscribers, error: subError } = await supabase
-      .from('subscribers')
-      .select('id, email, unsubscribe_token')
-      .eq('is_active', true)
-      .eq('frequency', 'daily')
+    // Get premium subscribers only (users with active subscriptions)
+    const { data: premiumUsers, error: subError } = await supabase
+      .from('subscriptions')
+      .select(`
+        user_id,
+        users!inner(email)
+      `)
+      .eq('status', 'active')
 
     if (subError) {
-      console.error('Error fetching subscribers:', subError)
+      console.error('Error fetching premium subscribers:', subError)
       return NextResponse.json({ error: 'Failed to fetch subscribers' }, { status: 500 })
     }
 
-    if (!subscribers || subscribers.length === 0) {
-      return NextResponse.json({ message: 'No active subscribers', sent: 0 })
+    if (!premiumUsers || premiumUsers.length === 0) {
+      return NextResponse.json({ message: 'No premium subscribers', sent: 0 })
     }
+
+    // Transform to subscriber format
+    const subscribers = premiumUsers.map(sub => ({
+      id: sub.user_id,
+      email: (sub.users as any)?.email,
+      unsubscribe_token: sub.user_id, // Use user_id as token for now
+    })).filter(s => s.email)
 
     // Check if SES is configured
     if (!sesClient) {
