@@ -33,6 +33,7 @@ interface SavedJob {
 
 interface KanbanBoardProps {
   initialJobs: SavedJob[]
+  isMember?: boolean
 }
 
 const COLUMNS: { id: ColumnStatus; title: string; color: string; bgColor: string }[] = [
@@ -51,7 +52,7 @@ const TOAST_MESSAGES: Record<ColumnStatus, string> = {
   rejected: 'On to the next one 💪',
 }
 
-export function KanbanBoard({ initialJobs }: KanbanBoardProps) {
+export function KanbanBoard({ initialJobs, isMember = false }: KanbanBoardProps) {
   const [jobs, setJobs] = useState<SavedJob[]>(initialJobs)
   const [activeJob, setActiveJob] = useState<SavedJob | null>(null)
 
@@ -189,6 +190,7 @@ export function KanbanBoard({ initialJobs }: KanbanBoardProps) {
             color={column.color}
             bgColor={column.bgColor}
             onDeleteJob={handleDeleteJob}
+            isMember={isMember}
           />
         ))}
       </div>
@@ -206,6 +208,7 @@ export function KanbanBoard({ initialJobs }: KanbanBoardProps) {
               job_type={activeJob.job_type}
               experience_level={activeJob.experience_level}
               skills={activeJob.skills}
+              isMember={isMember}
             />
           </div>
         ) : null}

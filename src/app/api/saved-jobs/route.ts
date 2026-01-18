@@ -62,7 +62,17 @@ export async function GET() {
       })
       .filter(Boolean)
 
-    return NextResponse.json({ jobs })
+    // Check if user has an active paid subscription
+    const { data: subscription } = await supabase
+      .from('subscriptions')
+      .select('status')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .single()
+
+    const isMember = !!subscription
+
+    return NextResponse.json({ jobs, isMember })
   } catch (error) {
     console.error('Saved jobs API error:', error)
     return NextResponse.json(

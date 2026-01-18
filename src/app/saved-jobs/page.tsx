@@ -26,6 +26,7 @@ export default function SavedJobsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
+  const [isMember, setIsMember] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -59,6 +60,7 @@ export default function SavedJobsPage() {
 
       const data = await response.json()
       setJobs(data.jobs || [])
+      setIsMember(data.isMember || false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {
@@ -173,7 +175,7 @@ export default function SavedJobsPage() {
         ) : (
           <div className="overflow-x-auto pb-4 -mx-6">
             <div className="px-6">
-              <KanbanBoard initialJobs={jobs} />
+              <KanbanBoard initialJobs={jobs} isMember={isMember} />
             </div>
           </div>
         )}

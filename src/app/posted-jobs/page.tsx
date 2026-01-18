@@ -93,17 +93,18 @@ export default function PostedJobsPage() {
       return
     }
 
-    const supabase = createBrowserSupabaseClient()
-    const { error } = await supabase
-      .from('jobs')
-      .delete()
-      .eq('id', jobId)
+    try {
+      const res = await fetch(`/api/jobs/${jobId}`, { method: 'DELETE' })
 
-    if (error) {
-      console.error('Error deleting job:', error)
-      alert('Failed to delete job')
-    } else {
+      if (!res.ok) {
+        const data = await res.json()
+        throw new Error(data.error || 'Failed to delete job')
+      }
+
       setJobs(jobs.filter(j => j.id !== jobId))
+    } catch (error) {
+      console.error('Error deleting job:', error)
+      alert(error instanceof Error ? error.message : 'Failed to delete job')
     }
   }
 

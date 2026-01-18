@@ -1377,6 +1377,62 @@ export const GREENHOUSE_COMPANIES = [
   { name: 'Epic Games', slug: 'epicgames' },
   { name: 'Niantic', slug: 'niantic' },
   { name: 'Unity', slug: 'unity' },
+
+  // Additional Tech Companies
+  { name: 'Slack', slug: 'slack' },
+  { name: 'Atlassian', slug: 'atlassian' },
+  { name: 'Twilio', slug: 'twilio' },
+  { name: 'MongoDB', slug: 'mongodb' },
+  { name: 'Snowflake', slug: 'snowflake' },
+  { name: 'Databricks', slug: 'databricks' },
+  { name: 'Okta', slug: 'okta' },
+  { name: 'Segment', slug: 'segment' },
+  { name: 'Amplitude', slug: 'amplitude' },
+  { name: 'Mixpanel', slug: 'mixpanel' },
+  { name: 'Heap', slug: 'heap' },
+  { name: 'FullStory', slug: 'fullstory' },
+  { name: 'Hotjar', slug: 'hotjar' },
+  { name: 'Pendo', slug: 'pendo' },
+  { name: 'Contentful', slug: 'contentful' },
+  { name: 'Sanity', slug: 'sanity' },
+  { name: 'Storyblok', slug: 'storyblok' },
+
+  // Design & Creative Tools
+  { name: 'Adobe', slug: 'adobe' },
+  { name: 'Dribbble', slug: 'dribbble' },
+  { name: 'Behance', slug: 'behance' },
+  { name: 'Lottie', slug: 'lottiefiles' },
+  { name: 'Maze', slug: 'maze' },
+  { name: 'UserTesting', slug: 'usertesting' },
+  { name: 'Optimal Workshop', slug: 'optimalworkshop' },
+  { name: 'Dovetail', slug: 'dovetail' },
+  { name: 'Spline', slug: 'spline' },
+  { name: 'ProtoPie', slug: 'protopie' },
+  { name: 'Zeplin', slug: 'zeplin' },
+
+  // E-commerce & Retail
+  { name: 'Warby Parker', slug: 'warbyparker' },
+  { name: 'Glossier', slug: 'glossier' },
+  { name: 'Allbirds', slug: 'allbirds' },
+  { name: 'Away', slug: 'away' },
+  { name: 'Everlane', slug: 'everlane' },
+  { name: 'Casper', slug: 'casper' },
+  { name: 'ThirdLove', slug: 'thirdlove' },
+  { name: 'Outdoor Voices', slug: 'outdoorvoices' },
+  { name: 'Mejuri', slug: 'mejuri' },
+  { name: 'Rent the Runway', slug: 'renttherunway' },
+
+  // Fintech & Banking
+  { name: 'SoFi', slug: 'sofi' },
+  { name: 'Current', slug: 'current' },
+  { name: 'Dave', slug: 'dave' },
+  { name: 'Varo', slug: 'varo' },
+  { name: 'Greenlight', slug: 'greenlight' },
+  { name: 'Step', slug: 'step' },
+  { name: 'Betterment', slug: 'betterment' },
+  { name: 'Wealthfront', slug: 'wealthfront' },
+  { name: 'Personal Capital', slug: 'personalcapital' },
+  { name: 'Acorns', slug: 'acorns' },
 ]
 
 // Helper to get Clearbit logo URL
@@ -1446,7 +1502,7 @@ export async function fetchGreenhouseJobs(companies?: { name: string; slug: stri
 // Direct scraping from top design companies' Lever boards
 // The Lever URL IS the apply URL (form is embedded)
 
-const LEVER_COMPANIES = [
+export const LEVER_COMPANIES = [
   // Big Tech & Streaming
   { name: 'Netflix', slug: 'netflix' },
   { name: 'Twitch', slug: 'twitch' },
@@ -1536,14 +1592,58 @@ const LEVER_COMPANIES = [
   { name: 'Hopper', slug: 'hopper' },
   { name: 'Getaround', slug: 'getaround' },
   { name: 'Sonder', slug: 'sonder' },
+
+  // Additional Tech & SaaS
+  { name: 'Figma', slug: 'figma' },
+  { name: 'Notion', slug: 'notionhq' },
+  { name: 'Linear', slug: 'linear' },
+  { name: 'Arc', slug: 'thebrowser' },
+  { name: 'Raycast', slug: 'raycast' },
+  { name: 'Bear', slug: 'bear' },
+  { name: 'Things', slug: 'culturedcode' },
+  { name: 'Craft', slug: 'craft' },
+  { name: 'Height', slug: 'height' },
+  { name: 'Rows', slug: 'rows' },
+  { name: 'Gamma', slug: 'gamma' },
+  { name: 'Tome', slug: 'tome' },
+  { name: 'Beautiful.ai', slug: 'beautiful' },
+  { name: 'Pitch', slug: 'pitchcom' },
+
+  // More AI Companies
+  { name: 'Replicate', slug: 'replicate' },
+  { name: 'Modal', slug: 'modal' },
+  { name: 'Replit', slug: 'replit' },
+  { name: 'Cursor', slug: 'cursor' },
+  { name: 'Codeium', slug: 'codeium' },
+  { name: 'Tabnine', slug: 'tabnine' },
+  { name: 'Sourcegraph', slug: 'sourcegraph' },
+  { name: 'Pieces', slug: 'pieces' },
+
+  // Design Agencies & Studios
+  { name: 'Work & Co', slug: 'workco' },
+  { name: 'IDEO', slug: 'ideo' },
+  { name: 'Frog Design', slug: 'frogdesign' },
+  { name: 'Huge', slug: 'huge' },
+  { name: 'Fantasy', slug: 'fantasy' },
+  { name: 'Metalab', slug: 'metalab' },
+  { name: 'Ramotion', slug: 'ramotion' },
+  { name: 'ustwo', slug: 'ustwo' },
+
+  // More E-commerce
+  { name: 'Faire', slug: 'faire' },
+  { name: 'Veho', slug: 'veho' },
+  { name: 'Cargo', slug: 'cargo' },
+  { name: 'Convictional', slug: 'convictional' },
+  { name: 'Chord', slug: 'chord' },
 ]
 
-export async function fetchLeverJobs(): Promise<NormalizedJob[]> {
-  console.log('Fetching jobs from Lever boards...')
+export async function fetchLeverJobs(companies?: { name: string; slug: string }[]): Promise<NormalizedJob[]> {
+  const targetCompanies = companies || LEVER_COMPANIES
+  console.log(`Fetching jobs from ${targetCompanies.length} Lever boards...`)
 
   // Fetch all companies in parallel for speed
   const results = await Promise.allSettled(
-    LEVER_COMPANIES.map(async (company) => {
+    targetCompanies.map(async (company) => {
       try {
         const response = await fetch(`https://api.lever.co/v0/postings/${company.slug}?mode=json`)
         if (!response.ok) return []
@@ -1616,7 +1716,7 @@ export async function fetchLeverJobs(): Promise<NormalizedJob[]> {
 // Direct scraping from companies using Ashby ATS
 // The Ashby URL IS the apply URL (form is embedded)
 
-const ASHBY_COMPANIES = [
+export const ASHBY_COMPANIES = [
   // AI & ML
   { name: 'OpenAI', slug: 'openai' },
   { name: 'Anthropic', slug: 'anthropic' },
@@ -1675,6 +1775,44 @@ const ASHBY_COMPANIES = [
   { name: 'Warp', slug: 'warp' },
   { name: 'Replit', slug: 'replit' },
   { name: 'Sourcegraph', slug: 'sourcegraph' },
+
+  // More AI & ML Companies
+  { name: 'Stability AI', slug: 'stability' },
+  { name: 'Together AI', slug: 'togetherai' },
+  { name: 'Anyscale', slug: 'anyscale' },
+  { name: 'Mosaic ML', slug: 'mosaicml' },
+  { name: 'Langchain', slug: 'langchain' },
+  { name: 'LlamaIndex', slug: 'llamaindex' },
+  { name: 'Helicone', slug: 'helicone' },
+  { name: 'Humanloop', slug: 'humanloop' },
+  { name: 'Weights & Biases', slug: 'wandb' },
+  { name: 'Deepgram', slug: 'deepgram' },
+  { name: 'AssemblyAI', slug: 'assemblyai' },
+  { name: 'ElevenLabs', slug: 'elevenlabs' },
+
+  // Developer Infrastructure
+  { name: 'Fly.io', slug: 'fly' },
+  { name: 'Depot', slug: 'depot' },
+  { name: 'Buildkite', slug: 'buildkite' },
+  { name: 'Airplane', slug: 'airplane' },
+  { name: 'Zed', slug: 'zed' },
+  { name: 'Coder', slug: 'coder' },
+  { name: 'Gitpod', slug: 'gitpod' },
+  { name: 'Codespaces', slug: 'github' },
+  { name: 'Nx', slug: 'nrwl' },
+  { name: 'Turborepo', slug: 'vercel' },
+
+  // Data & Analytics
+  { name: 'Hex', slug: 'hex' },
+  { name: 'Mode', slug: 'mode' },
+  { name: 'Observable', slug: 'observable' },
+  { name: 'Deepnote', slug: 'deepnote' },
+  { name: 'Metabase', slug: 'metabase' },
+  { name: 'Preset', slug: 'preset' },
+  { name: 'Lightdash', slug: 'lightdash' },
+  { name: 'Cube', slug: 'cube' },
+  { name: 'Fivetran', slug: 'fivetran' },
+  { name: 'Airbyte', slug: 'airbyte' },
 ]
 
 export async function fetchAshbyJobs(): Promise<NormalizedJob[]> {

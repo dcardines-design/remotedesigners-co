@@ -1,10 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
+import { LoginModal } from '@/components/ui/login-modal'
 
 export function Footer() {
   const footerRef = useRef<HTMLElement>(null)
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
 
   useEffect(() => {
     let animationId: number
@@ -115,8 +117,7 @@ export function Footer() {
             <h3 className="text-white text-sm font-medium mb-4">Company</h3>
             <ul className="space-y-2 text-sm">
               <li><Link href="/post-job" className="hover:text-white transition-colors">Post a Job</Link></li>
-              <li><Link href="/login" className="hover:text-white transition-colors">Log In</Link></li>
-              <li><Link href="/signup" className="hover:text-white transition-colors">Sign Up</Link></li>
+              <li><button onClick={() => setIsLoginModalOpen(true)} className="hover:text-white transition-colors">Log In</button></li>
               <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
               <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
             </ul>
@@ -133,6 +134,12 @@ export function Footer() {
           </p>
         </div>
       </div>
+
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onSwitchToSignup={() => setIsLoginModalOpen(false)}
+      />
     </footer>
   )
 }

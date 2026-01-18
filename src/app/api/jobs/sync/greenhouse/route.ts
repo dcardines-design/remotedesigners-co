@@ -2,12 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { fetchGreenhouseJobs, GREENHOUSE_COMPANIES } from '@/lib/job-apis'
 import { syncJobs } from '@/lib/sync-jobs'
 
-// Split companies into 3 batches
-const BATCH_SIZE = Math.ceil(GREENHOUSE_COMPANIES.length / 3)
-const BATCHES = {
-  1: GREENHOUSE_COMPANIES.slice(0, BATCH_SIZE),
-  2: GREENHOUSE_COMPANIES.slice(BATCH_SIZE, BATCH_SIZE * 2),
-  3: GREENHOUSE_COMPANIES.slice(BATCH_SIZE * 2),
+// Vercel timeout (60s for Pro)
+export const maxDuration = 60
+
+// Split companies into 5 batches (~28 companies each)
+const NUM_BATCHES = 5
+const BATCH_SIZE = Math.ceil(GREENHOUSE_COMPANIES.length / NUM_BATCHES)
+const BATCHES: Record<number, typeof GREENHOUSE_COMPANIES> = {}
+for (let i = 0; i < NUM_BATCHES; i++) {
+  BATCHES[i + 1] = GREENHOUSE_COMPANIES.slice(i * BATCH_SIZE, (i + 1) * BATCH_SIZE)
 }
 
 async function handleSync(batch?: number) {

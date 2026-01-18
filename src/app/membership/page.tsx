@@ -220,8 +220,8 @@ function PremiumContent() {
 
       if (!response.ok) throw new Error(data.error || 'Failed to create checkout')
 
-      // Production - redirect to Stripe checkout
-      if (data.checkoutUrl) window.location.href = data.checkoutUrl
+      // Production - open Stripe checkout in new tab
+      if (data.checkoutUrl) window.open(data.checkoutUrl, '_blank')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
     } finally {

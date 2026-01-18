@@ -135,13 +135,10 @@ export async function DELETE() {
       )
     }
 
-    // Soft delete - just deactivate
+    // Hard delete - remove the subscriber record
     const { error } = await supabase
       .from('subscribers')
-      .update({
-        is_active: false,
-        updated_at: new Date().toISOString()
-      })
+      .delete()
       .eq('email', user.email?.toLowerCase())
 
     if (error) {

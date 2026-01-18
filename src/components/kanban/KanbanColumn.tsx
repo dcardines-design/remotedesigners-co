@@ -27,9 +27,10 @@ interface KanbanColumnProps {
   color: string
   bgColor: string
   onDeleteJob?: (savedJobId: string) => void
+  isMember?: boolean
 }
 
-export function KanbanColumn({ id, title, jobs, color, bgColor, onDeleteJob }: KanbanColumnProps) {
+export function KanbanColumn({ id, title, jobs, color, bgColor, onDeleteJob, isMember = false }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id })
 
   return (
@@ -65,6 +66,7 @@ export function KanbanColumn({ id, title, jobs, color, bgColor, onDeleteJob }: K
                 experience_level={job.experience_level}
                 skills={job.skills}
                 onDelete={onDeleteJob}
+                isMember={isMember}
               />
             ))}
             {jobs.length === 0 && (

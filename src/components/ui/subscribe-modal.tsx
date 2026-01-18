@@ -192,9 +192,11 @@ export function SubscribeModal({ isOpen, onClose, jobTeaser, userEmail, isLogged
             'Cancel anytime',
           ].map((benefit) => (
             <div key={benefit} className="flex items-center gap-2 text-sm text-neutral-600">
-              <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
+              <div className="w-4 h-4 rounded-full bg-green-600 flex items-center justify-center shrink-0">
+                <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
               {benefit}
             </div>
           ))}

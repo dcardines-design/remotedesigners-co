@@ -82,12 +82,12 @@ function shouldSendToSubscriber(subscriber: SubscriberWithTier, now: Date): bool
   // Paid users: always send (daily)
   if (subscriber.isPaidUser) return true
 
-  // Free users: every 2 days (47+ hours since last email to allow for cron timing variance)
+  // Free users: weekly (167+ hours since last email to allow for cron timing variance)
   if (!subscriber.last_email_sent_at) return true
 
   const lastSent = new Date(subscriber.last_email_sent_at)
   const hoursSince = (now.getTime() - lastSent.getTime()) / (1000 * 60 * 60)
-  return hoursSince >= 47
+  return hoursSince >= 167
 }
 
 // Job type keyword mapping for filtering
@@ -170,7 +170,7 @@ function formatSalary(job: Job): string | null {
 interface EmailOptions {
   isPaidUser: boolean
   isPersonalized: boolean
-  jobTimeframe: '24h' | '48h'
+  jobTimeframe: '24h' | '7d'
 }
 
 function generateEmailHTML(jobs: Job[], unsubscribeToken: string, options: EmailOptions): string {
@@ -206,7 +206,7 @@ function generateEmailHTML(jobs: Job[], unsubscribeToken: string, options: Email
     `
   }).join('')
 
-  const timeframeText = jobTimeframe === '24h' ? 'last 24 hours' : 'last 48 hours'
+  const timeframeText = jobTimeframe === '24h' ? 'last 24 hours' : 'last 7 days'
 
   let introText: string
   let headerSubtitle: string
@@ -321,9 +321,9 @@ export async function GET(request: NextRequest) {
     const supabase = createServerSupabaseClient()
     const now = new Date()
 
-    // Get jobs from the last 48 hours (to cover both free and paid users)
-    const twoDaysAgo = new Date()
-    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2)
+    // Get jobs from the last 7 days (to cover both free and paid users)
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
 
     const oneDayAgo = new Date()
     oneDayAgo.setDate(oneDayAgo.getDate() - 1)
@@ -331,7 +331,7 @@ export async function GET(request: NextRequest) {
     const { data: allJobs, error: jobsError } = await supabase
       .from('jobs')
       .select('id, title, company, company_logo, location, salary_min, salary_max, salary_text, job_type, posted_at')
-      .gte('posted_at', twoDaysAgo.toISOString())
+      .gte('posted_at', sevenDaysAgo.toISOString())
       .eq('is_active', true)
       .order('posted_at', { ascending: false })
       .limit(100)
@@ -343,7 +343,7 @@ export async function GET(request: NextRequest) {
 
     // Split jobs by timeframe
     const last24hJobs = (allJobs || []).filter(job => new Date(job.posted_at) >= oneDayAgo)
-    const last48hJobs = allJobs || []
+    const last7dJobs = allJobs || []
 
     if (!allJobs || allJobs.length === 0) {
       // In test mode, get recent jobs instead
@@ -376,7 +376,7 @@ export async function GET(request: NextRequest) {
                   Data: generateEmailHTML(recentJobs as Job[], 'test-token', {
                     isPaidUser: isPaidTest,
                     isPersonalized: isPaidTest,
-                    jobTimeframe: isPaidTest ? '24h' : '48h'
+                    jobTimeframe: isPaidTest ? '24h' : '7d'
                   }),
                   Charset: 'UTF-8'
                 }
@@ -397,7 +397,7 @@ export async function GET(request: NextRequest) {
       }
       const fromEmail = process.env.SES_FROM_EMAIL || 'hello@remotedesigners.co'
       const isPaidTest = testTier === 'paid'
-      const jobsForTest = isPaidTest ? last24hJobs : last48hJobs
+      const jobsForTest = isPaidTest ? last24hJobs : last7dJobs
 
       const command = new SendEmailCommand({
         Source: `RemoteDesigners.co <${fromEmail}>`,
@@ -414,7 +414,7 @@ export async function GET(request: NextRequest) {
               Data: generateEmailHTML(jobsForTest as Job[], 'test-token', {
                 isPaidUser: isPaidTest,
                 isPersonalized: isPaidTest,
-                jobTimeframe: isPaidTest ? '24h' : '48h'
+                jobTimeframe: isPaidTest ? '24h' : '7d'
               }),
               Charset: 'UTF-8'
             }
@@ -427,7 +427,7 @@ export async function GET(request: NextRequest) {
         message: `Test email sent to ${testEmail} (tier: ${testTier || 'free'})`,
         jobs: jobsForTest.length,
         last24hCount: last24hJobs.length,
-        last48hCount: last48hJobs.length
+        last7dCount: last7dJobs.length
       })
     }
 
@@ -461,25 +461,24 @@ export async function GET(request: NextRequest) {
         }
 
         // Determine which jobs to use based on tier
-        const baseJobs = subscriber.isPaidUser ? last24hJobs : last48hJobs
+        const baseJobs = subscriber.isPaidUser ? last24hJobs : last7dJobs
 
-        // For paid users: apply preference filtering
-        // For free users: no preference filtering
+        // Apply preference filtering for all users
         const hasPreferences = subscriber.preferences?.jobTypes?.length || subscriber.preferences?.locations?.length
         let jobsToSend: typeof baseJobs
 
-        if (subscriber.isPaidUser && hasPreferences) {
-          // Paid users with preferences: filter jobs
+        if (hasPreferences) {
+          // Filter jobs by preferences
           const filteredJobs = baseJobs.filter(job => jobMatchesPreferences(job as Job, subscriber.preferences))
 
-          // Skip if no matching jobs for paid users with preferences
+          // Skip if no matching jobs
           if (filteredJobs.length === 0) {
             skipped++
             continue
           }
           jobsToSend = filteredJobs
         } else {
-          // Free users or paid users without preferences: all jobs
+          // No preferences: all jobs
           jobsToSend = baseJobs
         }
 
@@ -512,7 +511,7 @@ export async function GET(request: NextRequest) {
                 Data: generateEmailHTML(jobsToSend as Job[], subscriber.unsubscribe_token, {
                   isPaidUser: subscriber.isPaidUser,
                   isPersonalized,
-                  jobTimeframe: subscriber.isPaidUser ? '24h' : '48h'
+                  jobTimeframe: subscriber.isPaidUser ? '24h' : '7d'
                 }),
                 Charset: 'UTF-8',
               },
@@ -542,7 +541,7 @@ export async function GET(request: NextRequest) {
       message: 'Daily digest sent',
       jobs: {
         last24h: last24hJobs.length,
-        last48h: last48hJobs.length,
+        last7d: last7dJobs.length,
       },
       subscribers: subscribers.length,
       paidSubscribers: subscribers.filter(s => s.isPaidUser).length,

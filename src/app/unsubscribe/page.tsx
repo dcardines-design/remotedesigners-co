@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { SuccessIcon } from '@/components/ui'
 
 function UnsubscribeContent() {
   const searchParams = useSearchParams()
@@ -49,11 +50,7 @@ function UnsubscribeContent() {
 
         {status === 'success' && (
           <>
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M20 6L9 17l-5-5" />
-              </svg>
-            </div>
+            <SuccessIcon size="md" className="mx-auto mb-6" />
             <h1 className="text-2xl font-semibold text-neutral-900 mb-2">You've been unsubscribed</h1>
             <p className="text-neutral-500 mb-8">You won't receive any more emails from us. We're sorry to see you go!</p>
             <Link

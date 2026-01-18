@@ -9,6 +9,7 @@ import { JobCard } from './job-card'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import { FREE_JOBS_LIMIT } from '@/lib/stripe'
 import { isCompMember } from '@/lib/admin'
+import { toast } from 'sonner'
 
 // Helper functions
 const getInitials = (company: string) => company.substring(0, 2).toUpperCase()
@@ -209,14 +210,19 @@ interface SEOLandingPageProps {
 export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageType, faqs, breadcrumbLabel, parentPage }: SEOLandingPageProps) {
   const router = useRouter()
   const [isSubscribed, setIsSubscribed] = useState(false)
+  const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set())
+  const [savingJobs, setSavingJobs] = useState<Set<string>>(new Set())
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
-  // Check subscription status
+  // Check subscription status and fetch saved jobs
   useEffect(() => {
-    const checkSubscription = async () => {
+    const checkSubscriptionAndSavedJobs = async () => {
       const supabase = createBrowserSupabaseClient()
       const { data: { user } } = await supabase.auth.getUser()
 
       if (user) {
+        setIsAuthenticated(true)
+
         // Comp member bypass
         if (isCompMember(user.email)) {
           setIsSubscribed(true)
@@ -231,10 +237,76 @@ export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageT
 
           setIsSubscribed(!!subscription)
         }
+
+        // Fetch saved jobs
+        const { data: saved } = await supabase
+          .from('saved_jobs')
+          .select('job_id')
+          .eq('user_id', user.id)
+
+        if (saved) {
+          setSavedJobs(new Set(saved.map(s => s.job_id)))
+        }
       }
     }
-    checkSubscription()
+    checkSubscriptionAndSavedJobs()
   }, [])
+
+  const handleSaveJob = async (e: React.MouseEvent, jobId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (!isAuthenticated) {
+      router.push('/login')
+      return
+    }
+
+    setSavingJobs(prev => new Set(prev).add(jobId))
+
+    try {
+      const supabase = createBrowserSupabaseClient()
+      const isSaved = savedJobs.has(jobId)
+
+      if (isSaved) {
+        // Unsave
+        const { error } = await supabase
+          .from('saved_jobs')
+          .delete()
+          .eq('job_id', jobId)
+
+        if (error) throw error
+
+        setSavedJobs(prev => {
+          const next = new Set(prev)
+          next.delete(jobId)
+          return next
+        })
+        toast.success('Job removed from saved')
+      } else {
+        // Save
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) throw new Error('Not authenticated')
+
+        const { error } = await supabase
+          .from('saved_jobs')
+          .insert({ user_id: user.id, job_id: jobId, status: 'saved' })
+
+        if (error) throw error
+
+        setSavedJobs(prev => new Set(prev).add(jobId))
+        toast.success('Job saved!')
+      }
+    } catch (error) {
+      console.error('Error saving job:', error)
+      toast.error('Failed to save job')
+    } finally {
+      setSavingJobs(prev => {
+        const next = new Set(prev)
+        next.delete(jobId)
+        return next
+      })
+    }
+  }
 
   return (
     <div className="bg-neutral-50 min-h-screen relative">
@@ -415,7 +487,10 @@ export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageT
                 <JobCard
                   key={job.id}
                   job={job}
-                  showActions={false}
+                  showActions={true}
+                  onSave={handleSaveJob}
+                  isSaved={savedJobs.has(job.id)}
+                  isSaving={savingJobs.has(job.id)}
                 />
               )
             })

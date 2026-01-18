@@ -1,15 +1,27 @@
 import Link from 'next/link'
-import { Button } from '@/components/ui'
+import { Button, SuccessIcon } from '@/components/ui'
 
 export default function PostJobSuccessPage() {
   return (
-    <div className="h-screen bg-neutral-50 flex items-center justify-center">
-      <div className="mx-auto px-6 text-center -mt-20">
-        <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-green-100 flex items-center justify-center">
-          <svg className="w-10 h-10 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
+    <div className="h-screen relative">
+      {/* Hero Background - positioned from top of viewport */}
+      <div className="absolute left-0 right-0 overflow-hidden pointer-events-none" style={{ top: '-64px', height: '500px' }}>
+        <img
+          src="/success-bg.png"
+          alt=""
+          className="w-full h-auto"
+          style={{ opacity: 0.4, marginTop: '-250px' }}
+        />
+        {/* Fade overlay */}
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(to bottom, rgba(250,250,250,0) 0%, rgba(250,250,250,0) 60%, rgba(250,250,250,1) 100%)' }}
+        />
+      </div>
+
+      <div className="relative z-10 flex items-center justify-center h-full">
+        <div className="mx-auto px-6 text-center -mt-20">
+        <SuccessIcon size="lg" className="mx-auto mb-6" />
 
         <h1 className="text-3xl font-semibold text-neutral-900 mb-3">
           Job Posted Successfully!
@@ -41,6 +53,7 @@ export default function PostJobSuccessPage() {
             hello@remotedesigners.co
           </a>
         </p>
+        </div>
       </div>
     </div>
   )

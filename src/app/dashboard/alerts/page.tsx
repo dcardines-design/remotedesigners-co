@@ -3,9 +3,10 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Bell, Pause, Play, Pencil, Trash2, Plus, Clock, Sparkles, ArrowLeft } from 'lucide-react'
+import { Bell, Pause, Play, Pencil, Trash2, Plus, Clock, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 import { PersonalizedAlertsModal } from '@/components/ui/personalized-alerts-modal'
+import { RainbowButton } from '@/components/ui'
 
 // Job type labels for display
 const JOB_TYPE_LABELS: Record<string, { label: string; emoji: string }> = {
@@ -99,7 +100,15 @@ export default function AlertsPage() {
 
       if (!res.ok) throw new Error('Failed to update')
 
-      toast.success(alertData.alert.isActive ? 'Alert paused' : 'Alert resumed')
+      toast(alertData.alert.isActive ? 'Alert paused' : 'Alert resumed', {
+        icon: (
+          <div className="w-5 h-5 rounded-full bg-green-600 flex items-center justify-center shrink-0">
+            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        ),
+      })
       fetchAlerts()
     } catch {
       toast.error('Failed to update alert')
@@ -116,7 +125,15 @@ export default function AlertsPage() {
       const res = await fetch('/api/alerts', { method: 'DELETE' })
       if (!res.ok) throw new Error('Failed to delete')
 
-      toast.success('Alert deleted')
+      toast('Alert deleted', {
+        icon: (
+          <div className="w-5 h-5 rounded-full bg-green-600 flex items-center justify-center shrink-0">
+            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+        ),
+      })
       fetchAlerts()
     } catch {
       toast.error('Failed to delete alert')
@@ -142,11 +159,15 @@ export default function AlertsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-2xl mx-auto px-4">
+      <div className="min-h-screen bg-neutral-50">
+        <div className="max-w-4xl mx-auto px-8 py-12">
           <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-48 mb-4"></div>
-            <div className="h-64 bg-gray-200 rounded-xl"></div>
+            <div className="h-8 bg-neutral-200 rounded w-48 mb-8" />
+            <div className="space-y-4">
+              {[1, 2].map(i => (
+                <div key={i} className="h-24 bg-neutral-100 rounded-xl" />
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -154,59 +175,72 @@ export default function AlertsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-2xl mx-auto px-4">
-        {/* Back link */}
-        <Link
-          href="/dashboard"
-          className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-6"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Dashboard
-        </Link>
-
+    <div className="min-h-screen bg-neutral-50">
+      <div className="max-w-4xl mx-auto px-8 py-12">
         {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">My Job Alerts</h1>
-            <p className="text-gray-600 mt-1">Manage your email notification preferences</p>
+        <div className="mb-8">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-700 transition-colors mb-4"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to jobs
+          </Link>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-semibold text-neutral-900">My Job Alerts</h1>
+              <p className="text-neutral-500 mt-1">
+                Manage your email notification preferences
+              </p>
+            </div>
+            {!alertData?.hasAlerts && (
+              <RainbowButton onClick={() => setIsModalOpen(true)} size="sm">
+                Create alert
+              </RainbowButton>
+            )}
           </div>
         </div>
 
         {alertData?.hasAlerts && alertData.alert ? (
           /* Alert Card */
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="border border-neutral-200 rounded-xl bg-white overflow-hidden">
             {/* Status Header */}
-            <div className={`px-6 py-4 flex items-center justify-between ${
-              alertData.alert.isActive ? 'bg-green-50 border-b border-green-100' : 'bg-gray-50 border-b border-gray-100'
+            <div className={`px-6 py-5 flex items-center justify-between border-b ${
+              alertData.alert.isActive ? 'bg-green-50 border-green-100' : 'bg-neutral-50 border-neutral-100'
             }`}>
-              <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                  alertData.alert.isActive ? 'bg-green-100' : 'bg-gray-200'
+              <div className="flex items-center gap-4">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                  alertData.alert.isActive ? 'bg-green-100' : 'bg-neutral-200'
                 }`}>
-                  <Bell className={`w-5 h-5 ${alertData.alert.isActive ? 'text-green-600' : 'text-gray-400'}`} />
+                  <Bell className={`w-6 h-6 ${alertData.alert.isActive ? 'text-green-600' : 'text-neutral-400'}`} strokeWidth={1.5} />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${
+                    <span className={`text-[10px] font-medium tracking-wider px-2 py-0.5 rounded ${
                       alertData.alert.isActive
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-gray-200 text-gray-600'
+                        ? 'bg-green-500 text-white'
+                        : 'bg-neutral-300 text-neutral-600'
                     }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${
-                        alertData.alert.isActive ? 'bg-green-500' : 'bg-gray-400'
-                      }`}></span>
-                      {alertData.alert.isActive ? 'Active' : 'Paused'}
+                      {alertData.alert.isActive ? 'ACTIVE' : 'PAUSED'}
                     </span>
                     {alertData.isPaidUser && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
-                        <Sparkles className="w-3 h-3" />
-                        Premium
+                      <span className="relative inline-flex items-center bg-pink-600 text-white text-[10px] font-medium tracking-wider px-2 py-0.5 rounded overflow-hidden">
+                        <span
+                          className="absolute animate-get-pro-shine"
+                          style={{
+                            inset: '-100%',
+                            width: '300%',
+                            backgroundImage: 'linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.3) 40%, rgba(255,255,255,0.3) 45%, transparent 45%, transparent 47%, rgba(255,255,255,0.2) 47%, rgba(255,255,255,0.2) 48%, transparent 48%)',
+                          }}
+                        />
+                        <span className="relative">MEMBER</span>
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-600 mt-0.5">
-                    {alertData.isPaidUser ? 'Daily personalized alerts' : 'Alerts every 2 days'}
+                  <p className="text-sm text-neutral-500 mt-1">
+                    {alertData.isPaidUser ? 'Daily personalized alerts' : 'Weekly alerts'}
                   </p>
                 </div>
               </div>
@@ -215,26 +249,26 @@ export default function AlertsPage() {
                 <button
                   onClick={handleTogglePause}
                   disabled={actionLoading}
-                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                  className="flex items-center justify-center w-9 h-9 rounded-lg border bg-white border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.05)] hover:translate-y-[1px] transition-all disabled:opacity-50"
                   title={alertData.alert.isActive ? 'Pause alert' : 'Resume alert'}
                 >
-                  {alertData.alert.isActive ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                  {alertData.alert.isActive ? <Pause className="w-4 h-4 text-neutral-500" /> : <Play className="w-4 h-4 text-neutral-500" />}
                 </button>
                 <button
                   onClick={() => setIsModalOpen(true)}
-                  className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                  className="flex items-center justify-center w-9 h-9 rounded-lg border bg-white border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.05)] hover:translate-y-[1px] transition-all"
                   title="Edit preferences"
                 >
-                  <Pencil className="w-4 h-4" />
+                  <Pencil className="w-4 h-4 text-neutral-500" />
                 </button>
               </div>
             </div>
 
             {/* Content */}
-            <div className="px-6 py-5 space-y-5">
+            <div className="px-6 py-6 space-y-6">
               {/* Last sent */}
               {alertData.alert.lastEmailSentAt && (
-                <div className="flex items-center gap-2 text-sm text-gray-500">
+                <div className="flex items-center gap-2 text-sm text-neutral-400">
                   <Clock className="w-4 h-4" />
                   Last email sent: {formatDate(alertData.alert.lastEmailSentAt)}
                 </div>
@@ -242,7 +276,7 @@ export default function AlertsPage() {
 
               {/* Job Types */}
               <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-2">Job Types</h3>
+                <h3 className="text-sm font-medium text-neutral-700 mb-3">Job Types</h3>
                 {alertData.alert.preferences.jobTypes.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {alertData.alert.preferences.jobTypes.map(type => {
@@ -250,7 +284,7 @@ export default function AlertsPage() {
                       return (
                         <span
                           key={type}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-700 rounded-md text-sm"
+                          className="inline-flex items-center gap-1 bg-white text-neutral-600 text-[11px] px-2 py-0.5 rounded border border-neutral-200"
                         >
                           {info.emoji} {info.label}
                         </span>
@@ -258,13 +292,13 @@ export default function AlertsPage() {
                     })}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-400 italic">All job types</p>
+                  <p className="text-sm text-neutral-400 italic">All job types</p>
                 )}
               </div>
 
               {/* Locations */}
               <div>
-                <h3 className="text-sm font-medium text-gray-700 mb-2">Locations</h3>
+                <h3 className="text-sm font-medium text-neutral-700 mb-3">Locations</h3>
                 {alertData.alert.preferences.locations.length > 0 ? (
                   <div className="flex flex-wrap gap-2">
                     {alertData.alert.preferences.locations.map(loc => {
@@ -272,7 +306,7 @@ export default function AlertsPage() {
                       return (
                         <span
                           key={loc}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 text-gray-700 rounded-md text-sm"
+                          className="inline-flex items-center gap-1 bg-white text-neutral-600 text-[11px] px-2 py-0.5 rounded border border-neutral-200"
                         >
                           {info.emoji} {info.label}
                         </span>
@@ -280,41 +314,38 @@ export default function AlertsPage() {
                     })}
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-400 italic">All locations</p>
+                  <p className="text-sm text-neutral-400 italic">All locations</p>
                 )}
               </div>
 
               {/* Upgrade CTA for free users */}
               {!alertData.isPaidUser && (
-                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-4 border border-purple-100">
-                  <div className="flex items-start gap-3">
-                    <Sparkles className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-gray-900">Upgrade for Daily Alerts</p>
-                      <p className="text-sm text-gray-600 mt-0.5">
-                        Get personalized job alerts every day instead of every 2 days.
-                      </p>
-                      <Link
-                        href="/pricing"
-                        className="inline-flex items-center gap-1 text-sm font-medium text-purple-600 hover:text-purple-700 mt-2"
-                      >
-                        View plans
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                        </svg>
-                      </Link>
+                <div className="bg-purple-50 rounded-lg px-4 py-3 border border-purple-100">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Sparkles className="w-4 h-4 text-purple-600 flex-shrink-0" />
+                      <span className="text-sm font-medium text-neutral-900">Upgrade for daily alerts</span>
                     </div>
+                    <Link
+                      href="/membership"
+                      className="inline-flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 font-medium"
+                    >
+                      View plans
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m9 18 6-6-6-6" />
+                      </svg>
+                    </Link>
                   </div>
                 </div>
               )}
             </div>
 
             {/* Footer */}
-            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
+            <div className="px-6 py-4 bg-neutral-50 border-t border-neutral-100">
               <button
                 onClick={handleDelete}
                 disabled={actionLoading}
-                className="flex items-center gap-1.5 text-sm text-red-600 hover:text-red-700 disabled:opacity-50"
+                className="flex items-center gap-1.5 text-sm text-red-600 hover:text-red-700 disabled:opacity-50 transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
                 Delete alert
@@ -323,23 +354,23 @@ export default function AlertsPage() {
           </div>
         ) : (
           /* Empty State */
-          <div className="bg-white rounded-xl border border-gray-200 p-12 text-center">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Bell className="w-8 h-8 text-gray-400" />
+          <div className="bg-white border border-dashed border-neutral-300 rounded-xl px-12 py-20">
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-neutral-100 flex items-center justify-center">
+                <Bell className="w-8 h-8 text-neutral-400" strokeWidth={1.5} />
+              </div>
+              <h2 className="text-lg font-medium text-neutral-900 mb-2">No job alerts set up yet</h2>
+              <p className="text-neutral-500 mb-6 max-w-sm mx-auto">
+                Get notified when new jobs matching your preferences are posted.
+              </p>
+              <button
+                onClick={() => setIsModalOpen(true)}
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium text-neutral-700 bg-white rounded-lg border border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.05)] hover:translate-y-[1px] transition-all"
+              >
+                <Plus className="w-4 h-4" />
+                Set Up Job Alerts
+              </button>
             </div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">
-              No job alerts set up yet
-            </h2>
-            <p className="text-gray-500 mb-6 max-w-sm mx-auto">
-              Get notified when new jobs matching your preferences are posted.
-            </p>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="inline-flex items-center gap-2 px-4 py-2.5 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Set Up Job Alerts
-            </button>
           </div>
         )}
       </div>
@@ -350,6 +381,7 @@ export default function AlertsPage() {
         onClose={handleModalClose}
         userEmail={alertData?.alert?.email}
         existingPreferences={alertData?.alert?.preferences}
+        isMember={alertData?.isPaidUser}
       />
     </div>
   )

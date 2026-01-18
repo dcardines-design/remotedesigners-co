@@ -75,6 +75,9 @@ export function JobCard({
     animation: 'rainbowFlow 2s linear infinite'
   } : {}
 
+  // Clickable chip style
+  const chipClass = "bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+
   // Build chips array
   const buildChips = () => {
     const regionChip = getRegionChip(job.location)
@@ -84,9 +87,15 @@ export function JobCard({
       allChips.push({
         key: 'featured',
         element: (
-          <span className="bg-yellow-400 text-neutral-900 text-xs font-medium px-2.5 py-1 rounded border border-yellow-500">
+          <a
+            href="/?featured=true"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="bg-yellow-400 text-neutral-900 text-xs font-medium px-2.5 py-1 rounded border border-yellow-500 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+          >
             Featured
-          </span>
+          </a>
         )
       })
     }
@@ -95,9 +104,15 @@ export function JobCard({
       allChips.push({
         key: 'job_type',
         element: (
-          <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200">
+          <a
+            href={`/?type=${job.job_type.toLowerCase()}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className={chipClass}
+          >
             {toTitleCase(job.job_type)}
-          </span>
+          </a>
         )
       })
     }
@@ -106,9 +121,15 @@ export function JobCard({
       allChips.push({
         key: 'experience',
         element: (
-          <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200">
+          <a
+            href={`/?experience=${job.experience_level.toLowerCase()}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className={chipClass}
+          >
             {toTitleCase(job.experience_level)}
-          </span>
+          </a>
         )
       })
     }
@@ -117,9 +138,15 @@ export function JobCard({
       allChips.push({
         key: 'region',
         element: (
-          <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200">
+          <a
+            href={`/?location=${regionChip.value}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className={chipClass}
+          >
             {regionChip.label}
-          </span>
+          </a>
         )
       })
     }
@@ -128,9 +155,15 @@ export function JobCard({
       allChips.push({
         key: 'salary',
         element: (
-          <span className="bg-neutral-100 text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200 cursor-default">
+          <a
+            href={job.salary_min ? `/?salary_min=${job.salary_min}` : '/'}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="bg-neutral-200 text-neutral-700 text-xs px-2.5 py-1 rounded border border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+          >
             {salary}
-          </span>
+          </a>
         )
       })
     }
@@ -139,9 +172,15 @@ export function JobCard({
       allChips.push({
         key: 'remote',
         element: (
-          <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200">
+          <a
+            href="/?remote_type=remote"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className={chipClass}
+          >
             Remote
-          </span>
+          </a>
         )
       })
     }
@@ -151,9 +190,15 @@ export function JobCard({
         allChips.push({
           key: `skill-${index}`,
           element: (
-            <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200">
+            <a
+              href={`/?skill=${encodeURIComponent(skill)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className={chipClass}
+            >
               {toTitleCase(skill)}
-            </span>
+            </a>
           )
         })
       })
@@ -266,15 +311,15 @@ export function JobCard({
                       onSave(e, job.id)
                     }}
                     disabled={isSaving}
-                    className={`flex-shrink-0 flex items-center justify-center w-6 h-6 rounded border transition-all ${
+                    className={`flex-shrink-0 flex items-center justify-center w-8 h-8 rounded border transition-all ${
                       isSaved
                         ? 'bg-white border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]'
                         : 'bg-white border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.05)]'
                     } ${isSaving ? 'opacity-50' : ''}`}
                   >
                     <svg
-                      width="12"
-                      height="12"
+                      width="14"
+                      height="14"
                       viewBox="0 0 24 24"
                       fill={isSaved ? '#ef4444' : 'none'}
                       stroke={isSaved ? '#ef4444' : '#737373'}

@@ -2,6 +2,7 @@
 
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
+import Link from 'next/link'
 import { Button } from '@/components/ui'
 
 interface KanbanCardProps {
@@ -15,6 +16,7 @@ interface KanbanCardProps {
   experience_level?: string
   skills?: string[]
   onDelete?: (id: string) => void
+  isMember?: boolean
 }
 
 // Helper to convert to title case
@@ -40,7 +42,7 @@ const getGoogleFaviconUrl = (company: string): string => {
 
 const getInitials = (company: string) => company.substring(0, 2).toUpperCase()
 
-export function KanbanCard({ id, title, company, company_logo, location, apply_url, job_type, experience_level, skills, onDelete }: KanbanCardProps) {
+export function KanbanCard({ id, title, company, company_logo, location, apply_url, job_type, experience_level, skills, onDelete, isMember = false }: KanbanCardProps) {
   const {
     attributes,
     listeners,
@@ -142,18 +144,31 @@ export function KanbanCard({ id, title, company, company_logo, location, apply_u
 
       {/* Action Buttons */}
       <div className="flex gap-2 mt-3">
-        <a
-          href={apply_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          onClick={(e) => e.stopPropagation()}
-          onPointerDown={(e) => e.stopPropagation()}
-          className="flex-1"
-        >
-          <Button variant="secondary" size="sm" className="w-full !py-1.5 !text-xs">
-            View job
-          </Button>
-        </a>
+        {isMember ? (
+          <a
+            href={apply_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="flex-1"
+          >
+            <Button variant="secondary" size="sm" className="w-full !py-1.5 !text-xs">
+              View job
+            </Button>
+          </a>
+        ) : (
+          <Link
+            href="/membership"
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="flex-1"
+          >
+            <Button variant="secondary" size="sm" className="w-full !py-1.5 !text-xs">
+              View job
+            </Button>
+          </Link>
+        )}
         {onDelete && (
           <button
             onClick={(e) => {

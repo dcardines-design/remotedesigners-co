@@ -10,11 +10,12 @@ import { Bell, ArrowUpRight } from 'lucide-react'
 import { useSignupModal } from '@/context/signup-modal-context'
 import { isCompMember } from '@/lib/admin'
 
-function UserDropdown({ email, onSignOut, showBilling, billingUrl }: {
+function UserDropdown({ email, onSignOut, showBilling, billingUrl, isMember }: {
   email: string
   onSignOut: () => void
   showBilling: boolean
   billingUrl: string | null
+  isMember: boolean
 }) {
   const [open, setOpen] = useState(false)
 
@@ -25,6 +26,19 @@ function UserDropdown({ email, onSignOut, showBilling, billingUrl }: {
         className="flex items-center gap-2 px-4 py-2 text-sm text-neutral-900 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.05)] hover:translate-y-[1px] transition-all"
       >
         <span className="max-w-[160px] truncate">{email}</span>
+        {isMember && (
+          <span className="relative inline-flex items-center bg-pink-600 text-white text-[8px] font-medium tracking-wider px-1.5 py-0 rounded overflow-hidden">
+            <span
+              className="absolute animate-get-pro-shine"
+              style={{
+                inset: '-100%',
+                width: '300%',
+                backgroundImage: 'linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.3) 40%, rgba(255,255,255,0.3) 45%, transparent 45%, transparent 47%, rgba(255,255,255,0.2) 47%, rgba(255,255,255,0.2) 48%, transparent 48%)',
+              }}
+            />
+            <span className="relative">MEMBER</span>
+          </span>
+        )}
         <svg
           className={`w-4 h-4 text-neutral-400 transition-transform ${open ? 'rotate-180' : ''}`}
           fill="none"
@@ -63,6 +77,8 @@ function UserDropdown({ email, onSignOut, showBilling, billingUrl }: {
             {showBilling && (
               <a
                 href={billingUrl || '/api/stripe/portal'}
+                target="_blank"
+                rel="noopener noreferrer"
                 onClick={() => setOpen(false)}
                 className="flex items-center justify-between w-full px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
               >
@@ -103,6 +119,7 @@ export function Navbar() {
   const isHomePage = pathname === '/'
   const isSEOPage = pathname?.startsWith('/remote-')
   const isPremiumPage = pathname === '/membership'
+  const isSuccessPage = pathname === '/post-job/success'
 
   useEffect(() => {
     const handleScroll = () => {
@@ -226,7 +243,7 @@ export function Navbar() {
     router.push('/')
   }
 
-  const isTransparent = (isHomePage || isSEOPage || isPremiumPage) && !scrolled
+  const isTransparent = (isHomePage || isSEOPage || isPremiumPage || isSuccessPage) && !scrolled
 
   return (
     <nav
@@ -267,6 +284,7 @@ export function Navbar() {
                 onSignOut={handleSignOut}
                 showBilling={showBilling}
                 billingUrl={billingUrl}
+                isMember={hasSubscription === true}
               />
             )}
             {authLoaded && hasSubscription === false && (
@@ -294,6 +312,7 @@ export function Navbar() {
         onClose={() => setAlertsModalOpen(false)}
         userEmail={user?.email}
         existingPreferences={existingAlertPreferences}
+        isMember={hasSubscription === true}
       />
     </nav>
   )

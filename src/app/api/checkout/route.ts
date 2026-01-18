@@ -23,9 +23,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Test mode: bypass payment and insert job directly
-    console.log('NODE_ENV:', process.env.NODE_ENV)
-    if (process.env.SKIP_PAYMENT === 'true' || process.env.NODE_ENV !== 'production') {
+    // Test mode: bypass payment and insert job directly (only when SKIP_PAYMENT=true)
+    if (process.env.SKIP_PAYMENT === 'true') {
       const now = new Date()
       let stickyUntil = null
       if (data.sticky_7d) {
