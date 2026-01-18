@@ -39,7 +39,6 @@ const YC_FILTERS = [
 ]
 
 // GET /api/admin/bulk-import?batch=1 (Indeed) or ?batch=yc1 (YCombinator)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function handleYCBatch(request: NextRequest, supabase: any, batchParam: string) {
   const batchNum = parseInt(batchParam.replace('yc', '')) || 1
   const filter = YC_FILTERS[batchNum - 1]
