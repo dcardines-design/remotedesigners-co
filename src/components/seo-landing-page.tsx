@@ -455,7 +455,7 @@ export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageT
                             {toTitleCase(job.job_type || 'Full-time')}
                           </span>
                           {salary && (
-                            <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200">
+                            <span className="bg-neutral-100 text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200">
                               {salary}
                             </span>
                           )}

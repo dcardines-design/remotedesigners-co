@@ -155,15 +155,9 @@ export function JobCard({
       allChips.push({
         key: 'salary',
         element: (
-          <a
-            href={job.salary_min ? `/?salary_min=${job.salary_min}` : '/'}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="bg-neutral-200 text-neutral-700 text-xs px-2.5 py-1 rounded border border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
-          >
+          <span className="bg-neutral-100 text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200">
             {salary}
-          </a>
+          </span>
         )
       })
     }
