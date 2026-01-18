@@ -133,7 +133,8 @@ export default function RootLayout({
             position="bottom-right"
             toastOptions={{
               style: {
-                padding: '12px 16px',
+                padding: '16px 20px',
+                minWidth: '380px',
               },
             }}
           />

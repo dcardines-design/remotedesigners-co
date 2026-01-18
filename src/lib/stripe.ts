@@ -32,6 +32,16 @@ export const PRICING = {
   EXTENDED_DURATION: 49,
 }
 
+// Stripe Price IDs for Job Postings
+export const JOB_POSTING_PRICES = {
+  BASE_POSTING: process.env.STRIPE_PRICE_BASE_POSTING || '',
+  FEATURED: process.env.STRIPE_PRICE_FEATURED || '',
+  STICKY_24H: process.env.STRIPE_PRICE_STICKY_24H || '',
+  STICKY_7D: process.env.STRIPE_PRICE_STICKY_7D || '',
+  RAINBOW_BORDER: process.env.STRIPE_PRICE_RAINBOW_BORDER || '',
+  EXTENDED_DURATION: process.env.STRIPE_PRICE_EXTENDED_DURATION || '',
+}
+
 // Subscription Pricing (in USD)
 export const SUBSCRIPTION_PRICING = {
   MONTHLY: 12.99,
@@ -75,88 +85,46 @@ export function calculateTotal(data: JobPostingData): number {
   return total
 }
 
-// Build line items for job posting checkout
+// Build line items for job posting checkout using Stripe Price IDs
 function buildLineItems(data: JobPostingData): Stripe.Checkout.SessionCreateParams.LineItem[] {
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
     {
-      price_data: {
-        currency: 'usd',
-        product_data: {
-          name: 'Job Posting (30 days)',
-          description: 'Post your job listing to Remote Designers for 30 days',
-        },
-        unit_amount: PRICING.BASE_POSTING * 100, // Stripe uses cents
-      },
+      price: JOB_POSTING_PRICES.BASE_POSTING,
       quantity: 1,
     },
   ]
 
   if (data.is_featured) {
     lineItems.push({
-      price_data: {
-        currency: 'usd',
-        product_data: {
-          name: 'Featured Listing',
-          description: 'Highlight your job with a featured badge',
-        },
-        unit_amount: PRICING.FEATURED * 100,
-      },
+      price: JOB_POSTING_PRICES.FEATURED,
       quantity: 1,
     })
   }
 
   if (data.sticky_24h) {
     lineItems.push({
-      price_data: {
-        currency: 'usd',
-        product_data: {
-          name: 'Sticky Post (24 hours)',
-          description: 'Pin your job to the top for 24 hours',
-        },
-        unit_amount: PRICING.STICKY_24H * 100,
-      },
+      price: JOB_POSTING_PRICES.STICKY_24H,
       quantity: 1,
     })
   }
 
   if (data.sticky_7d) {
     lineItems.push({
-      price_data: {
-        currency: 'usd',
-        product_data: {
-          name: 'Sticky Post (7 days)',
-          description: 'Pin your job to the top for 7 days',
-        },
-        unit_amount: PRICING.STICKY_7D * 100,
-      },
+      price: JOB_POSTING_PRICES.STICKY_7D,
       quantity: 1,
     })
   }
 
   if (data.rainbow_border) {
     lineItems.push({
-      price_data: {
-        currency: 'usd',
-        product_data: {
-          name: 'Rainbow Border',
-          description: 'Add an eye-catching rainbow border to your listing',
-        },
-        unit_amount: PRICING.RAINBOW_BORDER * 100,
-      },
+      price: JOB_POSTING_PRICES.RAINBOW_BORDER,
       quantity: 1,
     })
   }
 
   if (data.extended_duration) {
     lineItems.push({
-      price_data: {
-        currency: 'usd',
-        product_data: {
-          name: 'Extended Duration (+30 days)',
-          description: 'Extend your listing from 30 to 60 days',
-        },
-        unit_amount: PRICING.EXTENDED_DURATION * 100,
-      },
+      price: JOB_POSTING_PRICES.EXTENDED_DURATION,
       quantity: 1,
     })
   }

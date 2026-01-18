@@ -4,7 +4,7 @@ import { createPortalSession } from '@/lib/stripe'
 
 export async function GET() {
   try {
-    const supabase = createAuthSupabaseClient()
+    const supabase = await createAuthSupabaseClient()
     const { data: { user } } = await supabase.auth.getUser()
 
     if (!user) {

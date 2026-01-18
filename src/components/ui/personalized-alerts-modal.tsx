@@ -1,42 +1,144 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button, Input, Select, RainbowButton } from '@/components/ui'
+import { useState, useEffect, useRef } from 'react'
+import { Input, RainbowButton } from '@/components/ui'
 import { toast } from 'sonner'
 
-// Job type options
+// Job type options with emojis
 const JOB_TYPE_OPTIONS = [
-  { value: 'all', label: 'All Design Jobs' },
-  { value: 'product-design', label: 'Product Design' },
-  { value: 'ux-design', label: 'UX Design' },
-  { value: 'ui-design', label: 'UI Design' },
-  { value: 'visual-design', label: 'Visual Design' },
-  { value: 'brand-design', label: 'Brand Design' },
-  { value: 'graphic-design', label: 'Graphic Design' },
-  { value: 'motion-design', label: 'Motion Design' },
-  { value: 'interaction-design', label: 'Interaction Design' },
-  { value: 'web-design', label: 'Web Design' },
-  { value: 'design-systems', label: 'Design Systems' },
-  { value: 'design-lead', label: 'Design Lead/Director' },
-  { value: 'user-research', label: 'User Research' },
+  { value: 'product-design', label: 'Product Design', emoji: '🎯' },
+  { value: 'ux-design', label: 'UX Design', emoji: '🔬' },
+  { value: 'ui-design', label: 'UI Design', emoji: '🎨' },
+  { value: 'visual-design', label: 'Visual Design', emoji: '👁️' },
+  { value: 'brand-design', label: 'Brand Design', emoji: '✨' },
+  { value: 'graphic-design', label: 'Graphic Design', emoji: '🖼️' },
+  { value: 'motion-design', label: 'Motion Design', emoji: '🎬' },
+  { value: 'interaction-design', label: 'Interaction Design', emoji: '👆' },
+  { value: 'web-design', label: 'Web Design', emoji: '🌐' },
+  { value: 'design-systems', label: 'Design Systems', emoji: '📐' },
+  { value: 'design-lead', label: 'Design Lead/Director', emoji: '👑' },
+  { value: 'user-research', label: 'User Research', emoji: '🔍' },
 ]
 
-// Location options
+// Location options with emojis
 const LOCATION_OPTIONS = [
-  { value: 'worldwide', label: 'Anywhere (Remote)' },
-  { value: 'usa', label: 'United States' },
-  { value: 'europe', label: 'Europe' },
-  { value: 'uk', label: 'United Kingdom' },
-  { value: 'canada', label: 'Canada' },
-  { value: 'germany', label: 'Germany' },
-  { value: 'north-america', label: 'North America' },
-  { value: 'latin-america', label: 'Latin America' },
-  { value: 'asia', label: 'Asia' },
-  { value: 'australia', label: 'Australia' },
-  { value: 'middle-east', label: 'Middle East' },
-  { value: 'africa', label: 'Africa' },
+  { value: 'worldwide', label: 'Anywhere in the World', emoji: '🌍' },
+  { value: 'usa', label: 'United States', emoji: '🇺🇸' },
+  { value: 'europe', label: 'Europe', emoji: '🇪🇺' },
+  { value: 'uk', label: 'United Kingdom', emoji: '🇬🇧' },
+  { value: 'canada', label: 'Canada', emoji: '🇨🇦' },
+  { value: 'germany', label: 'Germany', emoji: '🇩🇪' },
+  { value: 'north-america', label: 'North America', emoji: '🏈' },
+  { value: 'latin-america', label: 'Latin America', emoji: '💃' },
+  { value: 'asia', label: 'Asia', emoji: '⛩️' },
+  { value: 'oceania', label: 'Oceania', emoji: '🌊' },
+  { value: 'middle-east', label: 'Middle East', emoji: '🏜️' },
+  { value: 'africa', label: 'Africa', emoji: '🌍' },
 ]
+
+// Searchable combobox component
+function SearchableCombobox({
+  label,
+  placeholder,
+  options,
+  selected,
+  onToggle,
+}: {
+  label: string
+  placeholder: string
+  options: { value: string; label: string; emoji: string }[]
+  selected: string[]
+  onToggle: (value: string) => void
+}) {
+  const [search, setSearch] = useState('')
+  const [isOpen, setIsOpen] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  const filteredOptions = options.filter(opt =>
+    !selected.includes(opt.value) &&
+    (opt.label.toLowerCase().includes(search.toLowerCase()) ||
+     opt.value.toLowerCase().includes(search.toLowerCase()))
+  )
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleSelect = (value: string) => {
+    onToggle(value)
+    setSearch('')
+    setIsOpen(false)
+    inputRef.current?.focus()
+  }
+
+  return (
+    <div className="space-y-2">
+      <span className="text-sm font-medium text-neutral-700">
+        {label}{selected.length > 0 && ` (${selected.length})`}
+      </span>
+      <div className="relative" ref={dropdownRef}>
+        <div className="relative">
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder={placeholder}
+            value={search}
+            onChange={e => {
+              setSearch(e.target.value)
+              setIsOpen(true)
+            }}
+            onFocus={() => setIsOpen(true)}
+            className="w-full bg-white border border-neutral-200 rounded-lg px-3 py-2.5 pr-9 text-sm text-neutral-900 placeholder:text-neutral-400 hover:border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.04)] transition-all focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400"
+          />
+          <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+        </div>
+        {isOpen && filteredOptions.length > 0 && (
+          <div className="absolute z-50 w-full mt-1 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] max-h-48 overflow-y-auto">
+            {filteredOptions.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => handleSelect(opt.value)}
+                className="w-full px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 transition-colors flex items-center gap-2"
+              >
+                <span>{opt.emoji}</span>
+                <span>{opt.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      {selected.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 pt-1">
+          {selected.map(val => {
+            const option = options.find(o => o.value === val)
+            return (
+              <button
+                key={val}
+                onClick={() => onToggle(val)}
+                className="flex items-center gap-1 px-2 py-1 text-xs bg-[#2a2a2a] text-white rounded-md border border-[#2a2a2a] shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.3)] hover:translate-y-[1px] active:shadow-none active:translate-y-[2px] transition-all"
+              >
+                {option?.emoji} {option?.label || val}
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
 
 interface PersonalizedAlertsModalProps {
   isOpen: boolean
@@ -54,19 +156,19 @@ export function PersonalizedAlertsModal({
   userEmail,
   existingPreferences
 }: PersonalizedAlertsModalProps) {
-  const router = useRouter()
   const [email, setEmail] = useState(userEmail || '')
-  const [jobType, setJobType] = useState(existingPreferences?.jobTypes?.[0] || 'all')
-  const [location, setLocation] = useState(existingPreferences?.locations?.[0] || 'worldwide')
+  const [jobTypes, setJobTypes] = useState<string[]>(existingPreferences?.jobTypes || [])
+  const [locations, setLocations] = useState<string[]>(existingPreferences?.locations || [])
   const [isLoading, setIsLoading] = useState(false)
   const [emailError, setEmailError] = useState<string | null>(null)
+  const isUpdate = !!(existingPreferences?.jobTypes?.length || existingPreferences?.locations?.length)
 
   // Reset state when modal opens
   useEffect(() => {
     if (isOpen) {
       setEmail(userEmail || '')
-      setJobType(existingPreferences?.jobTypes?.[0] || 'all')
-      setLocation(existingPreferences?.locations?.[0] || 'worldwide')
+      setJobTypes(existingPreferences?.jobTypes || [])
+      setLocations(existingPreferences?.locations || [])
       setEmailError(null)
     }
   }, [isOpen, userEmail, existingPreferences])
@@ -86,6 +188,22 @@ export function PersonalizedAlertsModal({
     }
   }, [isOpen, onClose])
 
+  const toggleJobType = (value: string) => {
+    setJobTypes(prev =>
+      prev.includes(value)
+        ? prev.filter(v => v !== value)
+        : [...prev, value]
+    )
+  }
+
+  const toggleLocation = (value: string) => {
+    setLocations(prev =>
+      prev.includes(value)
+        ? prev.filter(v => v !== value)
+        : [...prev, value]
+    )
+  }
+
   const validateEmail = (email: string) => {
     return email && email.includes('@') && email.includes('.')
   }
@@ -100,46 +218,27 @@ export function PersonalizedAlertsModal({
     setEmailError(null)
 
     try {
-      // First, try to save preferences (this will check if user is subscribed)
       const response = await fetch('/api/subscribe/preferences', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: email.toLowerCase(),
           preferences: {
-            jobTypes: jobType === 'all' ? [] : [jobType],
-            locations: location === 'worldwide' ? [] : [location],
+            jobTypes,
+            locations,
           },
         }),
       })
 
       const data = await response.json()
 
-      if (response.status === 404) {
-        // User is not subscribed - store preferences in sessionStorage and redirect
-        sessionStorage.setItem('pendingAlertPreferences', JSON.stringify({
-          email: email.toLowerCase(),
-          jobTypes: jobType === 'all' ? [] : [jobType],
-          locations: location === 'worldwide' ? [] : [location],
-        }))
-
-        onClose()
-        toast('Please subscribe to enable job alerts', {
-          description: 'Your preferences have been saved. Complete your subscription to activate alerts.',
-        })
-
-        // Redirect to membership page with email pre-filled
-        router.push(`/membership?email=${encodeURIComponent(email.toLowerCase())}&from=alerts`)
-        return
-      }
-
       if (!response.ok) {
         throw new Error(data.error || 'Failed to save preferences')
       }
 
-      // Success - user is subscribed and preferences were saved
-      toast.success('Job alert created!', {
-        description: 'You\'ll receive daily emails matching your preferences.',
+      // Success!
+      toast(isUpdate ? '✅ Job alert updated!' : '✅ Job alert created!', {
+        description: isUpdate ? 'Your preferences have been saved.' : 'You\'ll receive daily emails matching your preferences.',
       })
       onClose()
     } catch (err) {
@@ -174,29 +273,29 @@ export function PersonalizedAlertsModal({
         {/* Header */}
         <div className="px-6 pt-6 pb-2">
           <h2 className="text-xl font-semibold text-neutral-900">
-            Create Job Alert
+            {isUpdate ? 'Update Job Alert' : 'Create Job Alert'}
           </h2>
           <p className="text-sm text-neutral-500 mt-1">
-            Get daily emails for jobs that match your preferences
+            {isUpdate ? 'Update your job alert preferences' : 'Get daily emails for jobs that match your preferences'}
           </p>
         </div>
 
         {/* Form */}
         <div className="px-6 py-4 space-y-4">
-          <Select
-            label="Job Type"
-            value={jobType}
-            onChange={setJobType}
+          <SearchableCombobox
+            label="Job Types"
+            placeholder="Search job types..."
             options={JOB_TYPE_OPTIONS}
-            placeholder="Select job type..."
+            selected={jobTypes}
+            onToggle={toggleJobType}
           />
 
-          <Select
-            label="Location"
-            value={location}
-            onChange={setLocation}
+          <SearchableCombobox
+            label="Locations"
+            placeholder="Search locations..."
             options={LOCATION_OPTIONS}
-            placeholder="Select location..."
+            selected={locations}
+            onToggle={toggleLocation}
           />
 
           <Input
@@ -213,25 +312,14 @@ export function PersonalizedAlertsModal({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-neutral-50 border-t border-neutral-100">
-          <div className="flex items-center gap-3">
-            <Button
-              onClick={onClose}
-              variant="secondary"
-              size="md"
-              fullWidth
-            >
-              Cancel
-            </Button>
-            <RainbowButton
-              onClick={handleCreateAlert}
-              disabled={isLoading || !email}
-              size="sm"
-              className="flex-1"
-            >
-              {isLoading ? 'Creating...' : 'Create Alert'}
-            </RainbowButton>
-          </div>
+        <div className="px-6 pt-2 pb-6">
+          <RainbowButton
+            onClick={handleCreateAlert}
+            disabled={isLoading || !email}
+            fullWidth
+          >
+            {isLoading ? (isUpdate ? 'Updating...' : 'Creating...') : (isUpdate ? '🔔 Update Alert' : '🔔 Create Alert')}
+          </RainbowButton>
         </div>
       </div>
     </div>

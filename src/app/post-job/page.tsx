@@ -427,7 +427,7 @@ export default function PostJobPage() {
 
             <Input
               label="Application URL *"
-              type="url"
+              type="text"
               required
               placeholder="https://yourcompany.com/careers/apply"
               value={form.apply_url}

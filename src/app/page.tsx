@@ -446,7 +446,7 @@ function WelcomeModal({ isOpen, onClose, isLoggedIn }: { isOpen: boolean; onClos
     ENCOURAGEMENT_MESSAGES[Math.floor(Math.random() * ENCOURAGEMENT_MESSAGES.length)]
   )
 
-  // Trigger confetti on mount
+  // Trigger continuous confetti while modal is open
   useEffect(() => {
     if (!isOpen) return
 
@@ -458,42 +458,33 @@ function WelcomeModal({ isOpen, onClose, isLoggedIn }: { isOpen: boolean; onClos
       if (!mounted) return
 
       const confetti = confettiModule.default
-      const duration = 3000
-      const animationEnd = Date.now() + duration
-      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 }
+      const defaults = { startVelocity: 25, spread: 360, ticks: 50, zIndex: 100 }
 
       function randomInRange(min: number, max: number) {
         return Math.random() * (max - min) + min
       }
 
+      // Continuous confetti while modal is open
       intervalId = setInterval(() => {
         if (!mounted) {
           if (intervalId) clearInterval(intervalId)
           return
         }
 
-        const timeLeft = animationEnd - Date.now()
-        if (timeLeft <= 0) {
-          if (intervalId) clearInterval(intervalId)
-          return
-        }
-
-        const particleCount = 50 * (timeLeft / duration)
-
-        // Confetti from both sides
+        // Confetti from both sides with reduced particle count for continuous effect
         confetti({
           ...defaults,
-          particleCount,
+          particleCount: 15,
           origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
           colors: ['#8b5cf6', '#ec4899', '#3b82f6', '#10b981', '#f59e0b'],
         })
         confetti({
           ...defaults,
-          particleCount,
+          particleCount: 15,
           origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
           colors: ['#8b5cf6', '#ec4899', '#3b82f6', '#10b981', '#f59e0b'],
         })
-      }, 250)
+      }, 400)
     }).catch(() => {
       // Ignore import errors
     })
@@ -516,11 +507,6 @@ function WelcomeModal({ isOpen, onClose, isLoggedIn }: { isOpen: boolean; onClos
 
       {/* Modal */}
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-8 overflow-hidden">
-        {/* Subtle blue gradient overlay */}
-        <div
-          className="absolute inset-x-0 top-0 h-[30%] pointer-events-none"
-          style={{ background: 'linear-gradient(to bottom, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0) 100%)' }}
-        />
         {/* Close button */}
         <button
           onClick={onClose}
@@ -573,8 +559,7 @@ function WelcomeModal({ isOpen, onClose, isLoggedIn }: { isOpen: boolean; onClos
           ].map((benefit) => (
             <div
               key={benefit.text}
-              className="flex flex-col items-start gap-1 p-4 bg-white rounded-xl border border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] animate-wiggle"
-              style={{ animationDelay: benefit.delay }}
+              className="flex flex-col items-start gap-1 p-4 bg-white rounded-xl border border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]"
             >
               <span className="text-2xl">{benefit.emoji}</span>
               <span className="text-base font-medium text-neutral-700">{benefit.text}</span>

@@ -12,13 +12,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!preferences || !preferences.jobTypes || !preferences.locations) {
-      return NextResponse.json(
-        { error: 'Job types and locations are required' },
-        { status: 400 }
-      )
-    }
-
     const supabase = createServerSupabaseClient()
 
     // Check if subscriber exists
@@ -28,35 +21,52 @@ export async function POST(request: NextRequest) {
       .eq('email', email.toLowerCase())
       .single()
 
-    if (!existing) {
-      return NextResponse.json(
-        { error: 'No subscription found for this email. Please subscribe first.' },
-        { status: 404 }
-      )
-    }
+    if (existing) {
+      // Update existing subscriber's preferences
+      const { error } = await supabase
+        .from('subscribers')
+        .update({
+          preferences: {
+            jobTypes: preferences?.jobTypes || [],
+            locations: preferences?.locations || [],
+          },
+          is_active: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', existing.id)
 
-    // Update preferences
-    const { error } = await supabase
-      .from('subscribers')
-      .update({
-        preferences: {
-          jobTypes: preferences.jobTypes,
-          locations: preferences.locations,
-        },
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', existing.id)
+      if (error) {
+        console.error('Preferences update error:', error)
+        return NextResponse.json(
+          { error: 'Failed to save preferences. Please try again.' },
+          { status: 500 }
+        )
+      }
+    } else {
+      // Create new subscriber with preferences
+      const { error } = await supabase
+        .from('subscribers')
+        .insert({
+          email: email.toLowerCase(),
+          is_active: true,
+          frequency: 'daily',
+          preferences: {
+            jobTypes: preferences?.jobTypes || [],
+            locations: preferences?.locations || [],
+          },
+        })
 
-    if (error) {
-      console.error('Preferences update error:', error)
-      return NextResponse.json(
-        { error: 'Failed to save preferences. Please try again.' },
-        { status: 500 }
-      )
+      if (error) {
+        console.error('Subscriber creation error:', error)
+        return NextResponse.json(
+          { error: 'Failed to create alert. Please try again.' },
+          { status: 500 }
+        )
+      }
     }
 
     return NextResponse.json(
-      { message: 'Preferences saved successfully!' },
+      { message: 'Job alert created successfully!' },
       { status: 200 }
     )
   } catch (error) {

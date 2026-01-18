@@ -10,10 +10,10 @@ import { Bell, ArrowUpRight } from 'lucide-react'
 import { useSignupModal } from '@/context/signup-modal-context'
 import { isCompMember } from '@/lib/admin'
 
-function UserDropdown({ email, onSignOut, hasSubscription, billingUrl }: {
+function UserDropdown({ email, onSignOut, showBilling, billingUrl }: {
   email: string
   onSignOut: () => void
-  hasSubscription: boolean
+  showBilling: boolean
   billingUrl: string | null
 }) {
   const [open, setOpen] = useState(false)
@@ -47,20 +47,29 @@ function UserDropdown({ email, onSignOut, hasSubscription, billingUrl }: {
               Saved Jobs
             </Link>
             <Link
+              href="/dashboard/alerts"
+              onClick={() => setOpen(false)}
+              className="block w-full px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
+            >
+              My Job Alerts
+            </Link>
+            <Link
               href="/posted-jobs"
               onClick={() => setOpen(false)}
               className="block w-full px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
             >
               Jobs Posted
             </Link>
-            <a
-              href={billingUrl || '/api/stripe/portal'}
-              onClick={() => setOpen(false)}
-              className="flex items-center justify-between w-full px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
-            >
-              Manage Billing
-              <ArrowUpRight className="w-4 h-4 text-neutral-400" />
-            </a>
+            {showBilling && (
+              <a
+                href={billingUrl || '/api/stripe/portal'}
+                onClick={() => setOpen(false)}
+                className="flex items-center justify-between w-full px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
+              >
+                Manage Billing
+                <ArrowUpRight className="w-4 h-4 text-neutral-400" />
+              </a>
+            )}
             <div className="border-t border-neutral-100" />
             <button
               onClick={() => {
@@ -81,10 +90,13 @@ function UserDropdown({ email, onSignOut, hasSubscription, billingUrl }: {
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const [user, setUser] = useState<User | null>(null)
+  const [authLoaded, setAuthLoaded] = useState(false)
   const [savedCount, setSavedCount] = useState(0)
-  const [hasSubscription, setHasSubscription] = useState(false)
+  const [hasSubscription, setHasSubscription] = useState<boolean | null>(null) // null = loading
+  const [showBilling, setShowBilling] = useState(false)
   const [billingUrl, setBillingUrl] = useState<string | null>(null)
   const [alertsModalOpen, setAlertsModalOpen] = useState(false)
+  const [existingAlertPreferences, setExistingAlertPreferences] = useState<{ jobTypes?: string[]; locations?: string[] } | undefined>(undefined)
   const pathname = usePathname()
   const router = useRouter()
   const { openSignupModal, openLoginModal } = useSignupModal()
@@ -109,11 +121,13 @@ export function Navbar() {
     // Get initial session
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user)
+      setAuthLoaded(true)
     })
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
+      setAuthLoaded(true)
     })
 
     return () => subscription.unsubscribe()
@@ -146,13 +160,18 @@ export function Navbar() {
     const fetchSubscription = async () => {
       if (!user) {
         setHasSubscription(false)
+        setShowBilling(false)
         setBillingUrl(null)
         return
       }
 
-      // Comp member bypass - auto-subscribe complimentary members
+      // Set to null (loading) while we check
+      setHasSubscription(null)
+
+      // Comp member bypass - auto-subscribe complimentary members (no billing)
       if (isCompMember(user.email)) {
         setHasSubscription(true)
+        setShowBilling(false)
         setBillingUrl(null)
         return
       }
@@ -160,25 +179,51 @@ export function Navbar() {
       const supabase = createBrowserSupabaseClient()
       const { data } = await supabase
         .from('subscriptions')
-        .select('status, customer_portal_url')
+        .select('status')
         .eq('user_id', user.id)
         .single()
 
       if (data && data.status === 'active') {
         setHasSubscription(true)
-        setBillingUrl(data.customer_portal_url)
+        setShowBilling(true)
+        setBillingUrl(null) // Portal URL fetched on demand via /api/stripe/portal
       } else {
         setHasSubscription(false)
+        setShowBilling(false)
         setBillingUrl(null)
       }
     }
     fetchSubscription()
   }, [user])
 
+  // Fetch existing alert preferences when modal opens
+  useEffect(() => {
+    const fetchAlertPreferences = async () => {
+      if (!alertsModalOpen || !user) {
+        return
+      }
+
+      try {
+        const res = await fetch('/api/alerts')
+        if (res.ok) {
+          const data = await res.json()
+          if (data.alert?.preferences) {
+            setExistingAlertPreferences(data.alert.preferences)
+          } else {
+            setExistingAlertPreferences(undefined)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch alert preferences:', error)
+      }
+    }
+    fetchAlertPreferences()
+  }, [alertsModalOpen, user])
+
   const handleSignOut = async () => {
     const supabase = createBrowserSupabaseClient()
     await supabase.auth.signOut()
-    router.refresh()
+    router.push('/')
   }
 
   const isTransparent = (isHomePage || isSEOPage || isPremiumPage) && !scrolled
@@ -200,7 +245,7 @@ export function Navbar() {
 
           <div className="flex items-center gap-3">
             {!user && (
-              <Button onClick={openLoginModal} variant="secondary" size="sm">
+              <Button onClick={openLoginModal} variant="ghost" size="sm">
                 Log in
               </Button>
             )}
@@ -220,11 +265,11 @@ export function Navbar() {
               <UserDropdown
                 email={user.email || ''}
                 onSignOut={handleSignOut}
-                hasSubscription={hasSubscription}
+                showBilling={showBilling}
                 billingUrl={billingUrl}
               />
             )}
-            {!hasSubscription && (
+            {authLoaded && hasSubscription === false && (
               <Link
                 href="/membership"
                 className="relative px-4 py-2 text-sm font-medium text-white bg-pink-600 border border-pink-700 rounded-md shadow-[0px_2px_0px_0px_#9d174d] hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_#9d174d] active:translate-y-[2px] active:shadow-none transition-all overflow-hidden"
@@ -248,6 +293,7 @@ export function Navbar() {
         isOpen={alertsModalOpen}
         onClose={() => setAlertsModalOpen(false)}
         userEmail={user?.email}
+        existingPreferences={existingAlertPreferences}
       />
     </nav>
   )

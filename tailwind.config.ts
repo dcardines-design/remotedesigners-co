@@ -31,7 +31,7 @@ const config: Config = {
       animation: {
         'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
         'wave': 'wave 2.5s ease-in-out infinite',
-        'wiggle': 'wiggle 3s ease-in-out infinite',
+        'wiggle': 'wiggle 2s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite',
         'modal-bounce': 'modal-bounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards',
         'modal-fade-1': 'modal-fade 0.4s ease-out 0.2s forwards',
         'modal-fade-2': 'modal-fade 0.4s ease-out 0.3s forwards',
@@ -60,9 +60,11 @@ const config: Config = {
           '100%': { transform: 'rotate(0deg)' },
         },
         'wiggle': {
-          '0%, 100%': { transform: 'rotate(0deg) scale(1)' },
-          '25%': { transform: 'rotate(-2deg) scale(1.02)' },
-          '75%': { transform: 'rotate(2deg) scale(1.02)' },
+          '0%, 100%': { transform: 'translateY(0)' },
+          '15%': { transform: 'translateY(-6px)' },
+          '30%': { transform: 'translateY(0)' },
+          '45%': { transform: 'translateY(-3px)' },
+          '60%': { transform: 'translateY(0)' },
         },
         'modal-bounce': {
           '0%': { opacity: '0', transform: 'scale(0)' },

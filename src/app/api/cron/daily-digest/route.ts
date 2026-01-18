@@ -39,10 +39,55 @@ interface Subscriber {
   id: string
   email: string
   unsubscribe_token: string
+  last_email_sent_at?: string
   preferences?: {
     jobTypes?: string[]
     locations?: string[]
   }
+}
+
+interface SubscriberWithTier extends Subscriber {
+  isPaidUser: boolean
+}
+
+// Get subscribers with their tier (paid vs free) based on subscription status
+async function getSubscribersWithTier(supabase: ReturnType<typeof createServerSupabaseClient>): Promise<SubscriberWithTier[]> {
+  // Get all active subscribers
+  const { data: subscribers, error: subError } = await supabase
+    .from('subscribers')
+    .select('id, email, unsubscribe_token, preferences, last_email_sent_at')
+    .eq('is_active', true)
+
+  if (subError || !subscribers) {
+    console.error('Error fetching subscribers:', subError)
+    return []
+  }
+
+  // Get paid users' emails (users with active subscriptions)
+  const { data: paidUsers } = await supabase
+    .from('profiles')
+    .select('email, subscriptions!inner(status)')
+    .eq('subscriptions.status', 'active')
+
+  const paidEmails = new Set(paidUsers?.map(p => p.email.toLowerCase()) || [])
+
+  return subscribers.map(sub => ({
+    ...sub,
+    isPaidUser: paidEmails.has(sub.email.toLowerCase())
+  }))
+}
+
+// Check if we should send to a subscriber based on their tier and last email time
+function shouldSendToSubscriber(subscriber: SubscriberWithTier, now: Date): boolean {
+  // Paid users: always send (daily)
+  if (subscriber.isPaidUser) return true
+
+  // Free users: every 2 days (47+ hours since last email to allow for cron timing variance)
+  if (!subscriber.last_email_sent_at) return true
+
+  const lastSent = new Date(subscriber.last_email_sent_at)
+  const hoursSince = (now.getTime() - lastSent.getTime()) / (1000 * 60 * 60)
+  return hoursSince >= 47
 }
 
 // Job type keyword mapping for filtering
@@ -122,7 +167,15 @@ function formatSalary(job: Job): string | null {
   return null
 }
 
-function generateEmailHTML(jobs: Job[], unsubscribeToken: string, isPersonalized: boolean): string {
+interface EmailOptions {
+  isPaidUser: boolean
+  isPersonalized: boolean
+  jobTimeframe: '24h' | '48h'
+}
+
+function generateEmailHTML(jobs: Job[], unsubscribeToken: string, options: EmailOptions): string {
+  const { isPaidUser, isPersonalized, jobTimeframe } = options
+
   const jobsHTML = jobs.slice(0, 10).map(job => {
     const salary = formatSalary(job)
     const jobUrl = `https://remotedesigners.co/jobs/${generateJobSlug(job.title, job.company, job.id)}`
@@ -153,9 +206,39 @@ function generateEmailHTML(jobs: Job[], unsubscribeToken: string, isPersonalized
     `
   }).join('')
 
-  const introText = isPersonalized
-    ? `Here are the latest remote design jobs matching your preferences. We found <strong>${jobs.length} new opportunities</strong> for you!`
-    : `Here are the latest remote design jobs posted in the last 24 hours. We found <strong>${jobs.length} new opportunities</strong> for you!`
+  const timeframeText = jobTimeframe === '24h' ? 'last 24 hours' : 'last 48 hours'
+
+  let introText: string
+  let headerSubtitle: string
+
+  if (isPaidUser && isPersonalized) {
+    introText = `Here are the latest remote design jobs matching your preferences. We found <strong>${jobs.length} new opportunities</strong> for you!`
+    headerSubtitle = 'Your Personalized Job Alerts'
+  } else if (isPaidUser) {
+    introText = `Here are the latest remote design jobs from the ${timeframeText}. We found <strong>${jobs.length} new opportunities</strong> for you!`
+    headerSubtitle = 'Your Daily Job Alerts'
+  } else {
+    introText = `Here are the latest remote design jobs from the ${timeframeText}. We found <strong>${jobs.length} new opportunities</strong> for you!`
+    headerSubtitle = 'Remote Design Jobs'
+  }
+
+  // Upgrade CTA for free users
+  const upgradeCTA = !isPaidUser ? `
+              <!-- Upgrade CTA -->
+              <tr>
+                <td style="padding: 0 30px 20px;">
+                  <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px;">
+                    <tr>
+                      <td style="padding: 20px;">
+                        <p style="margin: 0 0 8px; font-size: 15px; font-weight: 600; color: white;">Get Daily Personalized Alerts</p>
+                        <p style="margin: 0 0 12px; font-size: 13px; color: rgba(255,255,255,0.85);">Upgrade to receive daily job alerts tailored to your preferences.</p>
+                        <a href="https://remotedesigners.co/pricing" style="display: inline-block; padding: 8px 16px; background: white; color: #667eea; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600;">Upgrade Now</a>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+  ` : ''
 
   return `
     <!DOCTYPE html>
@@ -173,7 +256,7 @@ function generateEmailHTML(jobs: Job[], unsubscribeToken: string, isPersonalized
               <tr>
                 <td style="padding: 30px; background: #171717; text-align: center;">
                   <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">RemoteDesigners.co</h1>
-                  <p style="margin: 8px 0 0; color: #a3a3a3; font-size: 14px;">${isPersonalized ? 'Your Personalized Job Alerts' : 'Your Daily Remote Design Jobs'}</p>
+                  <p style="margin: 8px 0 0; color: #a3a3a3; font-size: 14px;">${headerSubtitle}</p>
                 </td>
               </tr>
 
@@ -202,6 +285,7 @@ function generateEmailHTML(jobs: Job[], unsubscribeToken: string, isPersonalized
                 </td>
               </tr>
 
+${upgradeCTA}
               <!-- Footer -->
               <tr>
                 <td style="padding: 20px 30px; background: #fafafa; border-top: 1px solid #e5e5e5;">
@@ -223,6 +307,7 @@ function generateEmailHTML(jobs: Job[], unsubscribeToken: string, isPersonalized
 export async function GET(request: NextRequest) {
   // Check for test mode - allows sending a test email without auth
   const testEmail = request.nextUrl.searchParams.get('test')
+  const testTier = request.nextUrl.searchParams.get('tier') as 'free' | 'paid' | null
 
   // Skip auth check in test mode
   if (!testEmail) {
@@ -234,25 +319,33 @@ export async function GET(request: NextRequest) {
 
   try {
     const supabase = createServerSupabaseClient()
+    const now = new Date()
 
-    // Get jobs from the last 24 hours
-    const yesterday = new Date()
-    yesterday.setDate(yesterday.getDate() - 1)
+    // Get jobs from the last 48 hours (to cover both free and paid users)
+    const twoDaysAgo = new Date()
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2)
 
-    const { data: jobs, error: jobsError } = await supabase
+    const oneDayAgo = new Date()
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1)
+
+    const { data: allJobs, error: jobsError } = await supabase
       .from('jobs')
       .select('id, title, company, company_logo, location, salary_min, salary_max, salary_text, job_type, posted_at')
-      .gte('posted_at', yesterday.toISOString())
+      .gte('posted_at', twoDaysAgo.toISOString())
       .eq('is_active', true)
       .order('posted_at', { ascending: false })
-      .limit(50)
+      .limit(100)
 
     if (jobsError) {
       console.error('Error fetching jobs:', jobsError)
       return NextResponse.json({ error: 'Failed to fetch jobs' }, { status: 500 })
     }
 
-    if (!jobs || jobs.length === 0) {
+    // Split jobs by timeframe
+    const last24hJobs = (allJobs || []).filter(job => new Date(job.posted_at) >= oneDayAgo)
+    const last48hJobs = allJobs || []
+
+    if (!allJobs || allJobs.length === 0) {
       // In test mode, get recent jobs instead
       if (testEmail) {
         const { data: recentJobs } = await supabase
@@ -267,16 +360,31 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'AWS SES not configured' }, { status: 500 })
           }
           const fromEmail = process.env.SES_FROM_EMAIL || 'hello@remotedesigners.co'
+          const isPaidTest = testTier === 'paid'
           const command = new SendEmailCommand({
             Source: `RemoteDesigners.co <${fromEmail}>`,
             Destination: { ToAddresses: [testEmail] },
             Message: {
-              Subject: { Data: `[TEST] ${recentJobs.length} Remote Design Jobs 🎨`, Charset: 'UTF-8' },
-              Body: { Html: { Data: generateEmailHTML(recentJobs as Job[], 'test-token', false), Charset: 'UTF-8' } },
+              Subject: {
+                Data: isPaidTest
+                  ? `[TEST] ${recentJobs.length} Jobs Matching Your Preferences 🎯`
+                  : `[TEST] ${recentJobs.length} New Remote Design Jobs 🎨`,
+                Charset: 'UTF-8'
+              },
+              Body: {
+                Html: {
+                  Data: generateEmailHTML(recentJobs as Job[], 'test-token', {
+                    isPaidUser: isPaidTest,
+                    isPersonalized: isPaidTest,
+                    jobTimeframe: isPaidTest ? '24h' : '48h'
+                  }),
+                  Charset: 'UTF-8'
+                }
+              },
             },
           })
           await sesClient.send(command)
-          return NextResponse.json({ success: true, message: `Test email sent to ${testEmail}`, jobs: recentJobs.length })
+          return NextResponse.json({ success: true, message: `Test email sent to ${testEmail} (tier: ${testTier || 'free'})`, jobs: recentJobs.length })
         }
       }
       return NextResponse.json({ message: 'No new jobs to send', sent: 0 })
@@ -288,30 +396,45 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'AWS SES not configured' }, { status: 500 })
       }
       const fromEmail = process.env.SES_FROM_EMAIL || 'hello@remotedesigners.co'
+      const isPaidTest = testTier === 'paid'
+      const jobsForTest = isPaidTest ? last24hJobs : last48hJobs
+
       const command = new SendEmailCommand({
         Source: `RemoteDesigners.co <${fromEmail}>`,
         Destination: { ToAddresses: [testEmail] },
         Message: {
-          Subject: { Data: `[TEST] ${jobs.length} Remote Design Jobs 🎨`, Charset: 'UTF-8' },
-          Body: { Html: { Data: generateEmailHTML(jobs as Job[], 'test-token', false), Charset: 'UTF-8' } },
+          Subject: {
+            Data: isPaidTest
+              ? `[TEST] ${jobsForTest.length} Jobs Matching Your Preferences 🎯`
+              : `[TEST] ${jobsForTest.length} New Remote Design Jobs 🎨`,
+            Charset: 'UTF-8'
+          },
+          Body: {
+            Html: {
+              Data: generateEmailHTML(jobsForTest as Job[], 'test-token', {
+                isPaidUser: isPaidTest,
+                isPersonalized: isPaidTest,
+                jobTimeframe: isPaidTest ? '24h' : '48h'
+              }),
+              Charset: 'UTF-8'
+            }
+          },
         },
       })
       await sesClient.send(command)
-      return NextResponse.json({ success: true, message: `Test email sent to ${testEmail}`, jobs: jobs.length })
+      return NextResponse.json({
+        success: true,
+        message: `Test email sent to ${testEmail} (tier: ${testTier || 'free'})`,
+        jobs: jobsForTest.length,
+        last24hCount: last24hJobs.length,
+        last48hCount: last48hJobs.length
+      })
     }
 
-    // Get active subscribers from the subscribers table
-    const { data: subscribers, error: subError } = await supabase
-      .from('subscribers')
-      .select('id, email, unsubscribe_token, preferences')
-      .eq('is_active', true)
+    // Get active subscribers with their tier information
+    const subscribers = await getSubscribersWithTier(supabase)
 
-    if (subError) {
-      console.error('Error fetching subscribers:', subError)
-      return NextResponse.json({ error: 'Failed to fetch subscribers' }, { status: 500 })
-    }
-
-    if (!subscribers || subscribers.length === 0) {
+    if (subscribers.length === 0) {
       return NextResponse.json({ message: 'No active subscribers', sent: 0 })
     }
 
@@ -327,20 +450,52 @@ export async function GET(request: NextRequest) {
     let sent = 0
     let failed = 0
     let skipped = 0
+    let skippedFrequency = 0
 
     for (const subscriber of subscribers) {
       try {
-        // Filter jobs based on subscriber preferences
-        const hasPreferences = subscriber.preferences?.jobTypes?.length || subscriber.preferences?.locations?.length
-        const filteredJobs = jobs.filter(job => jobMatchesPreferences(job as Job, subscriber.preferences))
+        // Check if we should send based on tier and frequency
+        if (!shouldSendToSubscriber(subscriber, now)) {
+          skippedFrequency++
+          continue
+        }
 
-        // Skip if no matching jobs for subscribers with preferences
-        if (hasPreferences && filteredJobs.length === 0) {
+        // Determine which jobs to use based on tier
+        const baseJobs = subscriber.isPaidUser ? last24hJobs : last48hJobs
+
+        // For paid users: apply preference filtering
+        // For free users: no preference filtering
+        const hasPreferences = subscriber.preferences?.jobTypes?.length || subscriber.preferences?.locations?.length
+        let jobsToSend: typeof baseJobs
+
+        if (subscriber.isPaidUser && hasPreferences) {
+          // Paid users with preferences: filter jobs
+          const filteredJobs = baseJobs.filter(job => jobMatchesPreferences(job as Job, subscriber.preferences))
+
+          // Skip if no matching jobs for paid users with preferences
+          if (filteredJobs.length === 0) {
+            skipped++
+            continue
+          }
+          jobsToSend = filteredJobs
+        } else {
+          // Free users or paid users without preferences: all jobs
+          jobsToSend = baseJobs
+        }
+
+        // Skip if no jobs to send
+        if (jobsToSend.length === 0) {
           skipped++
           continue
         }
 
-        const jobsToSend = filteredJobs.length > 0 ? filteredJobs : jobs
+        // Determine email content based on tier
+        const isPersonalized = subscriber.isPaidUser && !!hasPreferences
+        const subject = subscriber.isPaidUser
+          ? isPersonalized
+            ? `${jobsToSend.length} Jobs Matching Your Preferences 🎯`
+            : `${jobsToSend.length} New Remote Design Jobs 🎨`
+          : `${jobsToSend.length} New Remote Design Jobs 🎨`
 
         const command = new SendEmailCommand({
           Source: `RemoteDesigners.co <${fromEmail}>`,
@@ -349,14 +504,16 @@ export async function GET(request: NextRequest) {
           },
           Message: {
             Subject: {
-              Data: hasPreferences
-                ? `${jobsToSend.length} Jobs Matching Your Preferences 🎯`
-                : `${jobsToSend.length} New Remote Design Jobs Today 🎨`,
+              Data: subject,
               Charset: 'UTF-8',
             },
             Body: {
               Html: {
-                Data: generateEmailHTML(jobsToSend as Job[], subscriber.unsubscribe_token, !!hasPreferences),
+                Data: generateEmailHTML(jobsToSend as Job[], subscriber.unsubscribe_token, {
+                  isPaidUser: subscriber.isPaidUser,
+                  isPersonalized,
+                  jobTimeframe: subscriber.isPaidUser ? '24h' : '48h'
+                }),
                 Charset: 'UTF-8',
               },
             },
@@ -383,11 +540,17 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       message: 'Daily digest sent',
-      jobs: jobs.length,
+      jobs: {
+        last24h: last24hJobs.length,
+        last48h: last48hJobs.length,
+      },
       subscribers: subscribers.length,
+      paidSubscribers: subscribers.filter(s => s.isPaidUser).length,
+      freeSubscribers: subscribers.filter(s => !s.isPaidUser).length,
       sent,
       failed,
       skipped,
+      skippedFrequency,
     })
   } catch (error) {
     console.error('Daily digest error:', error)
