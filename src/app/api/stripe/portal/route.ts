@@ -2,6 +2,8 @@ import { NextResponse } from 'next/server'
 import { createAuthSupabaseClient } from '@/lib/supabase-server'
 import { createPortalSession } from '@/lib/stripe'
 
+export const dynamic = 'force-dynamic'
+
 export async function GET() {
   try {
     const supabase = await createAuthSupabaseClient()
