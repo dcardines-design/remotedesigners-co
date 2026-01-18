@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Input, RainbowButton } from '@/components/ui'
-import { SUBSCRIPTION_PRICING, FREE_JOBS_LIMIT, type SubscriptionPlan } from '@/lib/lemonsqueezy'
+import { SUBSCRIPTION_PRICING, FREE_JOBS_LIMIT, type SubscriptionPlan } from '@/lib/stripe'
 
 interface SubscribeModalProps {
   isOpen: boolean
@@ -67,9 +67,9 @@ export function SubscribeModal({ isOpen, onClose, jobTeaser, userEmail, isLogged
         throw new Error(data.error || 'Failed to create checkout')
       }
 
-      // Open Lemon Squeezy checkout in overlay
+      // Redirect to Stripe checkout
       if (data.checkoutUrl) {
-        window.LemonSqueezy?.Url?.Open?.(data.checkoutUrl)
+        window.location.href = data.checkoutUrl
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
@@ -200,8 +200,9 @@ export function SubscribeModal({ isOpen, onClose, jobTeaser, userEmail, isLogged
           ))}
         </div>
 
-        <p className="mt-6 text-center text-xs text-neutral-400">
-          Secure payment powered by Lemon Squeezy
+        <p className="mt-6 text-center text-xs text-neutral-400 flex items-center justify-center gap-1">
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 10h-1V7c0-3.3-2.7-6-6-6S6 3.7 6 7v3H5c-1.1 0-2 .9-2 2v8c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-8c0-1.1-.9-2-2-2zm-9 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3-8H8V7c0-1.7 1.3-3 3-3s3 1.3 3 3v3z"/></svg>
+          Secure payment powered by Stripe
         </p>
       </div>
     </div>

@@ -7,6 +7,7 @@ import ReactMarkdown from 'react-markdown'
 import { SocialProof, RainbowButton } from '@/components/ui'
 import { useSignupModal } from '@/context/signup-modal-context'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
+import { isCompMember } from '@/lib/admin'
 
 interface Job {
   id: string
@@ -208,19 +209,19 @@ const renderDescription = (description: string) => {
 
 const ctaFeatures = [
   {
-    emoji: '🔮',
-    title: 'Exclusive Jobs Not Found Elsewhere',
-    description: 'Access hidden opportunities we source directly from companies and scrape daily from 50+ sites.',
+    emoji: '🎯',
+    title: 'Direct from Source',
+    description: 'Jobs pulled straight from company career pages, not recycled from other boards.',
   },
   {
     emoji: '⚡',
-    title: '24-Hour Head Start on Every Listing',
-    description: 'See and apply to jobs a full day before they appear on LinkedIn, Indeed, or other boards.',
+    title: 'First to Apply',
+    description: 'See jobs before they hit LinkedIn or Indeed. Less competition, more callbacks.',
   },
   {
-    emoji: '📧',
-    title: 'Fresh Jobs Delivered to Your Inbox',
-    description: 'Get daily job alerts every morning. Never miss a perfect match.',
+    emoji: '📬',
+    title: 'Daily Job Alerts',
+    description: 'Get matched jobs delivered to your inbox every morning.',
   },
 ]
 
@@ -414,15 +415,20 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
       if (user) {
         setUserId(user.id)
 
-        // Check subscription status
-        const { data: subscription } = await supabase
-          .from('subscriptions')
-          .select('status')
-          .eq('user_id', user.id)
-          .eq('status', 'active')
-          .single()
+        // Comp member bypass - auto-subscribe complimentary members
+        if (isCompMember(user.email)) {
+          setIsSubscribed(true)
+        } else {
+          // Check subscription status
+          const { data: subscription } = await supabase
+            .from('subscriptions')
+            .select('status')
+            .eq('user_id', user.id)
+            .eq('status', 'active')
+            .single()
 
-        setIsSubscribed(!!subscription)
+          setIsSubscribed(!!subscription)
+        }
 
         // Check saved status
         const { data } = await supabase
@@ -764,7 +770,7 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
                   size="md"
                   onClick={() => {
                     if (!isSubscribed) {
-                      router.push(`/premium?skip_url=${encodeURIComponent(window.location.href)}`)
+                      router.push(`/membership?skip_url=${encodeURIComponent(window.location.href)}`)
                       return
                     }
                     fetch(`/api/jobs/${job.id}/track`, {
@@ -877,133 +883,139 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
         </div>
       )}
 
-      {/* CTA Card Section */}
-      <div className="max-w-6xl mx-auto px-8 pt-12 pb-4">
-        <div className="flex gap-4">
-          {/* Left Content Card */}
-          <div className="bg-white border border-neutral-200 rounded-2xl p-12 w-1/2 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]">
-            <h2 className="text-4xl font-medium text-neutral-900 text-left mb-10 font-dm-sans">
-              Land Your Dream<br />Remote Design Job
-            </h2>
+      {/* CTA Card Section - Hidden for subscribed users */}
+      {!isSubscribed && (
+        <div className="max-w-6xl mx-auto px-8 pt-12 pb-4">
+          <div className="flex gap-4">
+            {/* Left Content Card */}
+            <div className="bg-white border border-neutral-200 rounded-2xl p-12 w-1/2 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]">
+              <h2 className="text-4xl font-medium text-neutral-900 text-left mb-10 font-dm-sans">
+                Land Your Dream<br />Remote Design Job
+              </h2>
 
-            <div className="space-y-5 mb-10">
-              {ctaFeatures.map((feature, index) => (
-                <div key={index} className="flex gap-4">
-                  <div className="w-10 h-10 rounded-lg bg-neutral-100 flex items-center justify-center flex-shrink-0 text-xl">
-                    {feature.emoji}
+              <div className="space-y-5 mb-10">
+                {ctaFeatures.map((feature, index) => (
+                  <div key={index} className="flex gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-neutral-100 flex items-center justify-center flex-shrink-0 text-xl">
+                      {feature.emoji}
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-neutral-900 mb-1">{feature.title}</h3>
+                      <p className="text-neutral-500 text-sm">{feature.description}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-medium text-neutral-900 mb-1">{feature.title}</h3>
-                    <p className="text-neutral-500 text-sm">{feature.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="text-left">
-              <RainbowButton onClick={openSignupModal} fullWidth>
-                Unlock Full Access
-              </RainbowButton>
-
-              <SocialProof className="mt-10" />
-            </div>
-          </div>
-
-          {/* Right Image Card */}
-          <div className="w-1/2 hidden lg:block rounded-2xl overflow-hidden">
-            <img
-              src="/hero-bg.png"
-              alt="Remote designers working"
-              className="w-full h-full object-cover"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Testimonials Grid */}
-      <div className="max-w-6xl mx-auto px-8 pt-8 pb-12">
-        <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
-          {testimonials.map((testimonial, index) => (
-            <div key={index} className="break-inside-avoid bg-white border border-neutral-200 rounded-xl p-6 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]">
-              <div className="flex items-center gap-3 mb-4">
-                <img
-                  src={testimonial.avatar}
-                  alt={testimonial.name}
-                  className="w-10 h-10 rounded-full object-cover"
-                />
-                <div>
-                  <p className="font-medium text-neutral-900">{testimonial.name}</p>
-                  <p className="text-sm text-neutral-500">{testimonial.role}</p>
-                </div>
-              </div>
-              <div className="flex gap-0.5 mb-3">
-                {[1, 2, 3, 4, 5].map(i => (
-                  <svg key={i} width="14" height="14" viewBox="0 0 14 14" fill="#FBBF24" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M7 1L8.5 5H13L9.5 8L11 13L7 10L3 13L4.5 8L1 5H5.5L7 1Z"/>
-                  </svg>
                 ))}
               </div>
-              <p className="text-neutral-600 text-sm mb-3">{testimonial.text}</p>
-              <p className="text-xs text-neutral-400">{testimonial.date}</p>
+
+              <div className="text-left">
+                <RainbowButton onClick={openSignupModal} fullWidth>
+                  Get Membership — Unlock Full Access
+                </RainbowButton>
+
+                <SocialProof className="mt-10" />
+              </div>
             </div>
-          ))}
+
+            {/* Right Image Card */}
+            <div className="w-1/2 hidden lg:block rounded-2xl overflow-hidden">
+              <img
+                src="/hero-bg.png"
+                alt="Remote designers working"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* FAQ Section */}
-      <div className="max-w-6xl mx-auto px-8 py-12">
-        <h2 className="text-5xl font-normal text-neutral-900 mb-12">
-          Questions,<br />answered.
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 items-start">
-          {faqs.map((faq, index) => {
-            const isOpen = openFaq === index
-            return (
-              <button
-                key={index}
-                onClick={() => setOpenFaq(isOpen ? -1 : index)}
-                className="w-full border-t border-neutral-200 hover:bg-neutral-100/50 transition-colors duration-150 py-4 text-left"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium text-neutral-900">{faq.question}</span>
-                  <div className={`w-8 h-8 rounded-full border border-neutral-200 flex items-center justify-center flex-shrink-0 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`}>
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 14 14"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="transition-transform duration-150"
-                    >
-                      <path
-                        d="M3 7H11"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                      />
-                      <path
-                        d="M7 3V11"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeLinecap="round"
-                        className={`origin-center transition-transform duration-150 ${isOpen ? 'scale-y-0' : 'scale-y-100'}`}
-                      />
+      {/* Testimonials Grid - Hidden for subscribed users */}
+      {!isSubscribed && (
+        <div className="max-w-6xl mx-auto px-8 pt-8 pb-12">
+          <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
+            {testimonials.map((testimonial, index) => (
+              <div key={index} className="break-inside-avoid bg-white border border-neutral-200 rounded-xl p-6 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]">
+                <div className="flex items-center gap-3 mb-4">
+                  <img
+                    src={testimonial.avatar}
+                    alt={testimonial.name}
+                    className="w-10 h-10 rounded-full object-cover"
+                  />
+                  <div>
+                    <p className="font-medium text-neutral-900">{testimonial.name}</p>
+                    <p className="text-sm text-neutral-500">{testimonial.role}</p>
+                  </div>
+                </div>
+                <div className="flex gap-0.5 mb-3">
+                  {[1, 2, 3, 4, 5].map(i => (
+                    <svg key={i} width="14" height="14" viewBox="0 0 14 14" fill="#FBBF24" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M7 1L8.5 5H13L9.5 8L11 13L7 10L3 13L4.5 8L1 5H5.5L7 1Z"/>
                     </svg>
-                  </div>
+                  ))}
                 </div>
-                <div
-                  className={`grid transition-all duration-150 ease-out ${isOpen ? 'grid-rows-[1fr] opacity-100 mt-2' : 'grid-rows-[0fr] opacity-0'}`}
-                >
-                  <div className="overflow-hidden">
-                    <p className="text-neutral-600 pr-12">{faq.answer}</p>
-                  </div>
-                </div>
-              </button>
-            )
-          })}
+                <p className="text-neutral-600 text-sm mb-3">{testimonial.text}</p>
+                <p className="text-xs text-neutral-400">{testimonial.date}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* FAQ Section - Hidden for subscribed users */}
+      {!isSubscribed && (
+        <div className="max-w-6xl mx-auto px-8 py-12">
+          <h2 className="text-5xl font-normal text-neutral-900 mb-12">
+            Questions,<br />answered.
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 items-start">
+            {faqs.map((faq, index) => {
+              const isOpen = openFaq === index
+              return (
+                <button
+                  key={index}
+                  onClick={() => setOpenFaq(isOpen ? -1 : index)}
+                  className="w-full border-t border-neutral-200 hover:bg-neutral-100/50 transition-colors duration-150 py-4 text-left"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-neutral-900">{faq.question}</span>
+                    <div className={`w-8 h-8 rounded-full border border-neutral-200 flex items-center justify-center flex-shrink-0 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`}>
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 14 14"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="transition-transform duration-150"
+                      >
+                        <path
+                          d="M3 7H11"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                        />
+                        <path
+                          d="M7 3V11"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          className={`origin-center transition-transform duration-150 ${isOpen ? 'scale-y-0' : 'scale-y-100'}`}
+                        />
+                      </svg>
+                    </div>
+                  </div>
+                  <div
+                    className={`grid transition-all duration-150 ease-out ${isOpen ? 'grid-rows-[1fr] opacity-100 mt-2' : 'grid-rows-[0fr] opacity-0'}`}
+                  >
+                    <div className="overflow-hidden">
+                      <p className="text-neutral-600 pr-12">{faq.answer}</p>
+                    </div>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
       </div>
     </>
   )

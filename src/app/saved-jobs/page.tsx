@@ -153,20 +153,22 @@ export default function SavedJobsPage() {
 
         {/* Empty state */}
         {jobs.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-neutral-100 flex items-center justify-center">
-              <svg className="w-8 h-8 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-              </svg>
+          <div className="bg-white border border-dashed border-neutral-300 rounded-xl px-12 py-20">
+            <div className="text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-neutral-100 flex items-center justify-center">
+                <svg className="w-8 h-8 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                </svg>
+              </div>
+              <h2 className="text-lg font-medium text-neutral-900 mb-2">No saved jobs yet</h2>
+              <p className="text-neutral-500 mb-6">Start saving jobs you're interested in to track them here</p>
+              <Link
+                href="/"
+                className="inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-neutral-700 bg-white rounded-lg border border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.05)] hover:translate-y-[1px] transition-all"
+              >
+                Browse jobs
+              </Link>
             </div>
-            <h2 className="text-lg font-medium text-neutral-900 mb-2">No saved jobs yet</h2>
-            <p className="text-neutral-500 mb-6">Start saving jobs you're interested in to track them here</p>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-[#2a2a2a] rounded-lg hover:bg-[#3a3a3a] transition-colors"
-            >
-              Browse jobs
-            </Link>
           </div>
         ) : (
           <div className="overflow-x-auto pb-4 -mx-6">

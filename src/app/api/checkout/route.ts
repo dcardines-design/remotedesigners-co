@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { JobPostingData, calculateTotal, PRICING } from '@/lib/lemonsqueezy'
+import { JobPostingData, calculateTotal, PRICING, createJobCheckout } from '@/lib/stripe'
 import { createAdminSupabaseClient } from '@/lib/supabase'
 import { sendJobPostingReceipt } from '@/lib/email'
 
@@ -94,93 +94,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ url: `${process.env.NEXT_PUBLIC_APP_URL}/post-job/success?job_id=${job.id}` })
     }
 
-    const storeId = process.env.LEMONSQUEEZY_STORE_ID!
-    const variantId = process.env.LEMONSQUEEZY_VARIANT_BASE!
+    // Production: Create Stripe checkout session
+    const session = await createJobCheckout(data)
 
-    // Build line items description
-    const items: string[] = ['Job Posting (30 days) - $99']
-    if (data.is_featured) items.push('Featured Listing - $50')
-    if (data.sticky_24h) items.push('Sticky Post 24h - $79')
-    if (data.sticky_7d) items.push('Sticky Post 7 Days - $149')
-    if (data.rainbow_border) items.push('Rainbow Border - $39')
-    if (data.extended_duration) items.push('Extended Duration - $49')
-
-    // Create Lemon Squeezy checkout
-    const response = await fetch('https://api.lemonsqueezy.com/v1/checkouts', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/vnd.api+json',
-        'Content-Type': 'application/vnd.api+json',
-        'Authorization': `Bearer ${process.env.LEMONSQUEEZY_API_KEY}`,
-      },
-      body: JSON.stringify({
-        data: {
-          type: 'checkouts',
-          attributes: {
-            checkout_data: {
-              custom: {
-                title: data.title,
-                company: data.company,
-                company_logo: data.company_logo || '',
-                location: data.location,
-                salary_min: data.salary_min?.toString() || '',
-                salary_max: data.salary_max?.toString() || '',
-                description_1: data.description.slice(0, 500),
-                description_2: data.description.slice(500, 1000),
-                description_3: data.description.slice(1000, 1500),
-                description_4: data.description.slice(1500, 2000),
-                job_type: data.job_type,
-                experience_level: data.experience_level,
-                skills: JSON.stringify(data.skills),
-                apply_url: data.apply_url,
-                is_featured: data.is_featured ? 'true' : 'false',
-                sticky_24h: data.sticky_24h ? 'true' : 'false',
-                sticky_7d: data.sticky_7d ? 'true' : 'false',
-                rainbow_border: data.rainbow_border ? 'true' : 'false',
-                extended_duration: data.extended_duration ? 'true' : 'false',
-                user_id: data.user_id || '',
-                poster_email: data.poster_email.toLowerCase(),
-              },
-            },
-            product_options: {
-              name: `Job Posting${data.is_featured ? ' (Featured)' : ''}`,
-              description: items.join('\n'),
-              redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/post-job/success`,
-            },
-            checkout_options: {
-              embed: false,
-              media: false,
-            },
-          },
-          relationships: {
-            store: {
-              data: {
-                type: 'stores',
-                id: storeId,
-              },
-            },
-            variant: {
-              data: {
-                type: 'variants',
-                id: variantId,
-              },
-            },
-          },
-        },
-      }),
-    })
-
-    if (!response.ok) {
-      const error = await response.text()
-      console.error('Lemon Squeezy error:', error)
-      return NextResponse.json(
-        { error: 'Failed to create checkout' },
-        { status: 500 }
-      )
+    if (!session.url) {
+      throw new Error('Failed to create checkout session URL')
     }
 
-    const checkout = await response.json()
-    return NextResponse.json({ url: checkout.data.attributes.url })
+    return NextResponse.json({ url: session.url })
   } catch (error) {
     console.error('Checkout error:', error)
     return NextResponse.json(

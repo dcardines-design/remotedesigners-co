@@ -1,10 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { generateJobSlug } from '@/lib/slug'
 import { HeroBackground } from './hero-background'
 import { JobCard } from './job-card'
+import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
+import { FREE_JOBS_LIMIT } from '@/lib/stripe'
+import { isCompMember } from '@/lib/admin'
 
 // Helper functions
 const getInitials = (company: string) => company.substring(0, 2).toUpperCase()
@@ -203,6 +207,35 @@ interface SEOLandingPageProps {
 }
 
 export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageType, faqs, breadcrumbLabel, parentPage }: SEOLandingPageProps) {
+  const router = useRouter()
+  const [isSubscribed, setIsSubscribed] = useState(false)
+
+  // Check subscription status
+  useEffect(() => {
+    const checkSubscription = async () => {
+      const supabase = createBrowserSupabaseClient()
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (user) {
+        // Comp member bypass
+        if (isCompMember(user.email)) {
+          setIsSubscribed(true)
+        } else {
+          // Check subscription status
+          const { data: subscription } = await supabase
+            .from('subscriptions')
+            .select('status')
+            .eq('user_id', user.id)
+            .eq('status', 'active')
+            .single()
+
+          setIsSubscribed(!!subscription)
+        }
+      }
+    }
+    checkSubscription()
+  }, [])
+
   return (
     <div className="bg-neutral-50 min-h-screen relative">
       <HeroBackground />
@@ -300,13 +333,92 @@ export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageT
               <p className="text-neutral-500">No jobs found yet. Check back soon!</p>
             </div>
           ) : (
-            jobs.map((job) => (
-              <JobCard
-                key={job.id}
-                job={job}
-                showActions={false}
-              />
-            ))
+            jobs.map((job, index) => {
+              const isLocked = !isSubscribed && index >= FREE_JOBS_LIMIT
+
+              // Locked job card with paywall
+              if (isLocked) {
+                const salary = formatSalary(job)
+                const timeAgo = formatTimeAgo(job.posted_at)
+
+                return (
+                  <div
+                    key={job.id}
+                    onClick={() => {
+                      router.push(`/membership?skip_url=${encodeURIComponent(window.location.href)}`)
+                    }}
+                    className="block border rounded-xl p-5 relative cursor-pointer bg-white border-neutral-200 hover:border-neutral-300 hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08),0px_1px_2px_0px_rgba(0,0,0,0.05)] transition-all duration-200"
+                  >
+                    {/* Left border indicator */}
+                    <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl bg-neutral-200" />
+
+                    {/* 10% visible, rest blurred with gradient fade */}
+                    <div className="relative flex gap-4 pl-3 select-none pointer-events-none">
+                      {/* Company Avatar - blurred */}
+                      <div className="w-12 h-12 rounded-full bg-white border border-neutral-200 flex items-center justify-center flex-shrink-0 overflow-hidden blur-[3px]">
+                        <img
+                          src={job.company_logo || getCompanyLogoUrl(job.company)}
+                          alt={job.company}
+                          className="w-full h-full object-contain"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            if (!target.dataset.triedFallback) {
+                              target.dataset.triedFallback = 'true'
+                              target.src = getGoogleFaviconUrl(job.company)
+                            } else {
+                              target.style.display = 'none'
+                              target.parentElement!.innerHTML = `<span class="text-sm font-medium text-neutral-400">${getInitials(job.company)}</span>`
+                            }
+                          }}
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-4 mb-1">
+                          <h3 className="text-lg font-normal text-neutral-900">{cleanJobTitle(job.title)}</h3>
+                          <span className="text-sm text-neutral-400">{timeAgo}</span>
+                        </div>
+                        <p className="text-sm text-neutral-500 mb-3">{job.company} · {formatLocation(job.location)}</p>
+                        <div className="flex gap-2">
+                          <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200">
+                            {toTitleCase(job.job_type || 'Full-time')}
+                          </span>
+                          {salary && (
+                            <span className="bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200">
+                              {salary}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {/* White gradient overlay - 0% to 100% white */}
+                      <div
+                        className="absolute inset-0"
+                        style={{
+                          background: 'linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%)'
+                        }}
+                      />
+                    </div>
+
+                    {/* Lock overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-gradient-to-t from-white/90 via-white/60 to-transparent">
+                      <div className="flex items-center gap-2 px-4 py-2 bg-white rounded-full border border-neutral-200 shadow-sm">
+                        <svg className="w-4 h-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        <span className="text-sm font-medium text-neutral-900">Subscribe to view</span>
+                      </div>
+                    </div>
+                  </div>
+                )
+              }
+
+              return (
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  showActions={false}
+                />
+              )
+            })
           )}
         </div>
 

@@ -20,7 +20,7 @@ export function Footer() {
 
       if (footerRef.current) {
         footerRef.current.style.backgroundPosition = `${x}% ${y}%`
-        footerRef.current.style.backgroundImage = `linear-gradient(${angle}deg, #050505 0%, #0a0a0a 15%, #121212 30%, #181818 45%, #121212 60%, #0a0a0a 75%, #050505 90%, #080808 100%)`
+        footerRef.current.style.backgroundImage = `linear-gradient(${angle}deg, #0a0a0a 0%, #0f0f0f 15%, #141414 30%, #171717 45%, #141414 60%, #0f0f0f 75%, #0a0a0a 90%, #0c0c0c 100%)`
       }
 
       animationId = requestAnimationFrame(animate)
@@ -33,10 +33,10 @@ export function Footer() {
   return (
     <footer
       ref={footerRef}
-      className="text-neutral-400 py-16 rounded-xl mx-3 mb-3"
+      className="text-neutral-400 py-16 rounded-xl mx-3 mb-[14px] shadow-[0px_6px_0px_0px_#000000]"
       style={{
         backgroundSize: '300% 300%',
-        backgroundImage: 'linear-gradient(135deg, #050505 0%, #0a0a0a 15%, #121212 30%, #181818 45%, #121212 60%, #0a0a0a 75%, #050505 90%, #080808 100%)'
+        backgroundImage: 'linear-gradient(135deg, #0a0a0a 0%, #0f0f0f 15%, #141414 30%, #171717 45%, #141414 60%, #0f0f0f 75%, #0a0a0a 90%, #0c0c0c 100%)'
       }}
     >
       <div className="max-w-6xl mx-auto px-8">

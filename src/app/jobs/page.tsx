@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, MapPin, DollarSign, Clock, Loader2, ExternalLink, RefreshCw, Zap } from 'lucide-react'
-import { AutoApplyModal } from '@/components/AutoApplyModal'
+import { Search, MapPin, DollarSign, Clock, Loader2, ExternalLink, RefreshCw } from 'lucide-react'
 
 interface Job {
   id: string
@@ -127,10 +126,6 @@ export default function JobsPage() {
   const [experience, setExperience] = useState('all')
   const [jobType, setJobType] = useState('all')
   const [page, setPage] = useState(1)
-
-  // Auto-apply modal
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null)
-  const [isAutoApplyOpen, setIsAutoApplyOpen] = useState(false)
 
   const fetchJobs = async (
     options: { isRefresh?: boolean; currentPage?: number; currentSearch?: string; currentExperience?: string; currentJobType?: string } = {}
@@ -357,28 +352,15 @@ export default function JobsPage() {
                           <p className="text-gray-600">{job.company}</p>
                         </div>
 
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <button
-                            onClick={() => {
-                              setSelectedJob(job)
-                              setIsAutoApplyOpen(true)
-                            }}
-                            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors"
-                            title="Auto Apply with AI"
-                          >
-                            <Zap className="w-4 h-4" />
-                            Auto Apply
-                          </button>
-                          <a
-                            href={job.apply_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors"
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                            Apply
-                          </a>
-                        </div>
+                        <a
+                          href={job.apply_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg transition-colors"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                          Apply
+                        </a>
                       </div>
 
                       {/* Meta Info */}
@@ -455,18 +437,6 @@ export default function JobsPage() {
           </>
         )}
       </div>
-
-      {/* Auto Apply Modal */}
-      {selectedJob && (
-        <AutoApplyModal
-          job={selectedJob}
-          isOpen={isAutoApplyOpen}
-          onClose={() => {
-            setIsAutoApplyOpen(false)
-            setSelectedJob(null)
-          }}
-        />
-      )}
     </div>
   )
 }

@@ -31,6 +31,14 @@ const config: Config = {
       animation: {
         'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
         'wave': 'wave 2.5s ease-in-out infinite',
+        'wiggle': 'wiggle 3s ease-in-out infinite',
+        'modal-bounce': 'modal-bounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards',
+        'modal-fade-1': 'modal-fade 0.4s ease-out 0.2s forwards',
+        'modal-fade-2': 'modal-fade 0.4s ease-out 0.3s forwards',
+        'modal-fade-3': 'modal-fade 0.4s ease-out 0.4s forwards',
+        'modal-fade-4': 'modal-fade 0.4s ease-out 0.5s forwards',
+        'modal-fade-5': 'modal-fade 0.4s ease-out 0.6s forwards',
+        'check-draw': 'check-draw 0.4s ease-out 0.4s forwards',
       },
       keyframes: {
         'pulse-glow': {
@@ -50,6 +58,24 @@ const config: Config = {
           '50%': { transform: 'rotate(10deg)' },
           '60%': { transform: 'rotate(0deg)' },
           '100%': { transform: 'rotate(0deg)' },
+        },
+        'wiggle': {
+          '0%, 100%': { transform: 'rotate(0deg) scale(1)' },
+          '25%': { transform: 'rotate(-2deg) scale(1.02)' },
+          '75%': { transform: 'rotate(2deg) scale(1.02)' },
+        },
+        'modal-bounce': {
+          '0%': { opacity: '0', transform: 'scale(0)' },
+          '50%': { transform: 'scale(1.1)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        'modal-fade': {
+          '0%': { opacity: '0', transform: 'translateY(10px)' },
+          '100%': { opacity: '1', transform: 'translateY(0)' },
+        },
+        'check-draw': {
+          '0%': { strokeDashoffset: '50' },
+          '100%': { strokeDashoffset: '0' },
         },
       },
     },

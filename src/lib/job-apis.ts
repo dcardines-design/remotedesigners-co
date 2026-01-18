@@ -84,7 +84,7 @@ Rules:
 
 export interface NormalizedJob {
   id: string
-  source: 'remotive' | 'remoteok' | 'arbeitnow' | 'jsearch' | 'himalayas' | 'jobicy' | 'greenhouse' | 'lever' | 'ashby' | 'adzuna' | 'authenticjobs' | 'workingnomads' | 'themuse' | 'glints' | 'tokyodev' | 'nodeflairsg' | 'jooble' | 'jobstreet' | 'kalibrr' | 'instahyre' | 'wantedly' | 'linkedin'
+  source: 'remotive' | 'remoteok' | 'arbeitnow' | 'jsearch' | 'himalayas' | 'jobicy' | 'greenhouse' | 'lever' | 'ashby' | 'adzuna' | 'authenticjobs' | 'workingnomads' | 'themuse' | 'glints' | 'tokyodev' | 'nodeflairsg' | 'jooble' | 'jobstreet' | 'kalibrr' | 'instahyre' | 'wantedly' | 'linkedin' | 'indeed' | 'ycombinator'
   title: string
   company: string
   company_logo?: string
@@ -594,6 +594,278 @@ export async function fetchJSearchJobs(): Promise<NormalizedJob[]> {
     })
   } catch (error) {
     console.error('JSearch fetch error:', error)
+    return []
+  }
+}
+
+// ============ INDEED API (RapidAPI) ============
+// Docs: https://rapidapi.com/letscrape-6bRBa3QguO5/api/indeed12
+// Uses the same RapidAPI key as JSearch
+
+interface IndeedJob {
+  id: string
+  title: string
+  company_name: string
+  company_logo?: string
+  location: string
+  description: string
+  salary?: string
+  job_type?: string
+  date_posted: string
+  apply_link: string
+  is_remote?: boolean
+}
+
+export async function fetchIndeedJobs(): Promise<NormalizedJob[]> {
+  const apiKey = process.env.RAPIDAPI_KEY
+
+  if (!apiKey) {
+    console.log('Indeed: No RapidAPI key configured, skipping')
+    return []
+  }
+
+  // Helper to fetch job details
+  const fetchJobDetails = async (jobId: string): Promise<IndeedJobDetails | null> => {
+    try {
+      const response = await fetch(
+        `https://indeed12.p.rapidapi.com/job/${jobId}?locality=us`,
+        {
+          headers: {
+            'X-RapidAPI-Key': apiKey,
+            'X-RapidAPI-Host': 'indeed12.p.rapidapi.com'
+          }
+        }
+      )
+      if (!response.ok) return null
+      return await response.json()
+    } catch {
+      return null
+    }
+  }
+
+  try {
+    const allJobs: NormalizedJob[] = []
+    const seenIds = new Set<string>()
+
+    // Design job search queries with localities
+    const searches = [
+      // US remote design jobs
+      { query: 'remote UI designer', locality: 'us' },
+      { query: 'remote UX designer', locality: 'us' },
+      { query: 'remote product designer', locality: 'us' },
+      { query: 'remote graphic designer', locality: 'us' },
+      // Philippines remote design jobs
+      { query: 'remote UI designer', locality: 'ph' },
+      { query: 'remote UX designer', locality: 'ph' },
+      { query: 'remote product designer', locality: 'ph' },
+      { query: 'remote graphic designer', locality: 'ph' },
+      { query: 'remote web designer', locality: 'ph' },
+      { query: 'figma designer remote', locality: 'ph' },
+    ]
+
+    for (const { query, locality } of searches) {
+      const response = await fetch(
+        `https://indeed12.p.rapidapi.com/jobs/search?query=${encodeURIComponent(query)}&location=remote&page_id=1&locality=${locality}&fromage=7&sort=date`,
+        {
+          headers: {
+            'X-RapidAPI-Key': apiKey,
+            'X-RapidAPI-Host': 'indeed12.p.rapidapi.com'
+          }
+        }
+      )
+
+      if (!response.ok) {
+        console.error(`Indeed API error for ${locality}/${query}:`, response.status)
+        continue
+      }
+
+      const data = await response.json()
+      const searchResults = data.hits || data.jobs || []
+      console.log(`Indeed ${locality}: Found ${searchResults.length} results for "${query}"`)
+
+      // Fetch details for each job (limit to avoid rate limits)
+      for (const result of searchResults.slice(0, 5)) {
+        if (seenIds.has(result.id)) continue
+        seenIds.add(result.id)
+
+        // Skip if not a design job based on title
+        if (!isDesignJob(result.title, [])) continue
+
+        const details = await fetchJobDetails(result.id)
+        if (!details) continue
+
+        // Parse salary from details
+        const salary = details.salary || {}
+        const salaryMin = typeof salary.min === 'number' && salary.min > 0 ? salary.min : undefined
+        const salaryMax = typeof salary.max === 'number' && salary.max > 0 ? salary.max : undefined
+        const salaryType = salary.type || ''
+        const salaryText = salaryMin && salaryMax
+          ? `$${salaryMin.toLocaleString()} - $${salaryMax.toLocaleString()} ${salaryType.toLowerCase()}`
+          : undefined
+
+        // Strip HTML from description
+        const description = (details.description || '')
+          .replace(/<[^>]*>/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim()
+
+        // Try to get company logo from Clearbit (free tier)
+        const companyName = details.company?.name || result.company_name
+        const companyDomain = companyName.toLowerCase()
+          .replace(/[^a-z0-9]/g, '')
+          .concat('.com')
+        const clearbitLogo = `https://logo.clearbit.com/${companyDomain}`
+
+        allJobs.push({
+          id: `indeed-${result.id}`,
+          source: 'indeed' as const,
+          title: details.job_title || result.title,
+          company: companyName,
+          company_logo: details.company?.logo_url || clearbitLogo,
+          location: details.location || result.location || 'Remote',
+          salary_min: salaryMin,
+          salary_max: salaryMax,
+          salary_text: salaryText,
+          description: description,
+          job_type: parseJobType(details.job_type || result.title),
+          experience_level: parseExperienceLevel(details.job_title || result.title),
+          skills: filterSkills(extractSkills(description)),
+          apply_url: details.apply_url || details.indeed_final_url || `https://www.indeed.com/viewjob?jk=${result.id}`,
+          posted_at: result.pub_date_ts_milli
+            ? new Date(result.pub_date_ts_milli).toISOString()
+            : new Date().toISOString(),
+          is_featured: false,
+        })
+
+        // Rate limiting between detail requests
+        await new Promise(resolve => setTimeout(resolve, 300))
+      }
+
+      // Rate limiting between search queries
+      await new Promise(resolve => setTimeout(resolve, 500))
+    }
+
+    console.log(`Indeed: Fetched ${allJobs.length} jobs with details`)
+
+    // Deduplicate by title + company
+    const seen = new Set<string>()
+    return allJobs.filter(job => {
+      const key = `${job.title.slice(0, 30).toLowerCase()}-${job.company.toLowerCase()}`
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+  } catch (error) {
+    console.error('Indeed fetch error:', error)
+    return []
+  }
+}
+
+// Indeed job details response interface
+interface IndeedJobDetails {
+  job_title: string
+  description: string
+  apply_url: string
+  indeed_final_url: string
+  location: string
+  job_type: string
+  salary?: {
+    min?: number
+    max?: number
+    type?: string
+  }
+  company?: {
+    name: string
+    logo_url?: string
+  }
+}
+
+// ============ Y COMBINATOR JOBS (Hacker News) ============
+// Official HN Jobs API - https://github.com/HackerNews/API
+
+interface HNJobItem {
+  id: number
+  title: string
+  url?: string
+  text?: string  // HTML description
+  by: string     // Company/poster
+  time: number   // Unix timestamp
+  type: 'job'
+}
+
+export async function fetchYCombinatorJobs(): Promise<NormalizedJob[]> {
+  try {
+    // Fetch job story IDs from HN
+    const idsResponse = await fetch('https://hacker-news.firebaseio.com/v0/jobstories.json')
+    if (!idsResponse.ok) {
+      console.error('HN Jobs API error:', idsResponse.status)
+      return []
+    }
+
+    const jobIds: number[] = await idsResponse.json()
+    console.log(`YCombinator: Found ${jobIds.length} job postings on HN`)
+
+    const allJobs: NormalizedJob[] = []
+
+    // Fetch details for each job (limit to 30 most recent)
+    for (const jobId of jobIds.slice(0, 30)) {
+      try {
+        const itemResponse = await fetch(`https://hacker-news.firebaseio.com/v0/item/${jobId}.json`)
+        if (!itemResponse.ok) continue
+
+        const item: HNJobItem = await itemResponse.json()
+        if (!item || item.type !== 'job') continue
+
+        // Extract company name from title (usually "Company (YC Batch) is hiring...")
+        const titleMatch = item.title.match(/^([^(]+?)(?:\s*\([^)]*\))?\s+(?:is hiring|Is Hiring|hiring)/i)
+        const company = titleMatch ? titleMatch[1].trim() : item.by
+
+        // Skip if not a design job
+        const description = item.text
+          ? item.text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim()
+          : ''
+
+        if (!isDesignJob(item.title, [], description)) continue
+
+        // Generate Clearbit logo URL
+        const companyDomain = company.toLowerCase().replace(/[^a-z0-9]/g, '').concat('.com')
+        const logoUrl = `https://logo.clearbit.com/${companyDomain}`
+
+        allJobs.push({
+          id: `ycombinator-${item.id}`,
+          source: 'ycombinator' as const,
+          title: item.title,
+          company: company,
+          company_logo: logoUrl,
+          location: 'Remote', // Most YC jobs are remote-friendly
+          description: description,
+          job_type: parseJobType(item.title),
+          experience_level: parseExperienceLevel(item.title),
+          skills: filterSkills(extractSkills(description)),
+          apply_url: item.url || `https://news.ycombinator.com/item?id=${item.id}`,
+          posted_at: new Date(item.time * 1000).toISOString(),
+          is_featured: false,
+        })
+
+        // Rate limiting
+        await new Promise(resolve => setTimeout(resolve, 100))
+      } catch {
+        continue
+      }
+    }
+
+    console.log(`YCombinator: Fetched ${allJobs.length} design jobs from HN`)
+
+    // Deduplicate by title + company
+    const seen = new Set<string>()
+    return allJobs.filter(job => {
+      const key = `${job.title.slice(0, 30).toLowerCase()}-${job.company.toLowerCase()}`
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+  } catch (error) {
+    console.error('YCombinator fetch error:', error)
     return []
   }
 }
@@ -2359,6 +2631,8 @@ export async function fetchAllJobs(): Promise<NormalizedJob[]> {
     fetchRemoteOKJobs(),
     fetchArbeitnowJobs(),
     fetchJSearchJobs(),
+    fetchIndeedJobs(),
+    fetchYCombinatorJobs(),
     fetchHimalayasJobs(),
     fetchJobicyJobs(),
     fetchGreenhouseJobs(),
@@ -2385,6 +2659,7 @@ export async function fetchAllJobs(): Promise<NormalizedJob[]> {
     remoteokResult,
     arbeitnowResult,
     jsearchResult,
+    indeedResult,
     himalayasResult,
     jobicyResult,
     greenhouseResult,
@@ -2409,6 +2684,7 @@ export async function fetchAllJobs(): Promise<NormalizedJob[]> {
   const remoteokJobs = remoteokResult.status === 'fulfilled' ? remoteokResult.value : []
   const arbeitnowJobs = arbeitnowResult.status === 'fulfilled' ? arbeitnowResult.value : []
   const jsearchJobs = jsearchResult.status === 'fulfilled' ? jsearchResult.value : []
+  const indeedJobs = indeedResult.status === 'fulfilled' ? indeedResult.value : []
   const himalayasJobs = himalayasResult.status === 'fulfilled' ? himalayasResult.value : []
   const jobicyJobs = jobicyResult.status === 'fulfilled' ? jobicyResult.value : []
   const greenhouseJobs = greenhouseResult.status === 'fulfilled' ? greenhouseResult.value : []
@@ -2428,7 +2704,7 @@ export async function fetchAllJobs(): Promise<NormalizedJob[]> {
   const instahyreJobs = instahyreResult.status === 'fulfilled' ? instahyreResult.value : []
   const wantedlyJobs = wantedlyResult.status === 'fulfilled' ? wantedlyResult.value : []
 
-  console.log(`Fetched: Remotive(${remotiveJobs.length}), RemoteOK(${remoteokJobs.length}), Arbeitnow(${arbeitnowJobs.length}), JSearch(${jsearchJobs.length}), Himalayas(${himalayasJobs.length}), Jobicy(${jobicyJobs.length}), Greenhouse(${greenhouseJobs.length}), Lever(${leverJobs.length}), Ashby(${ashbyJobs.length}), Adzuna(${adzunaJobs.length}), Authentic(${authenticJobs.length}), Nomads(${nomadsJobs.length}), Muse(${museJobs.length}), Glints(${glintsJobs.length}), TokyoDev(${tokyodevJobs.length}), NodeFlair(${nodeflairJobs.length}), Jooble(${joobleJobs.length}), JobStreet(${jobstreetJobs.length}), Kalibrr(${kalibrrJobs.length}), Instahyre(${instahyreJobs.length}), Wantedly(${wantedlyJobs.length})`)
+  console.log(`Fetched: Remotive(${remotiveJobs.length}), RemoteOK(${remoteokJobs.length}), Arbeitnow(${arbeitnowJobs.length}), JSearch(${jsearchJobs.length}), Indeed(${indeedJobs.length}), Himalayas(${himalayasJobs.length}), Jobicy(${jobicyJobs.length}), Greenhouse(${greenhouseJobs.length}), Lever(${leverJobs.length}), Ashby(${ashbyJobs.length}), Adzuna(${adzunaJobs.length}), Authentic(${authenticJobs.length}), Nomads(${nomadsJobs.length}), Muse(${museJobs.length}), Glints(${glintsJobs.length}), TokyoDev(${tokyodevJobs.length}), NodeFlair(${nodeflairJobs.length}), Jooble(${joobleJobs.length}), JobStreet(${jobstreetJobs.length}), Kalibrr(${kalibrrJobs.length}), Instahyre(${instahyreJobs.length}), Wantedly(${wantedlyJobs.length})`)
 
   // Combine all jobs
   const allJobs = [
@@ -2436,6 +2712,7 @@ export async function fetchAllJobs(): Promise<NormalizedJob[]> {
     ...remoteokJobs,
     ...arbeitnowJobs,
     ...jsearchJobs,
+    ...indeedJobs,
     ...himalayasJobs,
     ...jobicyJobs,
     ...greenhouseJobs,

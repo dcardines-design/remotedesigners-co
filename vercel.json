@@ -7,6 +7,14 @@
     {
       "path": "/api/cron/daily-digest",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/sync-indeed",
+      "schedule": "0 6,18 * * *"
+    },
+    {
+      "path": "/api/cron/sync-ycombinator",
+      "schedule": "0 8,20 * * *"
     }
   ]
 }

@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import { Inter, DM_Sans } from 'next/font/google'
 import './globals.css'
 import { Navbar } from '@/components/navbar'
-import { NewsletterBar } from '@/components/newsletter-bar'
 import { Footer } from '@/components/footer'
 import { SignupModalProvider } from '@/context/signup-modal-context'
 import { Toaster } from 'sonner'
@@ -120,8 +119,8 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
         />
-        {/* Lemon Squeezy checkout overlay */}
-        <script src="https://app.lemonsqueezy.com/js/lemon.js" defer></script>
+        {/* Stripe.js for checkout */}
+        <script src="https://js.stripe.com/v3/" defer></script>
       </head>
       <body className={`${inter.className} ${dmSans.variable}`}>
         <SignupModalProvider>
@@ -130,7 +129,6 @@ export default function RootLayout({
             {children}
           </main>
           <Footer />
-          <NewsletterBar />
           <Toaster
             position="bottom-right"
             toastOptions={{

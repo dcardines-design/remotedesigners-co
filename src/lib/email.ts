@@ -178,3 +178,89 @@ Questions? Contact us at hello@remotedesigners.co
     text,
   })
 }
+
+interface WelcomeEmailData {
+  email: string
+  magicLink: string
+}
+
+export async function sendWelcomeEmail(data: WelcomeEmailData): Promise<boolean> {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #fafafa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #fafafa;">
+        <tr>
+          <td align="center" style="padding: 40px 20px;">
+            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 500px;">
+              <!-- Header -->
+              <tr>
+                <td style="padding-bottom: 32px;">
+                  <h1 style="margin: 0; font-size: 20px; font-weight: 600; color: #171717;">remotedesigners.co</h1>
+                </td>
+              </tr>
+
+              <!-- Main Card -->
+              <tr>
+                <td style="background: white; border-radius: 16px; padding: 32px; border: 1px solid #e5e5e5;">
+                  <!-- Success Icon -->
+                  <div style="width: 48px; height: 48px; background: #f3e8ff; border-radius: 50%; margin: 0 auto 24px; text-align: center; line-height: 48px;">
+                    <span style="color: #9333ea; font-size: 24px;">🎉</span>
+                  </div>
+
+                  <h2 style="margin: 0 0 8px; font-size: 24px; font-weight: 600; color: #171717; text-align: center;">Welcome to Remote Designers!</h2>
+                  <p style="margin: 0 0 24px; font-size: 15px; color: #525252; text-align: center;">Your account has been created and your subscription is active.</p>
+
+                  <p style="margin: 0 0 24px; font-size: 15px; color: #525252; text-align: center;">Click the button below to log in and start browsing thousands of remote design jobs.</p>
+
+                  <!-- CTA Button -->
+                  <a href="${data.magicLink}" style="display: block; width: 100%; padding: 14px 0; background: #171717; color: white; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 500; text-align: center;">Log in to your account</a>
+
+                  <p style="margin: 24px 0 0; font-size: 13px; color: #a3a3a3; text-align: center;">
+                    This link expires in 24 hours. If it doesn't work, you can request a new one from the login page.
+                  </p>
+                </td>
+              </tr>
+
+              <!-- Footer -->
+              <tr>
+                <td style="padding: 32px 0; text-align: center;">
+                  <p style="margin: 0; font-size: 13px; color: #a3a3a3;">
+                    Questions? Reply to this email or contact us at<br/>
+                    <a href="mailto:hello@remotedesigners.co" style="color: #525252;">hello@remotedesigners.co</a>
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `
+
+  const text = `
+Welcome to Remote Designers!
+
+Your account has been created and your subscription is active.
+
+Click the link below to log in and start browsing thousands of remote design jobs:
+
+${data.magicLink}
+
+This link expires in 24 hours. If it doesn't work, you can request a new one from the login page.
+
+Questions? Contact us at hello@remotedesigners.co
+  `
+
+  return sendEmail({
+    to: data.email,
+    subject: 'Welcome to Remote Designers! 🎉',
+    html,
+    text,
+  })
+}

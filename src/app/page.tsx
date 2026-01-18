@@ -9,7 +9,8 @@ import { SocialProof, RainbowButton, SubscribeModal } from '@/components/ui'
 import { useSignupModal } from '@/context/signup-modal-context'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import { toast } from 'sonner'
-import { FREE_JOBS_LIMIT } from '@/lib/lemonsqueezy'
+import { FREE_JOBS_LIMIT } from '@/lib/stripe'
+import { isCompMember } from '@/lib/admin'
 
 // Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -427,6 +428,170 @@ const formatTimeAgo = (posted_at: string): string => {
   return `${days}d ago`
 }
 
+// Encouraging messages for job seekers
+const ENCOURAGEMENT_MESSAGES = [
+  "Your dream design role is out there waiting for you. Let's find it together!",
+  "Every great designer's journey includes this moment. You've got this!",
+  "The perfect opportunity often comes when you least expect it. Stay ready!",
+  "Your portfolio + your skills + a little persistence = unstoppable.",
+  "Today could be the day you find your next adventure. Let's go!",
+  "Remember: every 'no' brings you closer to the perfect 'yes'.",
+  "Great things take time. Your breakthrough is coming!",
+  "You're not just looking for a job—you're finding your next creative home.",
+]
+
+// Welcome Modal Component with confetti and animations
+function WelcomeModal({ isOpen, onClose, isLoggedIn }: { isOpen: boolean; onClose: () => void; isLoggedIn: boolean }) {
+  const [encouragement] = useState(() =>
+    ENCOURAGEMENT_MESSAGES[Math.floor(Math.random() * ENCOURAGEMENT_MESSAGES.length)]
+  )
+
+  // Trigger confetti on mount
+  useEffect(() => {
+    if (!isOpen) return
+
+    let mounted = true
+    let intervalId: NodeJS.Timeout | null = null
+
+    // Dynamically import confetti to avoid SSR issues
+    import('canvas-confetti').then((confettiModule) => {
+      if (!mounted) return
+
+      const confetti = confettiModule.default
+      const duration = 3000
+      const animationEnd = Date.now() + duration
+      const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 }
+
+      function randomInRange(min: number, max: number) {
+        return Math.random() * (max - min) + min
+      }
+
+      intervalId = setInterval(() => {
+        if (!mounted) {
+          if (intervalId) clearInterval(intervalId)
+          return
+        }
+
+        const timeLeft = animationEnd - Date.now()
+        if (timeLeft <= 0) {
+          if (intervalId) clearInterval(intervalId)
+          return
+        }
+
+        const particleCount = 50 * (timeLeft / duration)
+
+        // Confetti from both sides
+        confetti({
+          ...defaults,
+          particleCount,
+          origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+          colors: ['#8b5cf6', '#ec4899', '#3b82f6', '#10b981', '#f59e0b'],
+        })
+        confetti({
+          ...defaults,
+          particleCount,
+          origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+          colors: ['#8b5cf6', '#ec4899', '#3b82f6', '#10b981', '#f59e0b'],
+        })
+      }, 250)
+    }).catch(() => {
+      // Ignore import errors
+    })
+
+    return () => {
+      mounted = false
+      if (intervalId) clearInterval(intervalId)
+    }
+  }, [isOpen])
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-8 overflow-hidden">
+        {/* Subtle blue gradient overlay */}
+        <div
+          className="absolute inset-x-0 top-0 h-[30%] pointer-events-none"
+          style={{ background: 'linear-gradient(to bottom, rgba(59, 130, 246, 0.1) 0%, rgba(59, 130, 246, 0) 100%)' }}
+        />
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 text-neutral-400 hover:text-neutral-600 transition-colors"
+        >
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        </button>
+
+        {/* Header */}
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-green-100 mb-4">
+            <svg className="w-7 h-7 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-medium text-neutral-900 tracking-tight">
+            {isLoggedIn ? 'Subscription Activated!' : 'Welcome to Remote Designers!'}
+          </h2>
+          <p className="mt-2 text-neutral-500">
+            {isLoggedIn
+              ? 'You now have full access to all jobs and premium features.'
+              : 'Your account has been created with full access to all jobs.'}
+          </p>
+        </div>
+
+        {/* Email notice for new users */}
+        {!isLoggedIn && (
+          <div className="mb-6 p-4 bg-amber-50 rounded-xl border border-amber-200">
+            <div className="flex items-center gap-3">
+              <svg className="w-5 h-5 text-amber-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <div>
+                <p className="text-sm font-medium text-amber-900">Check your email</p>
+                <p className="text-sm text-amber-700">We sent you a magic link to log in.</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Benefits list */}
+        <div className="mb-6 grid grid-cols-2 gap-3">
+          {[
+            { emoji: '⚡', text: 'First to Apply', subtext: 'See jobs before LinkedIn', delay: '0s' },
+            { emoji: '✅', text: 'Verified & Fresh', subtext: 'No expired posts or scams', delay: '0.5s' },
+            { emoji: '🔓', text: 'Unlimited Access', subtext: 'Browse all 300+ jobs', delay: '1s' },
+            { emoji: '📬', text: 'Daily Job Alerts', subtext: 'Delivered to your inbox', delay: '1.5s' },
+          ].map((benefit) => (
+            <div
+              key={benefit.text}
+              className="flex flex-col items-start gap-1 p-4 bg-white rounded-xl border border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] animate-wiggle"
+              style={{ animationDelay: benefit.delay }}
+            >
+              <span className="text-2xl">{benefit.emoji}</span>
+              <span className="text-base font-medium text-neutral-700">{benefit.text}</span>
+              <span className="text-xs text-neutral-500">{benefit.subtext}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* CTA Button */}
+        <RainbowButton onClick={onClose} fullWidth>
+          Start Exploring Jobs
+        </RainbowButton>
+      </div>
+    </div>
+  )
+}
+
 // Inner component that uses useSearchParams
 function HomeContent() {
   const searchParams = useSearchParams()
@@ -448,7 +613,19 @@ function HomeContent() {
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [showSubscribeModal, setShowSubscribeModal] = useState(false)
   const [selectedLockedJob, setSelectedLockedJob] = useState<{ title: string; company: string } | null>(null)
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false)
   const { openSignupModal } = useSignupModal()
+
+  // Check for welcome param (new subscriber from Lemon Squeezy)
+  useEffect(() => {
+    if (searchParams.get('welcome') === 'true') {
+      setShowWelcomeModal(true)
+      // Clean up URL
+      const url = new URL(window.location.href)
+      url.searchParams.delete('welcome')
+      window.history.replaceState({}, '', url.toString())
+    }
+  }, [searchParams])
 
   // Track newsletter bar visibility (respects 24h dismissal)
   useEffect(() => {
@@ -476,15 +653,20 @@ function HomeContent() {
         setUserId(user.id)
         setUserEmail(user.email || null)
 
-        // Check subscription status
-        const { data: subscription } = await supabase
-          .from('subscriptions')
-          .select('status')
-          .eq('user_id', user.id)
-          .eq('status', 'active')
-          .single()
+        // Comp member bypass - auto-subscribe complimentary members
+        if (isCompMember(user.email)) {
+          setIsSubscribed(true)
+        } else {
+          // Check subscription status
+          const { data: subscription } = await supabase
+            .from('subscriptions')
+            .select('status')
+            .eq('user_id', user.id)
+            .eq('status', 'active')
+            .single()
 
-        setIsSubscribed(!!subscription)
+          setIsSubscribed(!!subscription)
+        }
 
         // Load saved jobs
         const { data } = await supabase
@@ -767,32 +949,46 @@ function HomeContent() {
           />
 
           <div className="max-w-2xl mx-auto text-center relative z-10">
-            <div className="inline-flex items-center gap-2 mb-4 px-3 py-1.5 bg-white/80 backdrop-blur-sm rounded-full border border-neutral-200/60">
+            <div
+              className="inline-flex items-center gap-2 mb-4 px-3 py-1.5 bg-white/80 backdrop-blur-sm rounded-full border border-neutral-200/60 opacity-0"
+              style={{ animation: 'hero-fade-in 0.2s ease-out 0s forwards' }}
+            >
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse-glow" />
               <span className="text-sm text-neutral-500">
                 {totalPlatformJobs} designer jobs posted
               </span>
             </div>
 
-            <h1 className="text-7xl font-medium text-neutral-900 leading-tight mb-6 font-display tracking-tight">
+            <h1
+              className="text-7xl font-medium text-neutral-900 leading-tight mb-6 font-display tracking-tight opacity-0"
+              style={{ animation: 'hero-fade-in 0.2s ease-out 0.05s forwards' }}
+            >
               The{' '}
-              <AnimatedGradientText>
-                Best and Latest
-              </AnimatedGradientText>
+              <AnimatedGradientText><span className="font-ivy-display">Best</span></AnimatedGradientText>
+              {' '}and{' '}
+              <AnimatedGradientText><span className="font-ivy-display">Latest</span></AnimatedGradientText>
               <br />
               Remote Design Jobs
             </h1>
 
-            <p className="text-lg text-neutral-600 mb-10 leading-relaxed">
-              Browse thousands of remote design jobs from top companies worldwide. Updated daily with the freshest opportunities in UI, UX, product design, and more.
+            <p
+              className="text-lg text-neutral-600 mb-10 leading-relaxed opacity-0"
+              style={{ animation: 'hero-fade-in 0.2s ease-out 0.1s forwards' }}
+            >
+              Browse thousands of remote design jobs sourced directly from company career pages, YC startups, and top remote job boards. No middlemen, just verified opportunities updated every hour with the freshest opportunities in UI, UX, product design, graphic design, and more.
             </p>
 
-            <RainbowButton href="/post-job" size="md">
-              Post a job for $99
-            </RainbowButton>
+            <div className="opacity-0" style={{ animation: 'hero-fade-in 0.2s ease-out 0.15s forwards' }}>
+              <RainbowButton href="/post-job" size="md">
+                Post a job for $99
+              </RainbowButton>
+            </div>
 
             {/* Social Proof */}
-            <SocialProof className="mt-10 justify-center" />
+            <div className="opacity-0" style={{ animation: 'hero-fade-in 0.2s ease-out 0.2s forwards' }}>
+              <SocialProof className="mt-10 justify-center" />
+            </div>
+
           </div>
         </div>
 
@@ -872,22 +1068,43 @@ function HomeContent() {
                 : false
               const stickyPinColor = is7DaySticky ? 'text-purple-500' : 'text-blue-500'
 
+              // Animation delay - cap at 10 items so later cards don't wait too long
+              const animationDelay = Math.min(index, 10) * 0.03
+
               // For locked jobs, show a blurred card with subscribe overlay
               if (isLocked) {
                 return (
                   <div
                     key={job.id}
                     onClick={() => {
-                      router.push(`/premium?skip_url=${encodeURIComponent(window.location.href)}`)
+                      router.push(`/membership?skip_url=${encodeURIComponent(window.location.href)}`)
                     }}
-                    className="block border rounded-xl p-5 relative cursor-pointer bg-white border-neutral-200 hover:border-neutral-300 hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08),0px_1px_2px_0px_rgba(0,0,0,0.05)] transition-all duration-200"
+                    className="block border rounded-xl p-5 relative cursor-pointer bg-white border-neutral-200 hover:border-neutral-300 hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08),0px_1px_2px_0px_rgba(0,0,0,0.05)] transition-all duration-200 opacity-0"
+                    style={{ animation: `job-fade-in 0.2s ease-out ${animationDelay}s forwards` }}
                   >
                     {/* Left border indicator */}
                     <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl bg-neutral-200" />
 
-                    {/* Blurred content */}
-                    <div className="flex gap-4 pl-3 blur-[6px] select-none pointer-events-none">
-                      <div className="w-12 h-12 rounded-full bg-neutral-200 flex-shrink-0" />
+                    {/* 10% visible, rest blurred with gradient fade */}
+                    <div className="relative flex gap-4 pl-3 select-none pointer-events-none">
+                      {/* Company Avatar - blurred */}
+                      <div className="w-12 h-12 rounded-full bg-white border border-neutral-200 flex items-center justify-center flex-shrink-0 overflow-hidden blur-[3px]">
+                        <img
+                          src={getSourceFavicon(job.source) || job.company_logo || getCompanyLogoUrl(job.company)}
+                          alt={job.company}
+                          className="w-full h-full object-contain"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            if (!target.dataset.triedFallback) {
+                              target.dataset.triedFallback = 'true'
+                              target.src = getGoogleFaviconUrl(job.company)
+                            } else {
+                              target.style.display = 'none'
+                              target.parentElement!.innerHTML = `<span class="text-sm font-medium text-neutral-400">${getInitials(job.company)}</span>`
+                            }
+                          }}
+                        />
+                      </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-4 mb-1">
                           <h3 className="text-lg font-normal text-neutral-900">{cleanJobTitle(job.title)}</h3>
@@ -905,6 +1122,13 @@ function HomeContent() {
                           )}
                         </div>
                       </div>
+                      {/* White gradient overlay - 0% to 100% white */}
+                      <div
+                        className="absolute inset-0"
+                        style={{
+                          background: 'linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%)'
+                        }}
+                      />
                     </div>
 
                     {/* Lock overlay */}
@@ -924,11 +1148,12 @@ function HomeContent() {
                 <Link
                   key={job.id}
                   href={`/jobs/${generateJobSlug(job.title, job.company, job.id)}`}
-                  className={`block border rounded-xl p-5 relative hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08),0px_1px_2px_0px_rgba(0,0,0,0.05)] transition-all duration-200 cursor-pointer ${
+                  className={`block border rounded-xl p-5 relative hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08),0px_1px_2px_0px_rgba(0,0,0,0.05)] transition-all duration-200 cursor-pointer opacity-0 ${
                     job.is_featured
                       ? 'bg-amber-50 border-amber-200 hover:border-amber-300'
                       : 'bg-white border-neutral-200 hover:border-neutral-300'
                   }`}
+                  style={{ animation: `job-fade-in 0.2s ease-out ${animationDelay}s forwards` }}
                 >
                   {/* Left border indicator */}
                   <div
@@ -1198,7 +1423,7 @@ function HomeContent() {
                               onClick={(e) => {
                                 e.preventDefault()
                                 e.stopPropagation()
-                                router.push(`/premium?skip_url=${encodeURIComponent(window.location.href)}`)
+                                router.push(`/membership?skip_url=${encodeURIComponent(window.location.href)}`)
                               }}
                               className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-[#2a2a2a] rounded shadow-[0px_2px_0px_0px_rgba(0,0,0,0.2)] hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.2)] active:translate-y-[2px] active:shadow-none transition-all"
                             >
@@ -1221,7 +1446,7 @@ function HomeContent() {
               <button
                 onClick={loadMore}
                 disabled={loadingMore}
-                className="w-full border border-neutral-200 rounded-lg bg-white p-4 text-center text-neutral-600 hover:border-neutral-300 hover:bg-neutral-50 transition-colors disabled:opacity-50"
+                className="w-full border border-neutral-200 rounded-lg bg-white p-4 text-center text-neutral-900 font-medium shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] hover:bg-neutral-50 hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loadingMore ? 'Loading...' : 'Load more jobs'}
               </button>
@@ -1549,6 +1774,15 @@ function HomeContent() {
       userEmail={userEmail}
       isLoggedIn={!!userId}
     />
+
+    {/* Welcome Modal - shown after successful payment */}
+    {showWelcomeModal && (
+      <WelcomeModal
+        isOpen={showWelcomeModal}
+        onClose={() => setShowWelcomeModal(false)}
+        isLoggedIn={!!userId}
+      />
+    )}
     </>
   )
 }

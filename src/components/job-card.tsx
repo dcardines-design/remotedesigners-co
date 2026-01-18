@@ -266,15 +266,15 @@ export function JobCard({
                       onSave(e, job.id)
                     }}
                     disabled={isSaving}
-                    className={`flex-shrink-0 flex items-center justify-center w-8 h-8 rounded border transition-all ${
+                    className={`flex-shrink-0 flex items-center justify-center w-6 h-6 rounded border transition-all ${
                       isSaved
                         ? 'bg-white border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]'
                         : 'bg-white border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.05)]'
                     } ${isSaving ? 'opacity-50' : ''}`}
                   >
                     <svg
-                      width="14"
-                      height="14"
+                      width="12"
+                      height="12"
                       viewBox="0 0 24 24"
                       fill={isSaved ? '#ef4444' : 'none'}
                       stroke={isSaved ? '#ef4444' : '#737373'}
