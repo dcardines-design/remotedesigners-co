@@ -125,7 +125,7 @@ function SearchableCombobox({
               <button
                 key={val}
                 onClick={() => onToggle(val)}
-                className="flex items-center gap-1 px-2 py-1 text-xs bg-[#2a2a2a] text-white rounded-md border border-[#2a2a2a] shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.3)] hover:translate-y-[1px] active:shadow-none active:translate-y-[2px] transition-all"
+                className="flex items-center gap-1 px-2 py-1 text-xs bg-neutral-800 text-white rounded-md border border-neutral-800 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.3)] hover:translate-y-[1px] active:shadow-none active:translate-y-[2px] transition-all"
               >
                 {option?.emoji} {option?.label || val}
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">

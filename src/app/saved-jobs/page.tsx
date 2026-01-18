@@ -78,7 +78,7 @@ export default function SavedJobsPage() {
             <p className="text-neutral-500 mb-8">Sign in to track your job applications</p>
             <Link
               href="/login"
-              className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-[#2a2a2a] rounded-lg hover:bg-[#3a3a3a] transition-colors"
+              className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-neutral-800 rounded-lg hover:bg-neutral-700 transition-colors"
             >
               Sign in
             </Link>
@@ -123,7 +123,7 @@ export default function SavedJobsPage() {
                 setLoading(true)
                 fetchSavedJobs()
               }}
-              className="px-6 py-3 text-sm font-medium text-white bg-[#2a2a2a] rounded-lg hover:bg-[#3a3a3a] transition-colors"
+              className="px-6 py-3 text-sm font-medium text-white bg-neutral-800 rounded-lg hover:bg-neutral-700 transition-colors"
             >
               Try again
             </button>

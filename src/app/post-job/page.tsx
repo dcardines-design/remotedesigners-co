@@ -490,7 +490,7 @@ export default function PostJobPage() {
                       onClick={() => toggleSkill(skill)}
                       className={`px-2.5 py-1 text-xs rounded border transition-all ${
                         form.skills.includes(skill)
-                          ? 'bg-[#2a2a2a] text-white border-[#2a2a2a]'
+                          ? 'bg-neutral-800 text-white border-neutral-800'
                           : 'bg-white text-neutral-600 border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none'
                       }`}
                     >
@@ -533,7 +533,7 @@ export default function PostJobPage() {
                       key={skill}
                       type="button"
                       onClick={() => toggleSkill(skill)}
-                      className="px-2.5 py-1 text-xs rounded border bg-[#2a2a2a] text-white border-[#2a2a2a] transition-all"
+                      className="px-2.5 py-1 text-xs rounded border bg-neutral-800 text-white border-neutral-800 transition-all"
                     >
                       {skill} ×
                     </button>

@@ -91,7 +91,7 @@ body {
 
 /* Rainbow outline button inner */
 .btn-rainbow-inner {
-  background: #2a2a2a;
+  background: rgb(38 38 38);
 }
 
 /* Staggered pop animation for avatars */

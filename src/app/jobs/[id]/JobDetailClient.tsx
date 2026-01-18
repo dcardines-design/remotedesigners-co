@@ -529,8 +529,7 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
             <p className="text-neutral-500 mb-8">This job may have been removed or is no longer available.</p>
             <Link
               href="/"
-              className="inline-block px-6 py-3 rounded-lg text-white shadow-[0px_4px_0px_0px_rgba(0,0,0,0.3),0px_1px_2px_0px_rgba(0,0,0,0.1)] hover:translate-y-[1px] hover:shadow-[0px_3px_0px_0px_rgba(0,0,0,0.3)] transition-all"
-              style={{ backgroundImage: 'linear-gradient(165deg, #3a3a3a 0%, #1a1a1a 100%)' }}
+              className="inline-block px-6 py-3 rounded-lg text-white bg-neutral-800 shadow-[0px_4px_0px_0px_rgba(0,0,0,0.3),0px_1px_2px_0px_rgba(0,0,0,0.1)] hover:translate-y-[1px] hover:shadow-[0px_3px_0px_0px_rgba(0,0,0,0.3)] transition-all"
             >
               Browse all jobs
             </Link>

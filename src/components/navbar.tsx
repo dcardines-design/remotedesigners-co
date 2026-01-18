@@ -290,7 +290,7 @@ export function Navbar() {
             {authLoaded && hasSubscription === false && (
               <Link
                 href="/membership"
-                className="relative px-4 py-2 text-sm font-medium text-white bg-pink-600 border border-pink-700 rounded-md shadow-[0px_2px_0px_0px_#9d174d] hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_#9d174d] active:translate-y-[2px] active:shadow-none transition-all overflow-hidden"
+                className="relative px-4 py-2 text-sm font-medium text-white bg-pink-600 border border-pink-700 rounded-lg shadow-[0px_2px_0px_0px_#9d174d] hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_#9d174d] active:translate-y-[2px] active:shadow-none transition-all overflow-hidden"
               >
                 <span
                   className="absolute animate-get-pro-shine"

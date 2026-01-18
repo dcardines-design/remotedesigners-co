@@ -74,7 +74,7 @@ function DemoCombobox() {
               <button
                 key={val}
                 onClick={() => setSelected(selected.filter(s => s !== val))}
-                className="flex items-center gap-1 px-2 py-1 text-xs bg-[#2a2a2a] text-white rounded-md border border-[#2a2a2a] shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.3)] hover:translate-y-[1px] transition-all"
+                className="flex items-center gap-1 px-2 py-1 text-xs bg-neutral-800 text-white rounded-md border border-neutral-800 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.3)] hover:translate-y-[1px] transition-all"
               >
                 {option?.emoji} {option?.label}
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -605,7 +605,7 @@ export default function DesignSystemPage() {
               <span className="bg-yellow-400 text-neutral-900 text-xs font-medium px-2.5 py-1 rounded border border-yellow-500">
                 Featured
               </span>
-              <span className="bg-[#2a2a2a] text-white text-xs px-2.5 py-1 rounded">
+              <span className="bg-neutral-800 text-white text-xs px-2.5 py-1 rounded">
                 Selected
               </span>
               <span className="bg-blue-100 text-blue-700 text-xs font-medium px-2.5 py-1 rounded-full">

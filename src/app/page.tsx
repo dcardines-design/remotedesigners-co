@@ -239,7 +239,7 @@ function LocationSearchDropdown({ locations, onToggle }: { locations: string[], 
               <button
                 key={loc}
                 onClick={() => onToggle(loc)}
-                className="flex items-center gap-1 px-2 py-1 text-xs bg-[#2a2a2a] text-white rounded-md border border-[#2a2a2a] shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.3)] hover:translate-y-[1px] active:shadow-none active:translate-y-[2px] transition-all"
+                className="flex items-center gap-1 px-2 py-1 text-xs bg-neutral-800 text-white rounded-md border border-neutral-800 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.3)] hover:translate-y-[1px] active:shadow-none active:translate-y-[2px] transition-all"
               >
                 {option?.emoji} {option?.label || loc}
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1409,7 +1409,7 @@ function HomeContent() {
                                   body: JSON.stringify({ type: 'click' })
                                 }).catch(() => {})
                               }}
-                              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-[#2a2a2a] rounded shadow-[0px_2px_0px_0px_rgba(0,0,0,0.2)] hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.2)] active:translate-y-[2px] active:shadow-none transition-all"
+                              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-neutral-800 rounded shadow-[0px_2px_0px_0px_rgba(0,0,0,0.2)] hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.2)] active:translate-y-[2px] active:shadow-none transition-all"
                             >
                               Apply
                               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1423,7 +1423,7 @@ function HomeContent() {
                                 e.stopPropagation()
                                 router.push(`/membership?skip_url=${encodeURIComponent(window.location.href)}`)
                               }}
-                              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-[#2a2a2a] rounded shadow-[0px_2px_0px_0px_rgba(0,0,0,0.2)] hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.2)] active:translate-y-[2px] active:shadow-none transition-all"
+                              className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-neutral-800 rounded shadow-[0px_2px_0px_0px_rgba(0,0,0,0.2)] hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.2)] active:translate-y-[2px] active:shadow-none transition-all"
                             >
                               Apply
                               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1543,7 +1543,7 @@ function HomeContent() {
                       onClick={() => handleFilterChange('featuredOnly', !filters.featuredOnly)}
                       className={`px-3 py-1.5 text-xs rounded-md border transition-all ${
                         filters.featuredOnly
-                          ? 'bg-[#2a2a2a] text-white border-[#2a2a2a]'
+                          ? 'bg-neutral-800 text-white border-neutral-800'
                           : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none'
                       }`}
                     >
@@ -1553,7 +1553,7 @@ function HomeContent() {
                       onClick={() => handleFilterChange('newOnly', !filters.newOnly)}
                       className={`px-3 py-1.5 text-xs rounded-md border transition-all ${
                         filters.newOnly
-                          ? 'bg-[#2a2a2a] text-white border-[#2a2a2a]'
+                          ? 'bg-neutral-800 text-white border-neutral-800'
                           : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none'
                       }`}
                     >
@@ -1584,7 +1584,7 @@ function HomeContent() {
                         onClick={() => toggleJobType(type)}
                         className={`px-3 py-1.5 text-xs rounded-md border transition-all capitalize ${
                           filters.jobTypes.includes(type)
-                            ? 'bg-[#2a2a2a] text-white border-[#2a2a2a]'
+                            ? 'bg-neutral-800 text-white border-neutral-800'
                             : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none'
                         }`}
                       >
@@ -1621,7 +1621,7 @@ function HomeContent() {
                         onClick={() => handleFilterChange('remoteType', filters.remoteType === option.value ? '' : option.value)}
                         className={`px-3 py-1.5 text-xs rounded-md border transition-all ${
                           filters.remoteType === option.value
-                            ? 'bg-[#2a2a2a] text-white border-[#2a2a2a]'
+                            ? 'bg-neutral-800 text-white border-neutral-800'
                             : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none'
                         }`}
                       >
@@ -1659,7 +1659,7 @@ function HomeContent() {
                         onClick={() => handleFilterChange('experience', filters.experience === option.value ? '' : option.value)}
                         className={`px-3 py-1.5 text-xs rounded-md border transition-all ${
                           filters.experience === option.value
-                            ? 'bg-[#2a2a2a] text-white border-[#2a2a2a]'
+                            ? 'bg-neutral-800 text-white border-neutral-800'
                             : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none'
                         }`}
                       >
@@ -1696,7 +1696,7 @@ function HomeContent() {
                         onClick={() => handleFilterChange('datePosted', option.value)}
                         className={`px-3 py-1.5 text-xs rounded-md border transition-all ${
                           filters.datePosted === option.value
-                            ? 'bg-[#2a2a2a] text-white border-[#2a2a2a]'
+                            ? 'bg-neutral-800 text-white border-neutral-800'
                             : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none'
                         }`}
                       >
@@ -1742,7 +1742,7 @@ function HomeContent() {
                           onClick={() => toggleSkill(skill)}
                           className={`px-3 py-1.5 text-xs rounded-md border transition-all ${
                             filters.skills.includes(skill)
-                              ? 'bg-[#2a2a2a] text-white border-[#2a2a2a]'
+                              ? 'bg-neutral-800 text-white border-neutral-800'
                               : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none'
                           }`}
                           title={`${count} jobs`}
