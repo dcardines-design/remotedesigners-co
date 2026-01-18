@@ -10,11 +10,11 @@
     },
     {
       "path": "/api/cron/sync-indeed",
-      "schedule": "0 6,18 * * *"
+      "schedule": "0 6 * * *"
     },
     {
       "path": "/api/cron/sync-ycombinator",
-      "schedule": "0 8,20 * * *"
+      "schedule": "0 8 * * *"
     },
     {
       "path": "/api/jobs/sync/greenhouse?batch=1",
@@ -74,7 +74,7 @@
     },
     {
       "path": "/api/jobs/sync/rapidapi-remote",
-      "schedule": "0 0,5,10,15,20 * * *"
+      "schedule": "0 7 * * *"
     }
   ]
 }
