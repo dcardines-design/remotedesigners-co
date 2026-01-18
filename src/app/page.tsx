@@ -69,6 +69,7 @@ function AnimatedGradientText({ children }: { children: React.ReactNode }) {
 // Filter state interface
 interface FilterState {
   search: string
+  categories: string[]
   locations: string[]
   jobTypes: string[]
   experience: string
@@ -96,6 +97,22 @@ const LOCATION_OPTIONS = [
   { value: 'uk', label: 'United Kingdom', emoji: '🇬🇧' },
   { value: 'canada', label: 'Canada', emoji: '🇨🇦' },
   { value: 'germany', label: 'Germany', emoji: '🇩🇪' },
+]
+
+// Design category options for filtering
+const JOB_CATEGORY_OPTIONS = [
+  { value: 'product-design', label: 'Product Design', emoji: '🎯' },
+  { value: 'ux-design', label: 'UX Design', emoji: '🔬' },
+  { value: 'ui-design', label: 'UI Design', emoji: '🎨' },
+  { value: 'visual-design', label: 'Visual Design', emoji: '👁️' },
+  { value: 'brand-design', label: 'Brand Design', emoji: '✨' },
+  { value: 'graphic-design', label: 'Graphic Design', emoji: '🖼️' },
+  { value: 'motion-design', label: 'Motion Design', emoji: '🎬' },
+  { value: 'interaction-design', label: 'Interaction Design', emoji: '👆' },
+  { value: 'web-design', label: 'Web Design', emoji: '🌐' },
+  { value: 'design-systems', label: 'Design Systems', emoji: '📐' },
+  { value: 'design-lead', label: 'Design Lead/Director', emoji: '👑' },
+  { value: 'user-research', label: 'User Research', emoji: '🔍' },
 ]
 
 const SALARY_OPTIONS = [
@@ -242,6 +259,98 @@ function LocationSearchDropdown({ locations, onToggle }: { locations: string[], 
                 className="flex items-center gap-1 px-2 py-1 text-xs bg-neutral-800 text-white rounded-md border border-neutral-800 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.3)] hover:translate-y-[1px] active:shadow-none active:translate-y-[2px] transition-all"
               >
                 {option?.emoji} {option?.label || loc}
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Category search dropdown component for design disciplines
+function CategorySearchDropdown({ categories, onToggle }: { categories: string[], onToggle: (cat: string) => void }) {
+  const [search, setSearch] = useState('')
+  const [isOpen, setIsOpen] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  const filteredOptions = JOB_CATEGORY_OPTIONS.filter(opt =>
+    !categories.includes(opt.value) &&
+    (opt.label.toLowerCase().includes(search.toLowerCase()) ||
+     opt.value.toLowerCase().includes(search.toLowerCase()))
+  )
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleSelect = (value: string) => {
+    onToggle(value)
+    setSearch('')
+    setIsOpen(false)
+    inputRef.current?.focus()
+  }
+
+  return (
+    <div className="space-y-2">
+      <span className="text-[10px] text-neutral-400 uppercase tracking-widest">
+        Specialty{categories.length > 0 && ` (${categories.length})`}
+      </span>
+      <div className="relative" ref={dropdownRef}>
+        <div className="relative">
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder="Search jobs..."
+            value={search}
+            onChange={e => {
+              setSearch(e.target.value)
+              setIsOpen(true)
+            }}
+            onFocus={() => setIsOpen(true)}
+            className="w-full bg-white border border-neutral-200 rounded-lg px-3 py-2.5 pr-9 text-sm text-neutral-900 placeholder:text-neutral-400 hover:border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.04)] transition-all focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400"
+          />
+          <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400 pointer-events-none" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+          </svg>
+        </div>
+        {isOpen && filteredOptions.length > 0 && (
+          <div className="absolute z-50 w-full mt-1 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] max-h-48 overflow-y-auto">
+            {filteredOptions.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => handleSelect(opt.value)}
+                className="w-full px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 transition-colors flex items-center gap-2"
+              >
+                <span>{opt.emoji}</span>
+                <span>{opt.label}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      {categories.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 pt-1">
+          {categories.map(cat => {
+            const option = JOB_CATEGORY_OPTIONS.find(o => o.value === cat)
+            return (
+              <button
+                key={cat}
+                onClick={() => onToggle(cat)}
+                className="flex items-center gap-1 px-2 py-1 text-xs bg-neutral-800 text-white rounded-md border border-neutral-800 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.3)] hover:translate-y-[1px] active:shadow-none active:translate-y-[2px] transition-all"
+              >
+                {option?.emoji} {option?.label || cat}
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -742,6 +851,7 @@ function HomeContent() {
 
   const [filters, setFilters] = useState<FilterState>(() => ({
     search: searchParams.get('search') || '',
+    categories: searchParams.getAll('category'),
     locations: searchParams.getAll('location'),
     jobTypes: searchParams.getAll('type'),
     experience: searchParams.get('experience') || '',
@@ -762,6 +872,7 @@ function HomeContent() {
     const params = new URLSearchParams()
 
     if (newFilters.search) params.set('search', newFilters.search)
+    newFilters.categories.forEach(c => params.append('category', c))
     newFilters.locations.forEach(l => params.append('location', l))
     newFilters.jobTypes.forEach(t => params.append('type', t))
     if (newFilters.experience) params.set('experience', newFilters.experience)
@@ -788,6 +899,7 @@ function HomeContent() {
 
       const params = new URLSearchParams()
       if (debouncedFilters.search) params.set('search', debouncedFilters.search)
+      if (debouncedFilters.categories.length) params.set('category', debouncedFilters.categories.join(','))
       if (debouncedFilters.locations.length) params.set('location', debouncedFilters.locations.join(','))
       if (debouncedFilters.jobTypes.length === 1) params.set('type', debouncedFilters.jobTypes[0])
       if (debouncedFilters.experience) params.set('experience', debouncedFilters.experience)
@@ -812,6 +924,19 @@ function HomeContent() {
       }
       if (debouncedFilters.featuredOnly) {
         filteredJobs = filteredJobs.filter(job => job.is_featured)
+      }
+      // Client-side category filtering (matches job title)
+      if (debouncedFilters.categories.length) {
+        filteredJobs = filteredJobs.filter(job => {
+          const titleLower = job.title.toLowerCase()
+          return debouncedFilters.categories.some(cat => {
+            const option = JOB_CATEGORY_OPTIONS.find(o => o.value === cat)
+            if (!option) return false
+            // Match either the value or label in the job title
+            return titleLower.includes(cat.replace(/-/g, ' ')) ||
+                   titleLower.includes(option.label.toLowerCase())
+          })
+        })
       }
 
       setJobs(prev => append ? [...prev, ...filteredJobs] : filteredJobs)
@@ -866,6 +991,7 @@ function HomeContent() {
   const activeFilterCount = useMemo(() => {
     let count = 0
     if (filters.search) count++
+    if (filters.categories.length) count++
     if (filters.locations.length) count++
     if (filters.jobTypes.length) count++
     if (filters.experience) count++
@@ -909,9 +1035,19 @@ function HomeContent() {
     }))
   }
 
+  const toggleCategory = (category: string) => {
+    setFilters(prev => ({
+      ...prev,
+      categories: prev.categories.includes(category)
+        ? prev.categories.filter(c => c !== category)
+        : [...prev.categories, category]
+    }))
+  }
+
   const clearFilters = () => {
     setFilters({
       search: '',
+      categories: [],
       locations: [],
       jobTypes: [],
       experience: '',
@@ -1507,16 +1643,11 @@ function HomeContent() {
 
               {/* Scrollable Filter Content */}
               <div className="p-4 space-y-4 overflow-y-auto flex-1 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-              {/* Search */}
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search jobs..."
-                  value={filters.search}
-                  onChange={e => handleFilterChange('search', e.target.value)}
-                  className="w-full bg-white border border-neutral-200 rounded-lg px-4 py-2.5 text-sm text-neutral-900 placeholder:text-neutral-400 hover:border-neutral-300 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.04)] transition-all focus:outline-none focus:ring-2 focus:ring-neutral-900/10 focus:border-neutral-400"
-                />
-              </div>
+              {/* Design Category Search */}
+              <CategorySearchDropdown
+                categories={filters.categories}
+                onToggle={toggleCategory}
+              />
 
               {/* Location */}
               <LocationSearchDropdown
