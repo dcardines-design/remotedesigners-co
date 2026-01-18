@@ -48,7 +48,10 @@ async function syncStripeSubscription(email: string) {
     return
   }
 
-  const subscription = subscriptions.data[0]
+  const subscription = subscriptions.data[0] as Stripe.Subscription & {
+    current_period_start: number
+    current_period_end: number
+  }
   console.log(`Found subscription: ${subscription.id} (${subscription.status})`)
 
   // Find user in Supabase auth

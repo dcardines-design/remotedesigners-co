@@ -54,27 +54,14 @@ export const metadata: Metadata = {
     siteName: 'RemoteDesigners.co',
     title: 'RemoteDesigners.co - Remote Design Jobs',
     description: 'Browse thousands of remote design jobs from top companies worldwide. Find UI, UX, product design, and graphic design positions updated daily.',
-    images: [
-      {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'RemoteDesigners.co - Find Remote Design Jobs',
-      },
-    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'RemoteDesigners.co - Remote Design Jobs',
     description: 'Browse thousands of remote design jobs from top companies worldwide.',
-    images: ['/og-image.png'],
   },
   alternates: {
     canonical: BASE_URL,
-  },
-  icons: {
-    icon: '/favicon.ico',
-    apple: '/apple-touch-icon.png',
   },
 }
 
@@ -84,8 +71,11 @@ const organizationSchema = {
   '@type': 'Organization',
   name: 'RemoteDesigners.co',
   url: BASE_URL,
-  logo: `${BASE_URL}/logo.png`,
+  logo: `${BASE_URL}/icon`,
   description: 'The best remote design job board for UI, UX, and product designers.',
+  sameAs: [
+    'https://twitter.com/co_remote50851',
+  ],
 }
 
 const websiteSchema = {

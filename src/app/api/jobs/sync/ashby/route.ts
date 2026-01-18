@@ -1,29 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { fetchLeverJobs, LEVER_COMPANIES } from '@/lib/job-apis'
+import { fetchAshbyJobs, ASHBY_COMPANIES } from '@/lib/job-apis'
 import { syncJobs } from '@/lib/sync-jobs'
 
 // Vercel timeout (60s for Pro)
 export const maxDuration = 60
 
-// Split companies into 4 batches (~33 companies each)
-const NUM_BATCHES = 4
-const BATCH_SIZE = Math.ceil(LEVER_COMPANIES.length / NUM_BATCHES)
-const BATCHES: Record<number, typeof LEVER_COMPANIES> = {}
+// Split companies into 3 batches (~20 companies each)
+const NUM_BATCHES = 3
+const BATCH_SIZE = Math.ceil(ASHBY_COMPANIES.length / NUM_BATCHES)
+const BATCHES: Record<number, typeof ASHBY_COMPANIES> = {}
 for (let i = 0; i < NUM_BATCHES; i++) {
-  BATCHES[i + 1] = LEVER_COMPANIES.slice(i * BATCH_SIZE, (i + 1) * BATCH_SIZE)
+  BATCHES[i + 1] = ASHBY_COMPANIES.slice(i * BATCH_SIZE, (i + 1) * BATCH_SIZE)
 }
 
 async function handleSync(batch?: number) {
   try {
     const companies = batch ? BATCHES[batch as keyof typeof BATCHES] : undefined
     const batchLabel = batch ? ` (batch ${batch}/${Object.keys(BATCHES).length})` : ''
-    console.log(`Lever sync${batchLabel}: ${companies?.length || LEVER_COMPANIES.length} companies`)
+    console.log(`Ashby sync${batchLabel}: ${companies?.length || ASHBY_COMPANIES.length} companies`)
 
-    const jobs = await fetchLeverJobs(companies)
-    const result = await syncJobs(jobs, 'lever')
+    const jobs = await fetchAshbyJobs(companies)
+    const result = await syncJobs(jobs, 'ashby')
     return NextResponse.json({ success: true, batch, ...result })
   } catch (error) {
-    console.error('Lever sync error:', error)
+    console.error('Ashby sync error:', error)
     return NextResponse.json({ error: 'Failed to sync', details: String(error) }, { status: 500 })
   }
 }

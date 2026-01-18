@@ -1815,57 +1815,68 @@ export const ASHBY_COMPANIES = [
   { name: 'Airbyte', slug: 'airbyte' },
 ]
 
-export async function fetchAshbyJobs(): Promise<NormalizedJob[]> {
-  console.log('Fetching jobs from Ashby boards...')
-  const allJobs: NormalizedJob[] = []
+export async function fetchAshbyJobs(companies?: { name: string; slug: string }[]): Promise<NormalizedJob[]> {
+  const targetCompanies = companies || ASHBY_COMPANIES
+  console.log(`Fetching jobs from ${targetCompanies.length} Ashby boards...`)
 
-  for (const company of ASHBY_COMPANIES) {
-    try {
-      const response = await fetch(`https://api.ashbyhq.com/posting-api/job-board/${company.slug}`)
-      if (!response.ok) continue
+  // Fetch all companies in parallel for speed
+  const results = await Promise.allSettled(
+    targetCompanies.map(async (company) => {
+      try {
+        const response = await fetch(`https://api.ashbyhq.com/posting-api/job-board/${company.slug}`)
+        if (!response.ok) return []
 
-      const data = await response.json()
-      const jobs = data.jobs || []
+        const data = await response.json()
+        const jobs = data.jobs || []
 
-      // Get company logo URL using Clearbit
-      const companyLogo = getClearbitLogoUrl(company.name)
+        // Get company logo URL using Clearbit
+        const companyLogo = getClearbitLogoUrl(company.name)
+        const companyJobs: NormalizedJob[] = []
 
-      for (const job of jobs) {
-        const title = job.title || ''
-        // Only include design-related jobs
-        if (!isDesignJob(title)) continue
+        for (const job of jobs) {
+          const title = job.title || ''
+          // Only include design-related jobs
+          if (!isDesignJob(title)) continue
 
-        // Extract location
-        let location = 'Remote'
-        if (job.location) {
-          location = job.location
-        } else if (job.locationName) {
-          location = job.locationName
+          // Extract location
+          let location = 'Remote'
+          if (job.location) {
+            location = job.location
+          } else if (job.locationName) {
+            location = job.locationName
+          }
+
+          // The apply URL is the Ashby job page
+          const applyUrl = job.jobUrl || `https://jobs.ashbyhq.com/${company.slug}/${job.id}`
+
+          companyJobs.push({
+            id: `ashby-${company.slug}-${job.id}`,
+            source: 'ashby' as const,
+            title: title,
+            company: company.name,
+            company_logo: companyLogo,
+            location: location,
+            description: job.descriptionPlain || job.description || '',
+            job_type: job.employmentType?.toLowerCase() || 'full-time',
+            experience_level: parseExperienceLevel(title),
+            skills: filterSkills(extractSkills(job.descriptionPlain || job.description || '')),
+            apply_url: applyUrl,  // Direct apply URL!
+            posted_at: job.publishedAt || new Date().toISOString(),
+            is_featured: false,
+          })
         }
-
-        // The apply URL is the Ashby job page
-        const applyUrl = job.jobUrl || `https://jobs.ashbyhq.com/${company.slug}/${job.id}`
-
-        allJobs.push({
-          id: `ashby-${company.slug}-${job.id}`,
-          source: 'ashby' as const,
-          title: title,
-          company: company.name,
-          company_logo: companyLogo,
-          location: location,
-          description: job.descriptionPlain || job.description || '',
-          job_type: job.employmentType?.toLowerCase() || 'full-time',
-          experience_level: parseExperienceLevel(title),
-          skills: filterSkills(extractSkills(job.descriptionPlain || job.description || '')),
-          apply_url: applyUrl,  // Direct apply URL!
-          posted_at: job.publishedAt || new Date().toISOString(),
-          is_featured: false,
-        })
+        return companyJobs
+      } catch (error) {
+        // Silently skip companies that don't have Ashby boards
+        return []
       }
-    } catch (error) {
-      // Silently skip companies that don't have Ashby boards
-    }
-  }
+    })
+  )
+
+  // Collect all jobs from successful fetches
+  const allJobs = results.flatMap(result =>
+    result.status === 'fulfilled' ? result.value : []
+  )
 
   console.log(`Ashby: Found ${allJobs.length} design jobs`)
   return allJobs
@@ -2758,6 +2769,122 @@ export async function fetchWantedlyJobs(): Promise<NormalizedJob[]> {
   return deduped
 }
 
+// ============ RAPIDAPI REMOTE JOBS ============
+// Uses RapidAPI Remote Jobs API (remote-jobs1.p.rapidapi.com)
+// This replaces unreliable LinkedIn scraping
+
+export async function fetchRapidAPIRemoteJobs(): Promise<NormalizedJob[]> {
+  const apiKey = process.env.RAPIDAPI_KEY
+  if (!apiKey) {
+    console.log('RapidAPI Remote Jobs: No API key configured')
+    return []
+  }
+
+  const jobs: NormalizedJob[] = []
+
+  try {
+    // Fetch multiple pages to get more jobs
+    const pages = [0, 1, 2] // 3 pages of 100 jobs each
+
+    for (const page of pages) {
+      const cursor = page * 100
+      const url = `https://remote-jobs1.p.rapidapi.com/jobs?limit=100${cursor ? `&cursor=${cursor}` : ''}`
+
+      const response = await fetch(url, {
+        headers: {
+          'x-rapidapi-host': 'remote-jobs1.p.rapidapi.com',
+          'x-rapidapi-key': apiKey,
+        },
+      })
+
+      if (!response.ok) {
+        console.error(`RapidAPI Remote Jobs error: ${response.status}`)
+        break
+      }
+
+      const data = await response.json()
+      const apiJobs = data.data || []
+
+      for (const job of apiJobs) {
+        const title = job.title || ''
+
+        // Filter for design jobs using our keywords
+        if (!isDesignJob(title)) continue
+
+        // Clean HTML from description
+        let description = job.description || ''
+        description = description
+          .replace(/<[^>]*>/g, ' ')
+          .replace(/&nbsp;/g, ' ')
+          .replace(/&amp;/g, '&')
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&quot;/g, '"')
+          .replace(/&#\d+;/g, '')
+          .replace(/\s+/g, ' ')
+          .trim()
+
+        // Extract company name from URL if not provided
+        let company = 'Unknown Company'
+        if (job.url) {
+          const urlMatch = job.url.match(/https?:\/\/([^.]+)\./)
+          if (urlMatch) {
+            company = urlMatch[1]
+              .replace(/jobs?|careers?|boards?|greenhouse|lever|ashby|applytojob/gi, '')
+              .replace(/-/g, ' ')
+              .trim()
+            if (company) {
+              company = company.charAt(0).toUpperCase() + company.slice(1)
+            }
+          }
+        }
+
+        // Determine location
+        let location = 'Remote'
+        if (job.countries && job.countries.length > 0) {
+          const countryMap: Record<string, string> = {
+            us: 'USA', gb: 'UK', ca: 'Canada', au: 'Australia',
+            de: 'Germany', fr: 'France', es: 'Spain', it: 'Italy',
+            nl: 'Netherlands', se: 'Sweden', no: 'Norway', dk: 'Denmark',
+            pl: 'Poland', pt: 'Portugal', br: 'Brazil', mx: 'Mexico',
+            in: 'India', jp: 'Japan', sg: 'Singapore', gr: 'Greece',
+          }
+          const countries = job.countries.map((c: string) => countryMap[c] || c.toUpperCase())
+          location = `Remote (${countries.join(', ')})`
+        }
+
+        jobs.push({
+          id: `rapidapi-remote-${job.id}`,
+          source: 'remotive' as const, // Use existing source type
+          title: title,
+          company: company,
+          location: location,
+          description: description.slice(0, 15000),
+          job_type: 'full-time',
+          experience_level: parseExperienceLevel(title),
+          skills: filterSkills(extractSkills(title + ' ' + description)),
+          apply_url: job.url,
+          posted_at: job.datePosted || new Date().toISOString(),
+          is_featured: false,
+        })
+      }
+
+      // Check if there are more pages
+      if (!data.has_more) break
+
+      // Small delay between pages
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
+
+    console.log(`RapidAPI Remote Jobs: Found ${jobs.length} design jobs`)
+    return jobs
+
+  } catch (error) {
+    console.error('RapidAPI Remote Jobs error:', error)
+    return []
+  }
+}
+
 // ============ FETCH ALL JOBS ============
 
 export async function fetchAllJobs(): Promise<NormalizedJob[]> {
@@ -3007,47 +3134,60 @@ export async function fetchLinkedInJobs(): Promise<NormalizedJob[]> {
     return true
   })
 
-  console.log(`LinkedIn: Found ${uniqueCandidates.length} unique job candidates, fetching descriptions and categorizing with AI...`)
+  // Limit candidates to avoid timeout (process max 20 jobs per run)
+  const limitedCandidates = uniqueCandidates.slice(0, 20)
+  console.log(`LinkedIn: Processing ${limitedCandidates.length} of ${uniqueCandidates.length} candidates...`)
 
-  // Second pass: fetch descriptions and categorize each job
-  for (const candidate of uniqueCandidates) {
-    const description = await fetchLinkedInJobDescription(candidate.jobId)
+  // Process jobs in parallel batches of 5 for speed
+  const BATCH_SIZE = 5
+  for (let i = 0; i < limitedCandidates.length; i += BATCH_SIZE) {
+    const batch = limitedCandidates.slice(i, i + BATCH_SIZE)
 
-    // Use AI to categorize the job
-    const aiCategorization = await categorizeJobWithAI(
-      candidate.title,
-      candidate.company,
-      description
+    const batchResults = await Promise.allSettled(
+      batch.map(async (candidate) => {
+        try {
+          const description = await fetchLinkedInJobDescription(candidate.jobId)
+
+          // Skip AI categorization to save time - use regex fallback
+          // AI can be re-enabled when we have more budget/time
+          const job_type = parseJobType(candidate.title + ' ' + description)
+          const experience_level = parseExperienceLevel(candidate.title)
+          const skills = filterSkills(extractSkills(candidate.title + ' ' + description))
+
+          return {
+            id: `linkedin-${candidate.jobId}`,
+            source: 'linkedin' as const,
+            title: candidate.title,
+            company: candidate.company,
+            location: candidate.location || 'Remote',
+            description,
+            job_type,
+            experience_level,
+            skills,
+            apply_url: `https://www.linkedin.com/jobs/view/${candidate.jobId}`,
+            posted_at: new Date().toISOString(),
+            is_featured: false,
+          }
+        } catch (error) {
+          console.error(`LinkedIn job ${candidate.jobId} error:`, error)
+          return null
+        }
+      })
     )
 
-    // Use AI results with fallback to regex-based parsing
-    const job_type = aiCategorization?.job_type || parseJobType(candidate.title + ' ' + description)
-    const experience_level = aiCategorization?.experience_level || parseExperienceLevel(candidate.title)
-    const skills = aiCategorization?.skills?.length
-      ? aiCategorization.skills
-      : extractSkills(candidate.title + ' ' + description)
+    // Collect successful results
+    for (const result of batchResults) {
+      if (result.status === 'fulfilled' && result.value) {
+        jobs.push(result.value)
+      }
+    }
 
-    jobs.push({
-      id: `linkedin-${candidate.jobId}`,
-      source: 'linkedin',
-      title: candidate.title,
-      company: candidate.company,
-      location: candidate.location || 'Remote',
-      description,
-      job_type,
-      experience_level,
-      skills,
-      salary_min: aiCategorization?.salary_min,
-      salary_max: aiCategorization?.salary_max,
-      apply_url: `https://www.linkedin.com/jobs/view/${candidate.jobId}`,
-      posted_at: new Date().toISOString(),
-      is_featured: false,
-    })
-
-    // Rate limit: 300ms between jobs (for LinkedIn + AI calls)
-    await new Promise(resolve => setTimeout(resolve, 300))
+    // Small delay between batches to avoid rate limiting
+    if (i + BATCH_SIZE < limitedCandidates.length) {
+      await new Promise(resolve => setTimeout(resolve, 200))
+    }
   }
 
-  console.log(`LinkedIn: Fetched ${jobs.length} jobs with AI categorization`)
+  console.log(`LinkedIn: Fetched ${jobs.length} jobs`)
   return jobs
 }

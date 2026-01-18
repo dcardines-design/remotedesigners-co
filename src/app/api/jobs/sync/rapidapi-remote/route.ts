@@ -1,30 +1,30 @@
 import { NextResponse } from 'next/server'
-import { fetchLinkedInJobs } from '@/lib/job-apis'
+import { fetchRapidAPIRemoteJobs } from '@/lib/job-apis'
 import { syncJobs } from '@/lib/sync-jobs'
 
-// Vercel timeout - LinkedIn scraping + AI calls need more time
+// Vercel timeout
 export const maxDuration = 60
 
 async function handleSync() {
   try {
-    console.log('Fetching LinkedIn jobs...')
+    console.log('Fetching RapidAPI Remote Jobs...')
     const startTime = Date.now()
 
-    const jobs = await fetchLinkedInJobs()
+    const jobs = await fetchRapidAPIRemoteJobs()
 
     const fetchTime = Date.now() - startTime
-    console.log(`LinkedIn fetch completed in ${fetchTime}ms, found ${jobs.length} jobs`)
+    console.log(`RapidAPI Remote Jobs fetch completed in ${fetchTime}ms, found ${jobs.length} jobs`)
 
     if (jobs.length === 0) {
       return NextResponse.json({
         success: true,
-        warning: 'No jobs fetched - LinkedIn may be blocking requests',
+        warning: 'No design jobs found in this batch',
         fetched: 0,
         inserted: 0,
       })
     }
 
-    const result = await syncJobs(jobs, 'linkedin')
+    const result = await syncJobs(jobs, 'rapidapi-remote')
 
     return NextResponse.json({
       success: true,
@@ -32,7 +32,7 @@ async function handleSync() {
       ...result,
     })
   } catch (error) {
-    console.error('LinkedIn sync error:', error)
+    console.error('RapidAPI Remote Jobs sync error:', error)
     return NextResponse.json({ error: 'Failed to sync', details: String(error) }, { status: 500 })
   }
 }

@@ -36,6 +36,7 @@ export {
   fetchInstahyreJobs,
   fetchWantedlyJobs,
   fetchLinkedInJobs,
+  fetchRapidAPIRemoteJobs,
   fetchAllJobs,
   GREENHOUSE_COMPANIES,
   LEVER_COMPANIES,

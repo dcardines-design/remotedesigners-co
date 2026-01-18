@@ -7,16 +7,19 @@ import {
   fetchAuthenticJobs,
   fetchWorkingNomadsJobs,
   fetchMuseJobs,
-  fetchAshbyJobs,
   fetchAdzunaJobs,
 } from '@/lib/job-apis'
 import { syncJobs } from '@/lib/sync-jobs'
+
+// Vercel timeout (60s for Pro)
+export const maxDuration = 60
 
 async function handleSync() {
   try {
     const results = []
 
     // Fetch from smaller/faster APIs
+    // Note: Ashby moved to dedicated /api/jobs/sync/ashby route with batching
     const sources = [
       { name: 'arbeitnow', fn: fetchArbeitnowJobs },
       { name: 'jsearch', fn: fetchJSearchJobs },
@@ -25,7 +28,6 @@ async function handleSync() {
       { name: 'authenticjobs', fn: fetchAuthenticJobs },
       { name: 'workingnomads', fn: fetchWorkingNomadsJobs },
       { name: 'muse', fn: fetchMuseJobs },
-      { name: 'ashby', fn: fetchAshbyJobs },
       { name: 'adzuna', fn: fetchAdzunaJobs },
     ]
 
