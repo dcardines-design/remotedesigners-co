@@ -247,12 +247,12 @@ function generateEmailHTML(jobs: Job[], unsubscribeToken: string, options: Email
               <!-- Upgrade CTA -->
               <tr>
                 <td style="padding: 0 30px 20px;">
-                  <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px;">
+                  <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background: #171717; border-radius: 8px;">
                     <tr>
-                      <td style="padding: 20px;">
+                      <td style="padding: 24px; text-align: center;">
                         <p style="margin: 0 0 8px; font-size: 15px; font-weight: 600; color: white;">Get Daily Personalized Alerts</p>
-                        <p style="margin: 0 0 12px; font-size: 13px; color: rgba(255,255,255,0.85);">Upgrade to receive daily job alerts tailored to your preferences.</p>
-                        <a href="https://remotedesigners.co/membership" style="display: inline-block; padding: 8px 16px; background: white; color: #667eea; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600;">Upgrade Now</a>
+                        <p style="margin: 0 0 16px; font-size: 13px; color: rgba(255,255,255,0.7);">Upgrade to receive daily job alerts tailored to your preferences.</p>
+                        <a href="https://remotedesigners.co/membership" style="display: inline-block; padding: 10px 20px; background: white; color: #171717; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600;">Upgrade Now</a>
                       </td>
                     </tr>
                   </table>
