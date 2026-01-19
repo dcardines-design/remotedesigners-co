@@ -163,20 +163,84 @@ export async function scrapeNodeskJobs(): Promise<NormalizedJob[]> {
 
     for (const job of jobsToProcess) {
       try {
-        // Fetch job detail page for description
-        const detailUrl = `https://nodesk.co${job.url}`
-        await page.goto(detailUrl, { waitUntil: 'domcontentloaded', timeout: 15000 })
+        // First, get the direct apply URL from Nodesk listing page link
+        // The job.url contains something like /remote-jobs/design/job-title/
+        // We need to find the actual apply link which goes to Greenhouse etc.
 
-        const description = await page.evaluate(() => {
-          const descEl = document.querySelector('.prose, .job-description, article, main .content')
-          return descEl?.textContent?.trim().slice(0, 15000) || ''
+        // Extract apply URL from job tags/listing - check if it's already an external URL
+        let applyUrl = `https://nodesk.co${job.url}`
+
+        // Go to Nodesk job page briefly to get the external apply link
+        await page.goto(applyUrl, { waitUntil: 'domcontentloaded', timeout: 10000 })
+
+        const externalUrl = await page.evaluate(() => {
+          // Find the apply/view job link that goes to external site
+          const links = document.querySelectorAll('a')
+          for (const link of links) {
+            const text = link.textContent?.trim().toLowerCase() || ''
+            const href = link.getAttribute('href')
+            if ((text.includes('apply') || text.includes('view job') || text.includes('view listing')) &&
+                href && (href.startsWith('http') || href.startsWith('//')) &&
+                !href.includes('nodesk.co')) {
+              return href.startsWith('//') ? 'https:' + href : href
+            }
+          }
+          return null
         })
+
+        if (externalUrl) {
+          applyUrl = externalUrl
+        }
+
+        // Now fetch description from the actual job page (Greenhouse, Lever, etc.)
+        let description = ''
+        if (applyUrl && !applyUrl.includes('nodesk.co')) {
+          try {
+            await page.goto(applyUrl, { waitUntil: 'domcontentloaded', timeout: 15000 })
+            await page.waitForTimeout(1000) // Let content load
+
+            description = await page.evaluate(() => {
+              // Common job description selectors for ATS systems
+              const selectors = [
+                '#content', // Greenhouse
+                '.job-description',
+                '[class*="job-description"]',
+                '[class*="description"]',
+                '.posting-description', // Lever
+                '[data-qa="job-description"]',
+                'article',
+                'main',
+                '.content'
+              ]
+
+              for (const selector of selectors) {
+                const el = document.querySelector(selector)
+                if (el && el.textContent && el.textContent.length > 200) {
+                  return el.textContent.trim().slice(0, 15000)
+                }
+              }
+
+              // Fallback: get all paragraph text
+              const paragraphs = document.querySelectorAll('p, li')
+              let text = ''
+              paragraphs.forEach(p => {
+                const content = p.textContent?.trim()
+                if (content && content.length > 20) {
+                  text += content + '\n'
+                }
+              })
+              return text.slice(0, 15000)
+            })
+          } catch (err) {
+            console.log(`Could not fetch description from ${applyUrl}`)
+          }
+        }
 
         const salary = parseSalary(job.salary)
 
         normalizedJobs.push({
           id: `nodesk-${job.url.replace(/[^a-z0-9]/gi, '-')}`,
-          source: 'nodesk' as any, // Will need to add to NormalizedJob type
+          source: 'nodesk' as any,
           title: job.title,
           company: job.company,
           location: job.location,
@@ -187,7 +251,7 @@ export async function scrapeNodeskJobs(): Promise<NormalizedJob[]> {
           job_type: parseJobType(job.jobType),
           experience_level: parseExperienceLevel(job.title),
           skills: extractSkillsFromTags(job.tags),
-          apply_url: detailUrl,
+          apply_url: applyUrl,
           posted_at: new Date().toISOString(),
           is_featured: false
         })

@@ -29,11 +29,30 @@ function parseExperienceLevel(title: string): string {
   return 'mid'
 }
 
-async function fetchJobDescription(page: Page, url: string): Promise<string> {
+interface JobDetails {
+  description: string
+  directApplyUrl?: string
+}
+
+async function fetchJobDetails(page: Page, url: string): Promise<JobDetails> {
   try {
     await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15000 })
 
-    const description = await page.evaluate(() => {
+    const result = await page.evaluate((): JobDetails => {
+      // Find direct apply link - look for "Apply" button/link that goes to external site
+      let directApplyUrl: string | undefined
+      const applyLinks = document.querySelectorAll('a')
+      for (const link of applyLinks) {
+        const text = link.textContent?.trim().toLowerCase() || ''
+        const href = link.getAttribute('href')
+        if ((text.includes('apply') || text === 'apply now' || text === 'apply for this job') &&
+            href && !href.includes('justremote.co') &&
+            (href.startsWith('http') || href.startsWith('//'))) {
+          directApplyUrl = href.startsWith('//') ? 'https:' + href : href
+          break
+        }
+      }
+
       // Look for main job description content
       const selectors = [
         '.job-description',
@@ -43,26 +62,32 @@ async function fetchJobDescription(page: Page, url: string): Promise<string> {
         'main'
       ]
 
+      let description = ''
       for (const selector of selectors) {
         const el = document.querySelector(selector)
         if (el && el.textContent && el.textContent.length > 200) {
-          return el.textContent.trim().slice(0, 15000)
+          description = el.textContent.trim().slice(0, 15000)
+          break
         }
       }
 
-      // Fallback: get all paragraph text
-      const paragraphs = document.querySelectorAll('p')
-      let text = ''
-      paragraphs.forEach(p => {
-        text += p.textContent?.trim() + '\n'
-      })
-      return text.slice(0, 15000)
+      if (!description) {
+        // Fallback: get all paragraph text
+        const paragraphs = document.querySelectorAll('p')
+        let text = ''
+        paragraphs.forEach(p => {
+          text += p.textContent?.trim() + '\n'
+        })
+        description = text.slice(0, 15000)
+      }
+
+      return { description, directApplyUrl }
     })
 
-    return description
+    return result
   } catch (error) {
-    console.error(`Failed to fetch description for ${url}:`, error)
-    return ''
+    console.error(`Failed to fetch details for ${url}:`, error)
+    return { description: '' }
   }
 }
 
@@ -149,8 +174,11 @@ export async function scrapeJustRemoteJobs(): Promise<NormalizedJob[]> {
 
     for (const job of jobsToProcess) {
       const fullUrl = `https://justremote.co${job.url}`
-      const description = await fetchJobDescription(page, fullUrl)
+      const jobDetails = await fetchJobDetails(page, fullUrl)
       const jobSlug = job.url.split('/').filter(Boolean).pop() || job.title
+
+      // Use direct apply URL if found, otherwise fall back to JustRemote page
+      const applyUrl = jobDetails.directApplyUrl || fullUrl
 
       normalizedJobs.push({
         id: `justremote-${jobSlug}`,
@@ -158,11 +186,11 @@ export async function scrapeJustRemoteJobs(): Promise<NormalizedJob[]> {
         title: job.title,
         company: job.company || 'Unknown Company',
         location: 'Remote',
-        description: description || `${job.title} at ${job.company}. Remote ${job.jobType} position.`,
+        description: jobDetails.description || `${job.title} at ${job.company}. Remote ${job.jobType} position.`,
         job_type: parseJobType(job.jobType),
         experience_level: parseExperienceLevel(job.title),
         skills: [],
-        apply_url: fullUrl,
+        apply_url: applyUrl,
         posted_at: new Date().toISOString(),
         is_featured: false
       })
