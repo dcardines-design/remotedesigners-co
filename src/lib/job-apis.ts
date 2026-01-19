@@ -2845,7 +2845,7 @@ export async function fetchRapidAPIRemoteJobs(): Promise<NormalizedJob[]> {
 
   try {
     // Fetch multiple pages to get more jobs
-    const pages = [0, 1, 2] // 3 pages of 100 jobs each
+    const pages = [0, 1, 2, 3, 4] // 5 pages of 100 jobs each = 500 jobs scanned
 
     for (const page of pages) {
       const cursor = page * 100
