@@ -161,6 +161,21 @@ function formatSalary(job: Job): string | null {
   return null
 }
 
+function formatPostedDate(postedAt: string): string {
+  const posted = new Date(postedAt)
+  const now = new Date()
+  const diffMs = now.getTime() - posted.getTime()
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+  const diffDays = Math.floor(diffHours / 24)
+
+  if (diffHours < 1) return 'Just now'
+  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffDays === 1) return '1d ago'
+  if (diffDays < 7) return `${diffDays}d ago`
+
+  return posted.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
 // Generate a consistent color based on company name
 function getCompanyColor(company: string): string {
   const colors = ['#667eea', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16']
@@ -199,6 +214,7 @@ function generateEmailHTML(jobs: Job[], unsubscribeToken: string, options: Email
 
   const jobsHTML = jobs.slice(0, 10).map(job => {
     const salary = formatSalary(job)
+    const postedDate = formatPostedDate(job.posted_at)
     const jobUrl = `https://remotedesigners.co/jobs/${generateJobSlug(job.title, job.company, job.id)}`
     const color = getCompanyColor(job.company)
 
@@ -213,7 +229,7 @@ function generateEmailHTML(jobs: Job[], unsubscribeToken: string, options: Email
               </td>
               <td style="padding-left: 16px;">
                 <a href="${jobUrl}" style="font-size: 16px; font-weight: 600; color: #171717; text-decoration: none;">${job.title}</a>
-                <p style="margin: 4px 0 0; font-size: 14px; color: #525252;">${job.company} · ${job.location}</p>
+                <p style="margin: 4px 0 0; font-size: 14px; color: #525252;">${job.company} · ${job.location} · <span style="color: #a3a3a3;">${postedDate}</span></p>
                 ${salary ? `<p style="margin: 4px 0 0; font-size: 14px; color: #16a34a;">${salary}</p>` : ''}
               </td>
               <td width="100" valign="middle" align="right">
