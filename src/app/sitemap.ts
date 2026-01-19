@@ -2,6 +2,7 @@ import { MetadataRoute } from 'next'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import { generateJobSlug } from '@/lib/slug'
 import { jobTypeSlugs, regionalSlugs, combinationSlugs, combinationPages, experienceLevelPages, employmentTypePages } from '@/config/seo-pages'
+import { BLOG_CATEGORIES } from '@/lib/blog/seo-helpers'
 
 const BASE_URL = 'https://remotedesigners.co'
 
@@ -111,5 +112,38 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }))
 
-  return [...staticPages, ...jobTypePages, ...regionalLandingPages, ...combinationLandingPages, ...experienceLevelLandingPages, ...employmentTypeLandingPages, ...jobPages]
+  // Blog pages
+  const blogMainPage: MetadataRoute.Sitemap = [
+    {
+      url: `${BASE_URL}/blog`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.8,
+    },
+  ]
+
+  // Blog category pages
+  const blogCategoryPages: MetadataRoute.Sitemap = Object.keys(BLOG_CATEGORIES).map((category) => ({
+    url: `${BASE_URL}/blog/category/${category}`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly' as const,
+    priority: 0.7,
+  }))
+
+  // Blog post pages
+  const { data: blogPosts } = await supabase
+    .from('blog_posts')
+    .select('slug, published_at, updated_at')
+    .eq('status', 'published')
+    .order('published_at', { ascending: false })
+    .limit(500)
+
+  const blogPostPages: MetadataRoute.Sitemap = (blogPosts || []).map((post) => ({
+    url: `${BASE_URL}/blog/${post.slug}`,
+    lastModified: new Date(post.updated_at || post.published_at),
+    changeFrequency: 'monthly' as const,
+    priority: 0.7,
+  }))
+
+  return [...staticPages, ...jobTypePages, ...regionalLandingPages, ...combinationLandingPages, ...experienceLevelLandingPages, ...employmentTypeLandingPages, ...jobPages, ...blogMainPage, ...blogCategoryPages, ...blogPostPages]
 }

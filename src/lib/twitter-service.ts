@@ -67,3 +67,45 @@ ${salaryLine}Apply → ${jobUrl}
     return false
   }
 }
+
+interface BlogPostForTwitter {
+  slug: string
+  title: string
+  category: string
+  excerpt?: string
+}
+
+export async function postBlogToTwitter(post: BlogPostForTwitter): Promise<boolean> {
+  const client = getTwitterClient()
+  if (!client) return false
+
+  try {
+    const postUrl = `https://remotedesigners.co/blog/${post.slug}`
+
+    // Category emoji map
+    const categoryEmoji: Record<string, string> = {
+      'job-market-insights': '📊',
+      'remote-work-tips': '🏡',
+      'career-advice': '🚀',
+    }
+
+    const emoji = categoryEmoji[post.category] || '📝'
+
+    // Compose the tweet
+    const tweet = `${emoji} New on the blog: ${post.title}
+
+${post.excerpt ? post.excerpt.substring(0, 100) + '...' : ''}
+
+Read more → ${postUrl}
+
+#remotework #designjobs #designcareers`
+
+    // Post the tweet
+    await client.v2.tweet(tweet)
+    console.log(`Tweeted blog post: ${post.title}`)
+    return true
+  } catch (error) {
+    console.error('Failed to post blog tweet:', error)
+    return false
+  }
+}
