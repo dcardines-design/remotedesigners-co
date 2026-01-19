@@ -60,7 +60,7 @@ export async function sendJobPostingReceipt(data: JobReceiptData): Promise<boole
   if (data.sticky_24h) addOns.push('Sticky Post 24h - $79')
   if (data.sticky_7d) addOns.push('Sticky Post 7 Days - $149')
   if (data.rainbow_border) addOns.push('Rainbow Border - $39')
-  if (data.extended_duration) addOns.push('Extended Duration (60 days) - $49')
+  if (data.extended_duration) addOns.push('+30 Days Extended - $49')
 
   const addOnsHtml = addOns.length > 0
     ? addOns.map(a => `<tr><td style="padding: 8px 0; color: #525252;">${a}</td></tr>`).join('')
