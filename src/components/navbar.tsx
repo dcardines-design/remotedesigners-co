@@ -366,6 +366,23 @@ export function Navbar() {
               </button>
               {user && (
                 <>
+                  {/* User email display */}
+                  <div className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-neutral-900 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]">
+                    <span className="truncate">{user.email}</span>
+                    {hasSubscription === true && (
+                      <span className="relative inline-flex items-center bg-pink-600 text-white text-[8px] font-medium tracking-wider px-1.5 py-0 rounded overflow-hidden flex-shrink-0">
+                        <span
+                          className="absolute animate-get-pro-shine"
+                          style={{
+                            inset: '-100%',
+                            width: '300%',
+                            backgroundImage: 'linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.3) 40%, rgba(255,255,255,0.3) 45%, transparent 45%, transparent 47%, rgba(255,255,255,0.2) 47%, rgba(255,255,255,0.2) 48%, transparent 48%)',
+                          }}
+                        />
+                        <span className="relative">MEMBER</span>
+                      </span>
+                    )}
+                  </div>
                   <Link
                     href="/saved-jobs"
                     onClick={() => setMobileMenuOpen(false)}

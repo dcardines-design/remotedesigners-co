@@ -10,6 +10,7 @@ import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import { FREE_JOBS_LIMIT } from '@/lib/stripe'
 import { isCompMember } from '@/lib/admin'
 import { toast } from 'sonner'
+import { useSignupModal } from '@/context/signup-modal-context'
 
 // Helper functions
 const getInitials = (company: string) => company.substring(0, 2).toUpperCase()
@@ -121,7 +122,7 @@ function FAQSection({ faqs }: { faqs: FAQ[] }) {
             <button
               key={index}
               onClick={() => setOpenFaq(isOpen ? -1 : index)}
-              className="w-full border-t border-neutral-200 hover:bg-neutral-100/50 transition-colors duration-150 py-4 text-left"
+              className="w-full border-t border-neutral-200 hover:bg-neutral-100/50 transition-colors duration-150 py-4 px-2 md:px-0 text-left"
             >
               <div className="flex items-center justify-between">
                 <span className="font-medium text-neutral-900">{faq.question}</span>
@@ -209,6 +210,7 @@ interface SEOLandingPageProps {
 
 export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageType, faqs, breadcrumbLabel, parentPage }: SEOLandingPageProps) {
   const router = useRouter()
+  const { openLoginModal } = useSignupModal()
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set())
   const [savingJobs, setSavingJobs] = useState<Set<string>>(new Set())
@@ -257,7 +259,7 @@ export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageT
     e.stopPropagation()
 
     if (!isAuthenticated) {
-      router.push('/login')
+      openLoginModal()
       return
     }
 
@@ -360,12 +362,13 @@ export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageT
         </div>
 
         {/* Jobs count and Filter Chips Row */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4 mb-4">
           {availableCombinations[currentSlug] && availableCombinations[currentSlug].length > 0 && (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm text-neutral-500 mr-1">
+            <div className="flex flex-col md:flex-row md:flex-wrap md:items-center gap-2 order-first">
+              <span className="text-sm text-neutral-500 md:mr-1">
                 {pageType === 'regional' ? 'Filter by specialty' : 'Filter by location'}
               </span>
+              <div className="flex flex-wrap items-center gap-2">
               {pageType === 'regional' ? (
                 // Show job type chips on regional pages
                 availableCombinations[currentSlug].map((jobTypeSlug) => (
@@ -389,10 +392,11 @@ export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageT
                   </Link>
                 ))
               )}
+              </div>
             </div>
           )}
 
-          <div className="flex items-center gap-2 text-sm text-neutral-500">
+          <div className="flex items-center gap-2 text-sm text-neutral-500 order-last">
             <span className="font-medium text-neutral-900">{totalCount}</span>
             <span>jobs available</span>
           </div>

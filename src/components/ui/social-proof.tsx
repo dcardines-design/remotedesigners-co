@@ -8,11 +8,15 @@ const avatars = [
 
 interface SocialProofProps {
   className?: string
+  align?: 'center' | 'left'
 }
 
-export function SocialProof({ className = '' }: SocialProofProps) {
+export function SocialProof({ className = '', align = 'center' }: SocialProofProps) {
+  const alignItems = align === 'left' ? 'items-start' : 'items-center'
+  const textAlign = align === 'left' ? 'items-start' : 'items-center md:items-start'
+
   return (
-    <div className={`flex flex-col-reverse items-center gap-2 md:flex-row md:gap-4 ${className}`}>
+    <div className={`flex flex-col-reverse ${alignItems} gap-2 md:flex-row md:gap-4 ${className}`}>
       <div className="flex -space-x-3">
         {avatars.map((avatar, i) => (
           <img
@@ -23,7 +27,7 @@ export function SocialProof({ className = '' }: SocialProofProps) {
           />
         ))}
       </div>
-      <div className="flex flex-col items-center md:items-start">
+      <div className={`flex flex-col ${textAlign}`}>
         <div className="flex gap-0.5 text-amber-400">
           {[1, 2, 3, 4, 5].map(i => (
             <svg key={i} className="w-4 h-4 fill-current" viewBox="0 0 20 20">

@@ -225,7 +225,7 @@ function PremiumContent() {
   return (
     <div className="min-h-screen bg-neutral-50">
       {/* Hero Background - contained to hero area */}
-      <div className="absolute top-0 left-0 right-0 h-[600px] overflow-hidden pointer-events-none">
+      <div className="absolute top-0 left-0 right-0 h-[1200px] overflow-hidden pointer-events-none">
         <img
           src="/premium-bg.png"
           alt=""
@@ -233,7 +233,7 @@ function PremiumContent() {
         />
         <div
           className="absolute inset-0"
-          style={{ background: 'linear-gradient(to bottom, rgba(250,250,250,0) 0%, rgba(250,250,250,0) 50%, rgba(250,250,250,1) 100%)' }}
+          style={{ background: 'linear-gradient(to bottom, rgba(250,250,250,0) 0%, rgba(250,250,250,0.5) 15%, rgba(250,250,250,1) 30%)' }}
         />
       </div>
 
@@ -268,8 +268,8 @@ function PremiumContent() {
             }
           `}</style>
           */}
-          <h1 className="text-4xl md:text-5xl font-medium text-neutral-900 tracking-tight mb-4 font-display">
-            Land Your <AnimatedGradientText><span className="font-ivy-display">Dream</span></AnimatedGradientText> Design Job
+          <h1 className="text-5xl md:text-6xl font-medium text-neutral-900 tracking-tight mb-4 font-display">
+            Land Your <AnimatedGradientText><span className="font-ivy-display">Dream</span></AnimatedGradientText><br className="md:hidden" /> Design Job
           </h1>
           <p className="text-lg text-neutral-500">
             Jobs sourced directly from company career pages. Apply before they hit LinkedIn.
@@ -317,7 +317,7 @@ function PremiumContent() {
               <p className="text-neutral-500 text-center mb-6">Cancel anytime. 7-day money-back guarantee.</p>
 
               {/* Plan Options - Horizontal */}
-              <div className="grid grid-cols-3 gap-3 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-3 mb-6">
                 {plans.map((plan) => (
                   <button
                     key={plan.id}
@@ -375,7 +375,7 @@ function PremiumContent() {
           <div className="mt-16">
             <h2 className="text-2xl font-semibold text-neutral-900 text-center mb-2">What You'll Unlock</h2>
             <p className="text-neutral-500 text-center mb-6">Everything you need to land your next role</p>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-white rounded-xl border border-neutral-200 p-6 shadow-[0px_4px_0px_0px_rgba(0,0,0,0.03)]">
                 <div className="text-2xl mb-2">🔓</div>
                 <div className="text-xl font-semibold text-neutral-900">Unlimited Jobs</div>
@@ -448,7 +448,7 @@ function PremiumContent() {
                 <button
                   key={i}
                   onClick={() => setOpenFaq(isOpen ? null : i)}
-                  className="w-full border-t border-neutral-200 hover:bg-neutral-100/50 transition-colors duration-150 py-4 text-left"
+                  className="w-full border-t border-neutral-200 hover:bg-neutral-100/50 transition-colors duration-150 py-4 px-2 md:px-0 text-left"
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-neutral-900">{faq.question}</span>

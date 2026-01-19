@@ -364,7 +364,7 @@ export default function PostJobPage() {
               onChange={e => handleCompanyChange(e.target.value)}
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
                 label="Location *"
                 type="text"
@@ -563,11 +563,18 @@ export default function PostJobPage() {
                   onChange={e => setForm({ ...form, is_featured: e.target.checked })}
                   className="sr-only"
                 />
-                <CheckboxIcon checked={form.is_featured} />
+                <div className="order-last md:order-first">
+                  <CheckboxIcon checked={form.is_featured} />
+                </div>
                 <div className="flex-1">
+                  <div className="flex md:hidden items-center gap-2 mb-1">
+                    <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded-full">
+                      +$50
+                    </span>
+                  </div>
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-neutral-900">Featured Listing</span>
-                    <span className="px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded-full">
+                    <span className="hidden md:inline px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-700 rounded-full">
                       +$50
                     </span>
                   </div>
@@ -589,14 +596,24 @@ export default function PostJobPage() {
                   onChange={e => setForm({ ...form, sticky_24h: e.target.checked, sticky_7d: false })}
                   className="sr-only"
                 />
-                <CheckboxIcon checked={form.sticky_24h} />
+                <div className="order-last md:order-first">
+                  <CheckboxIcon checked={form.sticky_24h} />
+                </div>
                 <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-neutral-900">Sticky Post 24h</span>
+                  <div className="flex md:hidden items-center gap-2 mb-1">
                     <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
                       +$79
                     </span>
                     <span className="px-2 py-0.5 text-[10px] font-medium tracking-wider bg-blue-50 text-blue-600 rounded-full border border-blue-200">
+                      2X MORE VIEWS
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-neutral-900">Sticky Post 24h</span>
+                    <span className="hidden md:inline px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
+                      +$79
+                    </span>
+                    <span className="hidden md:inline px-2 py-0.5 text-[10px] font-medium tracking-wider bg-blue-50 text-blue-600 rounded-full border border-blue-200">
                       2X MORE VIEWS
                     </span>
                   </div>
@@ -618,14 +635,24 @@ export default function PostJobPage() {
                   onChange={e => setForm({ ...form, sticky_7d: e.target.checked, sticky_24h: false })}
                   className="sr-only"
                 />
-                <CheckboxIcon checked={form.sticky_7d} />
+                <div className="order-last md:order-first">
+                  <CheckboxIcon checked={form.sticky_7d} />
+                </div>
                 <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-neutral-900">Sticky Post 7 Days</span>
+                  <div className="flex md:hidden items-center gap-2 mb-1">
                     <span className="px-2 py-0.5 text-xs font-medium bg-pink-100 text-pink-700 rounded-full">
                       +$149
                     </span>
                     <span className="px-2 py-0.5 text-[10px] font-medium tracking-wider bg-pink-50 text-pink-600 rounded-full border border-pink-200">
+                      6X MORE VIEWS
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-neutral-900">Sticky Post 7 Days</span>
+                    <span className="hidden md:inline px-2 py-0.5 text-xs font-medium bg-pink-100 text-pink-700 rounded-full">
+                      +$149
+                    </span>
+                    <span className="hidden md:inline px-2 py-0.5 text-[10px] font-medium tracking-wider bg-pink-50 text-pink-600 rounded-full border border-pink-200">
                       6X MORE VIEWS
                     </span>
                   </div>
@@ -647,14 +674,26 @@ export default function PostJobPage() {
                   onChange={e => setForm({ ...form, rainbow_border: e.target.checked })}
                   className="sr-only"
                 />
-                <CheckboxIcon checked={form.rainbow_border} />
+                <div className="order-last md:order-first">
+                  <CheckboxIcon checked={form.rainbow_border} />
+                </div>
                 <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-neutral-900">Rainbow Border</span>
+                  <div className="flex md:hidden items-center gap-2 mb-1">
                     <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded-full">
                       +$39
                     </span>
                     <span className="px-2 py-0.5 text-[10px] font-medium tracking-wider rounded-full border border-purple-200 bg-purple-50">
+                      <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(90deg, #f97316, #ec4899, #8b5cf6, #06b6d4)' }}>
+                        EYE-CATCHING
+                      </span>
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-neutral-900">Rainbow Border</span>
+                    <span className="hidden md:inline px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded-full">
+                      +$39
+                    </span>
+                    <span className="hidden md:inline-flex px-2 py-0.5 text-[10px] font-medium tracking-wider rounded-full border border-purple-200 bg-purple-50">
                       <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(90deg, #f97316, #ec4899, #8b5cf6, #06b6d4)' }}>
                         EYE-CATCHING
                       </span>
@@ -678,11 +717,18 @@ export default function PostJobPage() {
                   onChange={e => setForm({ ...form, extended_duration: e.target.checked })}
                   className="sr-only"
                 />
-                <CheckboxIcon checked={form.extended_duration} />
+                <div className="order-last md:order-first">
+                  <CheckboxIcon checked={form.extended_duration} />
+                </div>
                 <div className="flex-1">
+                  <div className="flex md:hidden items-center gap-2 mb-1">
+                    <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+                      +$49
+                    </span>
+                  </div>
                   <div className="flex items-center gap-2">
                     <span className="font-medium text-neutral-900">Extended Duration</span>
-                    <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+                    <span className="hidden md:inline px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full">
                       +$49
                     </span>
                   </div>
@@ -691,6 +737,137 @@ export default function PostJobPage() {
                   </p>
                 </div>
               </label>
+            </div>
+          </div>
+
+          {/* Mobile Preview - Only shown on mobile/tablet */}
+          <div className="lg:hidden bg-white rounded-2xl border border-neutral-200 p-6">
+            <p className="text-sm text-neutral-500 mb-3">Preview</p>
+
+            {/* Job Card Preview */}
+            <div
+              className={`border rounded-xl p-5 relative transition-all ${
+                form.is_featured
+                  ? 'bg-amber-50 border-amber-200'
+                  : 'bg-white border-neutral-200'
+              }`}
+            >
+              {/* Left border indicator */}
+              <div
+                className={`absolute left-0 top-0 bottom-0 w-1 rounded-l-xl ${
+                  form.rainbow_border
+                    ? ''
+                    : form.is_featured
+                      ? 'bg-amber-400'
+                      : 'bg-green-500'
+                }`}
+                style={form.rainbow_border ? {
+                  background: 'linear-gradient(180deg, #ec4899 0%, #8b5cf6 20%, #3b82f6 40%, #10b981 60%, #eab308 80%, #ec4899 100%)',
+                  backgroundSize: '100% 300%',
+                  animation: 'rainbowFlow 2s linear infinite'
+                } : {}}
+              />
+
+              <div className="flex gap-4 pl-1">
+                {/* Company Avatar */}
+                <div className="w-12 h-12 rounded-full bg-white border border-neutral-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {form.company_logo ? (
+                    <img
+                      src={form.company_logo}
+                      alt={form.company || 'Company'}
+                      className="w-full h-full object-cover"
+                      onError={() => setLogoError(true)}
+                    />
+                  ) : form.company && !logoError ? (
+                    <img
+                      src={getCompanyLogoUrl(form.company)}
+                      alt={form.company}
+                      className="w-full h-full object-contain"
+                      onError={() => setLogoError(true)}
+                    />
+                  ) : (
+                    <span className="text-sm font-medium text-neutral-400">
+                      {form.company ? getInitials(form.company) : '?'}
+                    </span>
+                  )}
+                </div>
+
+                {/* Job Info */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <h3 className="text-base font-normal text-neutral-900 truncate">
+                      {form.title || 'Job Title'}
+                    </h3>
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      {(form.sticky_24h || form.sticky_7d) && (
+                        <svg className={`w-4 h-4 ${form.sticky_7d ? 'text-purple-500' : 'text-blue-500'}`} fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M16 4l4 4-1.5 1.5-1-1L14 12l1 5-3 3-2.5-5L5 19.5 4.5 19l4.5-4.5-5-2.5 3-3 5 1 3.5-3.5-1-1L16 4z"/>
+                        </svg>
+                      )}
+                      <span className="bg-green-500 text-white text-[10px] font-medium tracking-wider px-2 py-0.5 rounded">
+                        NEW
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-neutral-500 mb-3 truncate">
+                    {form.company || 'Company Name'} · {form.location || 'Remote'}
+                  </p>
+
+                  <div className="flex flex-wrap gap-1.5">
+                    {form.is_featured && (
+                      <span className="bg-yellow-400 text-neutral-900 text-[11px] font-medium px-2 py-0.5 rounded border border-yellow-500">
+                        Featured
+                      </span>
+                    )}
+                    {form.job_type && (
+                      <span className="bg-white text-neutral-600 text-[11px] px-2 py-0.5 rounded border border-neutral-200">
+                        {toTitleCase(form.job_type)}
+                      </span>
+                    )}
+                    {form.experience_level && (
+                      <span className="bg-white text-neutral-600 text-[11px] px-2 py-0.5 rounded border border-neutral-200">
+                        {toTitleCase(form.experience_level)}
+                      </span>
+                    )}
+                    {salary && (
+                      <span className="bg-white text-neutral-600 text-[11px] px-2 py-0.5 rounded border border-neutral-200">
+                        {salary}
+                      </span>
+                    )}
+                    {form.location?.toLowerCase().includes('remote') && (
+                      <span className="bg-white text-neutral-600 text-[11px] px-2 py-0.5 rounded border border-neutral-200">
+                        Remote
+                      </span>
+                    )}
+                    {form.region && (
+                      <span className="bg-white text-neutral-600 text-[11px] px-2 py-0.5 rounded border border-neutral-200">
+                        {form.region === 'worldwide' ? '🌍 Worldwide' :
+                         form.region === 'north-america' ? '🌎 North America' :
+                         form.region === 'europe' ? '🇪🇺 Europe' :
+                         form.region === 'asia' ? '🌏 Asia' :
+                         form.region === 'latin-america' ? '🌎 Latin America' :
+                         form.region === 'africa' ? '🌍 Africa' :
+                         form.region === 'oceania' ? '🌏 Oceania' :
+                         form.region === 'us-only' ? '🇺🇸 US Only' :
+                         form.region === 'eu-only' ? '🇪🇺 EU Only' :
+                         form.region === 'uk-only' ? '🇬🇧 UK Only' :
+                         form.region}
+                      </span>
+                    )}
+                    {form.skills.slice(0, 3).map(skill => (
+                      <span key={skill} className="bg-white text-neutral-600 text-[11px] px-2 py-0.5 rounded border border-neutral-200">
+                        {skill}
+                      </span>
+                    ))}
+                    {form.skills.length > 3 && (
+                      <span className="bg-white text-neutral-400 text-[11px] px-2 py-0.5 rounded border border-neutral-200">
+                        +{form.skills.length - 3}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 

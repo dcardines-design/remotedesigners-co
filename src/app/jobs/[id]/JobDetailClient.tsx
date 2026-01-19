@@ -735,7 +735,7 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
 
                 {/* Job Type */}
                 {job.job_type && (
-                  <div className="flex items-center gap-3 text-neutral-600">
+                  <div className="flex items-center gap-2 md:gap-3 text-sm md:text-base text-neutral-600">
                     <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-neutral-400 flex-shrink-0">
                       <rect x="1.5" y="3.5" width="12" height="9" rx="1" stroke="currentColor" strokeWidth="1.5"/>
                       <path d="M4.5 3.5V2.5C4.5 1.94772 4.94772 1.5 5.5 1.5H9.5C10.0523 1.5 10.5 1.94772 10.5 2.5V3.5" stroke="currentColor" strokeWidth="1.5"/>
@@ -746,7 +746,7 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
 
                 {/* Experience Level */}
                 {job.experience_level && (
-                  <div className="flex items-center gap-3 text-neutral-600">
+                  <div className="flex items-center gap-2 md:gap-3 text-sm md:text-base text-neutral-600">
                     <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-neutral-400 flex-shrink-0">
                       <path d="M7.5 1L9.18 5.82L14 6.24L10.36 9.44L11.46 14.2L7.5 11.67L3.54 14.2L4.64 9.44L1 6.24L5.82 5.82L7.5 1Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
                     </svg>
@@ -932,33 +932,33 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
         <div className="max-w-6xl mx-auto px-4 md:px-8 pt-6 md:pt-12 pb-8">
           <div className="flex flex-col-reverse md:flex-row gap-3 md:gap-4">
             {/* Left Content Card */}
-            <div className="bg-white border border-neutral-200 rounded-2xl p-5 pb-8 md:p-12 w-full md:w-1/2 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]">
-              <h2 className="text-3xl md:text-4xl font-medium text-neutral-900 text-center md:text-left mb-4 md:mb-10 font-dm-sans">
+            <div className="bg-white border border-neutral-200 rounded-2xl px-8 py-6 md:p-12 w-full md:w-1/2 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]">
+              <h2 className="text-3xl md:text-4xl font-medium text-neutral-900 text-left mb-4 md:mb-10 font-dm-sans">
                 Land Your Dream<br />Remote Design Job
               </h2>
 
               <div className="space-y-4 md:space-y-5 mb-4 md:mb-10">
                 {ctaFeatures.map((feature, index) => (
-                  <div key={index} className="flex flex-col md:flex-row gap-2 md:gap-4 items-center md:items-start">
+                  <div key={index} className="flex flex-col md:flex-row gap-2 md:gap-4">
                     <div className="w-9 h-9 md:w-10 md:h-10 rounded-lg bg-neutral-100 flex items-center justify-center flex-shrink-0 text-lg md:text-xl">
                       {feature.emoji}
                     </div>
-                    <div className="text-center md:text-left">
-                      <h3 className="font-medium text-neutral-900 mb-0.5 md:mb-1 text-base md:text-base">{feature.title}</h3>
-                      <p className="text-neutral-500 text-xs md:text-sm">{feature.description}</p>
+                    <div>
+                      <h3 className="font-medium text-neutral-900 mb-0.5 md:mb-1 text-lg md:text-base">{feature.title}</h3>
+                      <p className="text-neutral-500 text-sm md:text-sm">{feature.description}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="text-center md:text-left">
+              <div className="text-left">
                 <Link href="/membership">
                   <RainbowButton fullWidth size="sm">
                     Get Membership — Unlock Full Access
                   </RainbowButton>
                 </Link>
 
-                <SocialProof className="mt-6 md:mt-10" />
+                <SocialProof className="mt-6 md:mt-10" align="left" />
               </div>
             </div>
 
@@ -976,7 +976,7 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
 
       {/* Testimonials Grid - Hidden for subscribed users */}
       {!isSubscribed && (
-        <div className="max-w-6xl mx-auto px-4 md:px-8 pt-6 md:pt-8 pb-8 md:pb-12">
+        <div className="max-w-6xl mx-auto px-4 md:px-8 pt-2 md:pt-8 pb-8 md:pb-12">
           <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-3 md:space-y-4">
             {testimonials.map((testimonial, index) => (
               <div key={index} className="break-inside-avoid bg-white border border-neutral-200 rounded-xl p-4 md:p-6 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]">
@@ -1020,7 +1020,7 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
                 <button
                   key={index}
                   onClick={() => setOpenFaq(isOpen ? -1 : index)}
-                  className="w-full border-t border-neutral-200 hover:bg-neutral-100/50 transition-colors duration-150 py-4 text-left"
+                  className="w-full border-t border-neutral-200 hover:bg-neutral-100/50 transition-colors duration-150 py-4 px-2 md:px-0 text-left"
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-neutral-900">{faq.question}</span>
