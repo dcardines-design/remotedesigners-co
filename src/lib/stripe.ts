@@ -86,46 +86,88 @@ export function calculateTotal(data: JobPostingData): number {
   return total
 }
 
-// Build line items for job posting checkout using Stripe Price IDs
+// Build line items for job posting checkout using inline price_data
 function buildLineItems(data: JobPostingData): Stripe.Checkout.SessionCreateParams.LineItem[] {
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [
     {
-      price: JOB_POSTING_PRICES.BASE_POSTING,
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: 'Job Posting - 30 Days',
+          description: `Post "${data.title}" at ${data.company}`,
+        },
+        unit_amount: PRICING.BASE_POSTING * 100, // Convert to cents
+      },
       quantity: 1,
     },
   ]
 
   if (data.is_featured) {
     lineItems.push({
-      price: JOB_POSTING_PRICES.FEATURED,
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: 'Featured Listing',
+          description: 'Highlighted with a special badge',
+        },
+        unit_amount: PRICING.FEATURED * 100,
+      },
       quantity: 1,
     })
   }
 
   if (data.sticky_24h) {
     lineItems.push({
-      price: JOB_POSTING_PRICES.STICKY_24H,
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: 'Sticky for 24 Hours',
+          description: 'Pinned at the top for 24 hours',
+        },
+        unit_amount: PRICING.STICKY_24H * 100,
+      },
       quantity: 1,
     })
   }
 
   if (data.sticky_7d) {
     lineItems.push({
-      price: JOB_POSTING_PRICES.STICKY_7D,
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: 'Sticky for 7 Days',
+          description: 'Pinned at the top for 7 days',
+        },
+        unit_amount: PRICING.STICKY_7D * 100,
+      },
       quantity: 1,
     })
   }
 
   if (data.rainbow_border) {
     lineItems.push({
-      price: JOB_POSTING_PRICES.RAINBOW_BORDER,
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: 'Rainbow Border',
+          description: 'Eye-catching animated rainbow border',
+        },
+        unit_amount: PRICING.RAINBOW_BORDER * 100,
+      },
       quantity: 1,
     })
   }
 
   if (data.extended_duration) {
     lineItems.push({
-      price: JOB_POSTING_PRICES.EXTENDED_DURATION,
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: 'Extended Duration (60 Days)',
+          description: 'Double the posting duration',
+        },
+        unit_amount: PRICING.EXTENDED_DURATION * 100,
+      },
       quantity: 1,
     })
   }
