@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRef, useEffect, useState } from 'react'
 import { LoginModal } from '@/components/ui/login-modal'
 
@@ -127,7 +128,13 @@ export function Footer() {
         {/* Bottom */}
         <div className="border-t border-neutral-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-2">
-            <span className="text-white font-medium">RemoteDesigners.co</span>
+            <Image
+              src="/logo-white.png"
+              alt="RemoteDesigners.co"
+              width={180}
+              height={36}
+              className="h-7 w-auto"
+            />
           </div>
           <p className="text-sm">
             © {new Date().getFullYear()} RemoteDesigners.co. All rights reserved.
