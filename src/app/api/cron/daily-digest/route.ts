@@ -175,10 +175,27 @@ interface EmailOptions {
   isPaidUser: boolean
   isPersonalized: boolean
   jobTimeframe: '24h' | '7d'
+  preferences?: {
+    jobTypes?: string[]
+    locations?: string[]
+  }
+}
+
+function buildBrowseUrl(preferences?: EmailOptions['preferences']): string {
+  const base = 'https://remotedesigners.co'
+  if (!preferences) return base
+
+  const params = new URLSearchParams()
+  preferences.jobTypes?.forEach(t => params.append('category', t))
+  preferences.locations?.forEach(l => params.append('location', l))
+
+  const queryString = params.toString()
+  return queryString ? `${base}?${queryString}` : base
 }
 
 function generateEmailHTML(jobs: Job[], unsubscribeToken: string, options: EmailOptions): string {
-  const { isPaidUser, isPersonalized, jobTimeframe } = options
+  const { isPaidUser, isPersonalized, jobTimeframe, preferences } = options
+  const browseUrl = buildBrowseUrl(preferences)
 
   const jobsHTML = jobs.slice(0, 10).map(job => {
     const salary = formatSalary(job)
@@ -283,7 +300,7 @@ function generateEmailHTML(jobs: Job[], unsubscribeToken: string, options: Email
               <!-- CTA -->
               <tr>
                 <td style="padding: 30px; text-align: center;">
-                  <a href="https://remotedesigners.co" style="display: inline-block; padding: 14px 28px; background: #171717; color: white; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 500;">Browse All Jobs</a>
+                  <a href="${browseUrl}" style="display: inline-block; padding: 14px 28px; background: #171717; color: white; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 500;">${isPersonalized ? 'Browse Matching Jobs' : 'Browse All Jobs'}</a>
                 </td>
               </tr>
 
@@ -492,7 +509,8 @@ export async function GET(request: NextRequest) {
           html: generateEmailHTML(jobsToSend as Job[], subscriber.unsubscribe_token, {
             isPaidUser: subscriber.isPaidUser,
             isPersonalized,
-            jobTimeframe: subscriber.isPaidUser ? '24h' : '7d'
+            jobTimeframe: subscriber.isPaidUser ? '24h' : '7d',
+            preferences: subscriber.preferences,
           }),
         })
 
