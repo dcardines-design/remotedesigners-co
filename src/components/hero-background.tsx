@@ -3,17 +3,39 @@ interface HeroBackgroundProps {
   opacity?: number
   maxHeight?: string
   offsetTop?: string
+  mobileMaxHeight?: string
+  mobileOffsetTop?: string
 }
 
 export function HeroBackground({
   imageSrc = '/seo-hero-bg.png',
   opacity = 0.08,
   maxHeight = '600px',
-  offsetTop = '-200px'
+  offsetTop = '-200px',
+  mobileMaxHeight = '400px',
+  mobileOffsetTop = '-100px'
 }: HeroBackgroundProps) {
   return (
+    <>
+    {/* Mobile */}
     <div
-      className="absolute left-1/2 -translate-x-1/2 w-screen overflow-hidden pointer-events-none"
+      className="absolute left-1/2 -translate-x-1/2 w-screen overflow-hidden pointer-events-none md:hidden"
+      style={{ top: mobileOffsetTop, maxHeight: mobileMaxHeight }}
+    >
+      <img
+        src={imageSrc}
+        alt=""
+        className="w-full h-auto"
+        style={{ opacity }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{ background: 'linear-gradient(to bottom, rgba(250,250,250,0) 0%, rgba(250,250,250,0) 60%, rgba(250,250,250,1) 100%)' }}
+      />
+    </div>
+    {/* Desktop */}
+    <div
+      className="absolute left-1/2 -translate-x-1/2 w-screen overflow-hidden pointer-events-none hidden md:block"
       style={{ top: offsetTop, maxHeight }}
     >
       <img
@@ -38,5 +60,6 @@ export function HeroBackground({
         style={{ background: 'radial-gradient(ellipse at bottom right, rgba(250,250,250,1) 0%, rgba(250,250,250,0) 70%)' }}
       />
     </div>
+    </>
   )
 }

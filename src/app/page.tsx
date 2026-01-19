@@ -1080,6 +1080,8 @@ function HomeContent() {
             opacity={0.15}
             maxHeight="880px"
             offsetTop="-350px"
+            mobileMaxHeight="500px"
+            mobileOffsetTop="-80px"
           />
 
           <div className="max-w-2xl mx-auto text-center relative z-10">
