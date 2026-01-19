@@ -675,7 +675,7 @@ function WelcomeModal({ isOpen, onClose, isLoggedIn }: { isOpen: boolean; onClos
             {[
               { emoji: '⚡', text: 'First to Apply', subtext: 'See jobs before LinkedIn', delay: '0s' },
               { emoji: '✨', text: 'Verified & Fresh', subtext: 'No expired posts or scams', delay: '0.5s' },
-              { emoji: '🔓', text: 'Unlimited Access', subtext: 'Browse all 300+ jobs', delay: '1s' },
+              { emoji: '🔓', text: 'Unlimited Access', subtext: 'Browse all jobs', delay: '1s' },
               { emoji: '📬', text: 'Daily Job Alerts', subtext: 'Delivered to your inbox', delay: '1.5s' },
             ].map((benefit) => (
               <div

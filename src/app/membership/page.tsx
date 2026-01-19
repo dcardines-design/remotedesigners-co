@@ -70,7 +70,7 @@ const valueProps = [
   { icon: '🎯', title: 'Direct from Source', description: 'Jobs pulled straight from company career pages, not recycled from other boards.' },
   { icon: '⚡', title: 'First to Apply', description: 'See jobs before they hit LinkedIn or Indeed. Less competition, more callbacks.' },
   { icon: '✅', title: 'Verified & Fresh', description: 'Every listing verified and updated hourly. No expired posts or scams.' },
-  { icon: '🔓', title: 'Unlimited Access', description: 'Browse all 300+ curated design jobs without restrictions.' },
+  { icon: '🔓', title: 'Unlimited Access', description: 'Browse all curated design jobs without restrictions.' },
   { icon: '📬', title: 'Daily Job Alerts', description: 'Get matched jobs delivered to your inbox every morning.' },
   { icon: '📊', title: 'Salary Insights', description: 'Access salary data to negotiate better offers with confidence.' },
 ]
