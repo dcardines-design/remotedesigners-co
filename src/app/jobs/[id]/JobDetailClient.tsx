@@ -952,9 +952,11 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
               </div>
 
               <div className="text-left">
-                <RainbowButton onClick={openSignupModal} fullWidth>
-                  Get Membership — Unlock Full Access
-                </RainbowButton>
+                <Link href="/membership">
+                  <RainbowButton fullWidth>
+                    Get Membership — Unlock Full Access
+                  </RainbowButton>
+                </Link>
 
                 <SocialProof className="mt-10" />
               </div>
