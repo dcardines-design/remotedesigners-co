@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server'
-import { fetchIndeedJobs } from '@/lib/job-apis'
-import { syncJobs } from '@/lib/sync-jobs'
+import { INDEED_REGIONS } from '@/lib/job-apis'
 
 export const runtime = 'nodejs'
-export const maxDuration = 300 // 5 minutes max
 
+// This route now redirects to regional endpoints to avoid timeouts
 export async function GET(request: Request) {
   // Verify cron secret in production
   const authHeader = request.headers.get('authorization')
@@ -12,21 +11,18 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  try {
-    console.log('Starting Indeed cron sync...')
-    const jobs = await fetchIndeedJobs()
-    const result = await syncJobs(jobs, 'indeed')
-    console.log(`Indeed cron complete: ${result.inserted} inserted, ${result.skipped} skipped`)
+  // Return info about regional endpoints
+  const regions = Object.entries(INDEED_REGIONS).map(([code, config]) => ({
+    code,
+    name: config.name,
+    endpoint: `/api/cron/sync-indeed-region?region=${code}`,
+    searches: config.searches.length
+  }))
 
-    return NextResponse.json({
-      success: true,
-      ...result
-    })
-  } catch (error) {
-    console.error('Indeed cron sync error:', error)
-    return NextResponse.json({
-      error: 'Failed to sync Indeed jobs',
-      details: String(error)
-    }, { status: 500 })
-  }
+  return NextResponse.json({
+    message: 'Indeed sync has been split into regional endpoints to avoid timeouts',
+    regions,
+    usage: 'Call each regional endpoint separately, e.g.: /api/cron/sync-indeed-region?region=us',
+    tip: 'Set up separate cron jobs for each region on cron-job.org'
+  })
 }

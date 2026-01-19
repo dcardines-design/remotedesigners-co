@@ -616,7 +616,79 @@ interface IndeedJob {
   is_remote?: boolean
 }
 
-export async function fetchIndeedJobs(): Promise<NormalizedJob[]> {
+// Region configurations for Indeed searches
+export const INDEED_REGIONS = {
+  us: {
+    name: 'United States',
+    searches: [
+      { query: 'remote UI designer', locality: 'us' },
+      { query: 'remote UX designer', locality: 'us' },
+      { query: 'remote product designer', locality: 'us' },
+      { query: 'remote graphic designer', locality: 'us' },
+    ]
+  },
+  ph: {
+    name: 'Philippines',
+    searches: [
+      { query: 'remote UI designer', locality: 'ph' },
+      { query: 'remote UX designer', locality: 'ph' },
+      { query: 'remote product designer', locality: 'ph' },
+      { query: 'remote graphic designer', locality: 'ph' },
+    ]
+  },
+  ca: {
+    name: 'Canada',
+    searches: [
+      { query: 'remote UI designer', locality: 'ca' },
+      { query: 'remote UX designer', locality: 'ca' },
+      { query: 'remote product designer', locality: 'ca' },
+    ]
+  },
+  gb: {
+    name: 'United Kingdom',
+    searches: [
+      { query: 'remote UI designer', locality: 'gb' },
+      { query: 'remote UX designer', locality: 'gb' },
+      { query: 'remote product designer', locality: 'gb' },
+    ]
+  },
+  au: {
+    name: 'Australia',
+    searches: [
+      { query: 'remote UI designer', locality: 'au' },
+      { query: 'remote UX designer', locality: 'au' },
+      { query: 'remote product designer', locality: 'au' },
+    ]
+  },
+  in: {
+    name: 'India',
+    searches: [
+      { query: 'remote UI designer', locality: 'in' },
+      { query: 'remote UX designer', locality: 'in' },
+      { query: 'remote product designer', locality: 'in' },
+    ]
+  },
+  sg: {
+    name: 'Singapore',
+    searches: [
+      { query: 'remote UI designer', locality: 'my' },
+      { query: 'remote UX designer', locality: 'my' },
+      { query: 'remote product designer', locality: 'my' },
+    ]
+  },
+  id: {
+    name: 'Indonesia',
+    searches: [
+      { query: 'remote UI designer', locality: 'id' },
+      { query: 'remote UX designer', locality: 'id' },
+      { query: 'remote product designer', locality: 'id' },
+    ]
+  },
+} as const
+
+export type IndeedRegion = keyof typeof INDEED_REGIONS
+
+export async function fetchIndeedJobs(region?: IndeedRegion): Promise<NormalizedJob[]> {
   const apiKey = process.env.RAPIDAPI_KEY
 
   if (!apiKey) {
@@ -625,10 +697,10 @@ export async function fetchIndeedJobs(): Promise<NormalizedJob[]> {
   }
 
   // Helper to fetch job details
-  const fetchJobDetails = async (jobId: string): Promise<IndeedJobDetails | null> => {
+  const fetchJobDetails = async (jobId: string, locality: string): Promise<IndeedJobDetails | null> => {
     try {
       const response = await fetch(
-        `https://indeed12.p.rapidapi.com/job/${jobId}?locality=us`,
+        `https://indeed12.p.rapidapi.com/job/${jobId}?locality=${locality}`,
         {
           headers: {
             'X-RapidAPI-Key': apiKey,
@@ -647,21 +719,10 @@ export async function fetchIndeedJobs(): Promise<NormalizedJob[]> {
     const allJobs: NormalizedJob[] = []
     const seenIds = new Set<string>()
 
-    // Design job search queries with localities
-    const searches = [
-      // US remote design jobs
-      { query: 'remote UI designer', locality: 'us' },
-      { query: 'remote UX designer', locality: 'us' },
-      { query: 'remote product designer', locality: 'us' },
-      { query: 'remote graphic designer', locality: 'us' },
-      // Philippines remote design jobs
-      { query: 'remote UI designer', locality: 'ph' },
-      { query: 'remote UX designer', locality: 'ph' },
-      { query: 'remote product designer', locality: 'ph' },
-      { query: 'remote graphic designer', locality: 'ph' },
-      { query: 'remote web designer', locality: 'ph' },
-      { query: 'figma designer remote', locality: 'ph' },
-    ]
+    // Get searches for specified region or all regions
+    const searches = region
+      ? INDEED_REGIONS[region].searches
+      : Object.values(INDEED_REGIONS).flatMap(r => r.searches)
 
     for (const { query, locality } of searches) {
       const response = await fetch(
@@ -691,7 +752,7 @@ export async function fetchIndeedJobs(): Promise<NormalizedJob[]> {
         // Skip if not a design job based on title
         if (!isDesignJob(result.title, [])) continue
 
-        const details = await fetchJobDetails(result.id)
+        const details = await fetchJobDetails(result.id, locality)
         if (!details) continue
 
         // Parse salary from details
