@@ -400,8 +400,8 @@ export async function GET(request: NextRequest) {
             from: 'RemoteDesigners.co <hello@remotedesigners.co>',
             to: testEmail,
             subject: isPaidTest
-              ? `[TEST] ${recentJobs.length} Jobs Matching Your Preferences`
-              : `[TEST] ${recentJobs.length} New Remote Design Jobs`,
+              ? `[TEST] ${recentJobs.length} Jobs Matching Your Preferences 🔔`
+              : `[TEST] ${recentJobs.length} New Remote Design Jobs 🎨`,
             html: generateEmailHTML(recentJobs as Job[], 'test-token', {
               isPaidUser: isPaidTest,
               isPersonalized: isPaidTest,
@@ -449,8 +449,8 @@ export async function GET(request: NextRequest) {
         from: 'RemoteDesigners.co <hello@remotedesigners.co>',
         to: testEmail,
         subject: isPaidTest
-          ? `[TEST] ${jobsForTest.length} Jobs Matching Your Preferences`
-          : `[TEST] ${jobsForTest.length} New Remote Design Jobs`,
+          ? `[TEST] ${jobsForTest.length} Jobs Matching Your Preferences 🔔`
+          : `[TEST] ${jobsForTest.length} New Remote Design Jobs 🎨`,
         html: generateEmailHTML(jobsForTest as Job[], 'test-token', {
           isPaidUser: isPaidTest,
           isPersonalized,
@@ -533,9 +533,9 @@ export async function GET(request: NextRequest) {
         const isPersonalized = subscriber.isPaidUser && !!hasPreferences
         const subject = subscriber.isPaidUser
           ? isPersonalized
-            ? `${jobsToSend.length} Jobs Matching Your Preferences`
-            : `${jobsToSend.length} New Remote Design Jobs`
-          : `${jobsToSend.length} New Remote Design Jobs`
+            ? `${jobsToSend.length} Jobs Matching Your Preferences 🔔`
+            : `${jobsToSend.length} New Remote Design Jobs 🎨`
+          : `${jobsToSend.length} New Remote Design Jobs 🎨`
 
         const { error: sendError } = await resend.emails.send({
           from: 'RemoteDesigners.co <hello@remotedesigners.co>',
