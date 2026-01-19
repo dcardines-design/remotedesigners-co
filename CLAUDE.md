@@ -31,6 +31,7 @@ Folder ID: 55290
 | LinkedIn | /api/jobs/sync/linkedin | 6:45 AM & 6:45 PM ET |
 | Asia | /api/jobs/sync/asia | Every hour :25 |
 | Asia 2 | /api/jobs/sync/asia-2 | Every hour :27 |
+| RapidAPI Remote | /api/jobs/sync/rapidapi-remote | Every hour :35 |
 
 #### Indeed Regional Sync (Granular)
 Base URL: `/api/cron/sync-indeed-query?region=XX&type=YY`
