@@ -929,36 +929,36 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
 
       {/* CTA Card Section - Hidden for subscribed users */}
       {!isSubscribed && (
-        <div className="max-w-6xl mx-auto px-4 md:px-8 pt-6 md:pt-12 pb-4">
+        <div className="max-w-6xl mx-auto px-4 md:px-8 pt-6 md:pt-12 pb-8">
           <div className="flex flex-col-reverse md:flex-row gap-3 md:gap-4">
             {/* Left Content Card */}
-            <div className="bg-white border border-neutral-200 rounded-2xl p-5 md:p-12 w-full md:w-1/2 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]">
-              <h2 className="text-2xl md:text-4xl font-medium text-neutral-900 text-left mb-4 md:mb-10 font-dm-sans">
+            <div className="bg-white border border-neutral-200 rounded-2xl p-5 pb-8 md:p-12 w-full md:w-1/2 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]">
+              <h2 className="text-3xl md:text-4xl font-medium text-neutral-900 text-center md:text-left mb-4 md:mb-10 font-dm-sans">
                 Land Your Dream<br />Remote Design Job
               </h2>
 
-              <div className="space-y-3 md:space-y-5 mb-4 md:mb-10">
+              <div className="space-y-4 md:space-y-5 mb-4 md:mb-10">
                 {ctaFeatures.map((feature, index) => (
-                  <div key={index} className="flex gap-3 md:gap-4">
+                  <div key={index} className="flex flex-col md:flex-row gap-2 md:gap-4 items-center md:items-start">
                     <div className="w-9 h-9 md:w-10 md:h-10 rounded-lg bg-neutral-100 flex items-center justify-center flex-shrink-0 text-lg md:text-xl">
                       {feature.emoji}
                     </div>
-                    <div>
-                      <h3 className="font-medium text-neutral-900 mb-0.5 md:mb-1 text-sm md:text-base">{feature.title}</h3>
+                    <div className="text-center md:text-left">
+                      <h3 className="font-medium text-neutral-900 mb-0.5 md:mb-1 text-base md:text-base">{feature.title}</h3>
                       <p className="text-neutral-500 text-xs md:text-sm">{feature.description}</p>
                     </div>
                   </div>
                 ))}
               </div>
 
-              <div className="text-left">
+              <div className="text-center md:text-left">
                 <Link href="/membership">
                   <RainbowButton fullWidth size="sm">
                     Get Membership — Unlock Full Access
                   </RainbowButton>
                 </Link>
 
-                <SocialProof className="mt-4 md:mt-10" />
+                <SocialProof className="mt-6 md:mt-10" />
               </div>
             </div>
 

@@ -1602,7 +1602,7 @@ function HomeContent() {
               <button
                 onClick={loadMore}
                 disabled={loadingMore}
-                className="w-full border border-neutral-200 rounded-lg bg-white p-4 text-center text-neutral-900 font-medium shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] hover:bg-neutral-50 hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full border border-neutral-200 rounded-lg bg-white p-3 md:p-4 text-center text-sm md:text-base text-neutral-900 font-medium shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] hover:bg-neutral-50 hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loadingMore ? 'Loading...' : 'Load more jobs'}
               </button>

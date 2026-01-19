@@ -68,24 +68,15 @@ export default function SavedJobsPage() {
     }
   }
 
-  // Not authenticated
+  // Not authenticated - redirect to homepage
+  useEffect(() => {
+    if (isAuthenticated === false) {
+      router.push('/')
+    }
+  }, [isAuthenticated, router])
+
   if (isAuthenticated === false) {
-    return (
-      <div className="min-h-screen bg-neutral-50">
-        <div className="max-w-6xl mx-auto px-8 py-16">
-          <div className="text-center">
-            <h1 className="text-3xl font-medium text-neutral-900 mb-4">Saved Jobs</h1>
-            <p className="text-neutral-500 mb-8">Sign in to track your job applications</p>
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-neutral-800 rounded-lg hover:bg-neutral-700 transition-colors"
-            >
-              Sign in
-            </Link>
-          </div>
-        </div>
-      </div>
-    )
+    return null
   }
 
   // Loading state

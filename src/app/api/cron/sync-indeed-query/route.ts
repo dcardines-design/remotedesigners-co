@@ -98,18 +98,23 @@ async function fetchIndeedQuery(region: Region, queryType: QueryType): Promise<N
   const jobs: NormalizedJob[] = []
   const seenIds = new Set<string>()
 
-  // Fetch job details helper
+  // Fetch job details helper with 20s timeout
   const fetchDetails = async (jobId: string): Promise<IndeedJobDetails | null> => {
     try {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 20000)
+
       const response = await fetch(
         `https://indeed12.p.rapidapi.com/job/${jobId}?locality=${locality}`,
         {
           headers: {
             'X-RapidAPI-Key': apiKey,
             'X-RapidAPI-Host': 'indeed12.p.rapidapi.com'
-          }
+          },
+          signal: controller.signal
         }
       )
+      clearTimeout(timeout)
       if (!response.ok) return null
       return await response.json()
     } catch {
@@ -118,16 +123,21 @@ async function fetchIndeedQuery(region: Region, queryType: QueryType): Promise<N
   }
 
   try {
-    // Single search query
+    // Single search query with 25s timeout
+    const searchController = new AbortController()
+    const searchTimeout = setTimeout(() => searchController.abort(), 25000)
+
     const response = await fetch(
       `https://indeed12.p.rapidapi.com/jobs/search?query=${encodeURIComponent(query)}&location=remote&page_id=1&locality=${locality}&fromage=7&sort=date`,
       {
         headers: {
           'X-RapidAPI-Key': apiKey,
           'X-RapidAPI-Host': 'indeed12.p.rapidapi.com'
-        }
+        },
+        signal: searchController.signal
       }
     )
+    clearTimeout(searchTimeout)
 
     if (!response.ok) {
       console.error(`Indeed API error for ${region}/${queryType}:`, response.status)
@@ -138,9 +148,9 @@ async function fetchIndeedQuery(region: Region, queryType: QueryType): Promise<N
     const results: IndeedSearchResult[] = data.hits || data.jobs || []
     console.log(`Indeed ${region}/${queryType}: Found ${results.length} results`)
 
-    // Fetch details for up to 3 jobs to stay within rate limits
-    // 20 cron jobs × (1 search + 3 details) = 80 API calls/hour
-    for (const result of results.slice(0, 3)) {
+    // Fetch details for up to 2 jobs to stay within timeouts
+    // Slow regions (PH, IN, ID) can take 15+ seconds per request
+    for (const result of results.slice(0, 2)) {
       if (seenIds.has(result.id)) continue
       seenIds.add(result.id)
 

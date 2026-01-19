@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import { RainbowButton } from '@/components/ui'
@@ -55,6 +56,7 @@ export default function PostedJobsPage() {
   const [error, setError] = useState<string | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
+  const router = useRouter()
 
   useEffect(() => {
     const fetchPostedJobs = async () => {
@@ -109,24 +111,15 @@ export default function PostedJobsPage() {
     }
   }
 
-  // Not logged in
+  // Not logged in - redirect to homepage
+  useEffect(() => {
+    if (isAuthenticated === false) {
+      router.push('/')
+    }
+  }, [isAuthenticated, router])
+
   if (isAuthenticated === false) {
-    return (
-      <div className="min-h-screen bg-neutral-50">
-        <div className="max-w-6xl mx-auto px-8 py-16">
-          <div className="text-center">
-            <h1 className="text-3xl font-medium text-neutral-900 mb-4">Jobs Posted</h1>
-            <p className="text-neutral-500 mb-8">Sign in to view jobs you've posted</p>
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2 px-6 py-3 text-sm font-medium text-white bg-neutral-800 rounded-lg hover:bg-neutral-700 transition-colors"
-            >
-              Sign in
-            </Link>
-          </div>
-        </div>
-      </div>
-    )
+    return null
   }
 
   // Loading
