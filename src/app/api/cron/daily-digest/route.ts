@@ -250,8 +250,8 @@ function generateEmailHTML(jobs: Job[], unsubscribeToken: string, options: Email
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
-    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f5f5f5;">
-      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f5f5f5;">
+    <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #ffffff;">
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #ffffff;">
         <tr>
           <td align="center" style="padding: 40px 20px;">
             <table cellpadding="0" cellspacing="0" border="0" width="600" style="background-color: white; border-radius: 12px; overflow: hidden;">
