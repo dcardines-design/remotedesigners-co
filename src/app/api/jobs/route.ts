@@ -111,28 +111,47 @@ export async function GET(request: NextRequest) {
     const total = count || 0
     const totalPages = Math.ceil(total / limit)
 
+    const now = new Date().toISOString()
+
     // Transform to match frontend expected format
-    const normalizedJobs = (jobs || []).map(job => ({
-      id: job.id,
-      source: job.source,
-      title: job.title,
-      company: job.company,
-      company_logo: job.company_logo,
-      location: job.location,
-      salary_min: job.salary_min,
-      salary_max: job.salary_max,
-      salary_text: job.salary_text,
-      description: job.description,
-      job_type: job.job_type,
-      experience_level: job.experience_level,
-      skills: job.skills || [],
-      apply_url: job.apply_url,
-      posted_at: job.posted_at,
-      is_featured: job.is_featured,
-      is_sticky: job.is_sticky || false,
-      sticky_until: job.sticky_until,
-      is_rainbow: job.is_rainbow || false,
-    }))
+    // Check if sticky has expired - if sticky_until is in the past, treat as not sticky
+    const normalizedJobs = (jobs || []).map(job => {
+      const isStillSticky = job.is_sticky && job.sticky_until && job.sticky_until > now
+      return {
+        id: job.id,
+        source: job.source,
+        title: job.title,
+        company: job.company,
+        company_logo: job.company_logo,
+        location: job.location,
+        salary_min: job.salary_min,
+        salary_max: job.salary_max,
+        salary_text: job.salary_text,
+        description: job.description,
+        job_type: job.job_type,
+        experience_level: job.experience_level,
+        skills: job.skills || [],
+        apply_url: job.apply_url,
+        posted_at: job.posted_at,
+        is_featured: job.is_featured,
+        is_sticky: isStillSticky,
+        sticky_until: job.sticky_until,
+        is_rainbow: job.is_rainbow || false,
+      }
+    })
+
+    // Re-sort to account for expired sticky jobs
+    // Order: active sticky first, then featured, then by date
+    normalizedJobs.sort((a, b) => {
+      // Sticky jobs first
+      if (a.is_sticky && !b.is_sticky) return -1
+      if (!a.is_sticky && b.is_sticky) return 1
+      // Then featured
+      if (a.is_featured && !b.is_featured) return -1
+      if (!a.is_featured && b.is_featured) return 1
+      // Then by date (newest first)
+      return new Date(b.posted_at).getTime() - new Date(a.posted_at).getTime()
+    })
 
     return NextResponse.json({
       jobs: normalizedJobs,

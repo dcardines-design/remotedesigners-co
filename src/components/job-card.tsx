@@ -46,6 +46,7 @@ interface JobCardProps {
   isSaving?: boolean
   showActions?: boolean
   variant?: 'default' | 'simple'
+  isSubscribed?: boolean
 }
 
 export function JobCard({
@@ -55,6 +56,7 @@ export function JobCard({
   isSaving = false,
   showActions = true,
   variant = 'default',
+  isSubscribed = true,
 }: JobCardProps) {
   const isNew = isNewJob(job.posted_at)
   const timeAgo = formatTimeAgo(job.posted_at)
@@ -326,9 +328,9 @@ export function JobCard({
                   </button>
                 )}
                 <a
-                  href={job.apply_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href={isSubscribed ? job.apply_url : "/membership"}
+                  target={isSubscribed ? "_blank" : undefined}
+                  rel={isSubscribed ? "noopener noreferrer" : undefined}
                   onClick={(e) => e.stopPropagation()}
                   className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-neutral-800 rounded shadow-[0px_2px_0px_0px_rgba(0,0,0,0.2)] hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.2)] active:translate-y-[2px] active:shadow-none transition-all"
                 >

@@ -491,6 +491,7 @@ export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageT
                   onSave={handleSaveJob}
                   isSaved={savedJobs.has(job.id)}
                   isSaving={savingJobs.has(job.id)}
+                  isSubscribed={isSubscribed}
                 />
               )
             })

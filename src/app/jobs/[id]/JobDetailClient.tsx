@@ -541,38 +541,83 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
 
   const salary = formatSalary(job)
 
+  // Parse location for structured data
+  const parseLocation = (location: string) => {
+    const isRemote = location.toLowerCase().includes('remote')
+    const loc = location.replace(/\s*\(?remote\)?\s*/gi, '').trim()
+
+    // Try to extract country
+    let country = 'US' // Default
+    if (loc.toLowerCase().includes('uk') || loc.toLowerCase().includes('united kingdom')) country = 'GB'
+    else if (loc.toLowerCase().includes('canada')) country = 'CA'
+    else if (loc.toLowerCase().includes('germany')) country = 'DE'
+    else if (loc.toLowerCase().includes('australia')) country = 'AU'
+    else if (loc.toLowerCase().includes('france')) country = 'FR'
+    else if (loc.toLowerCase().includes('spain')) country = 'ES'
+    else if (loc.toLowerCase().includes('netherlands')) country = 'NL'
+    else if (loc.toLowerCase().includes('ireland')) country = 'IE'
+    else if (loc.toLowerCase().includes('worldwide') || loc.toLowerCase().includes('anywhere')) country = ''
+
+    return { isRemote, locality: loc || location, country }
+  }
+
+  const locationInfo = parseLocation(job.location)
+
+  // Calculate validThrough (30 days from posted date)
+  const postedDate = new Date(job.posted_at)
+  const validThrough = new Date(postedDate.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString()
+
   // Generate JSON-LD structured data for SEO
-  const jsonLd = {
+  const jsonLd: Record<string, any> = {
     '@context': 'https://schema.org',
     '@type': 'JobPosting',
     title: job.title,
     description: job.description || `${job.title} position at ${job.company}`,
     datePosted: job.posted_at,
+    validThrough: validThrough,
     hiringOrganization: {
       '@type': 'Organization',
       name: job.company,
-      logo: job.company_logo,
+      ...(job.company_logo && { logo: job.company_logo }),
     },
-    jobLocation: {
-      '@type': 'Place',
-      address: {
-        '@type': 'PostalAddress',
-        addressLocality: job.location,
-      },
+    employmentType: job.job_type?.toUpperCase().replace('-', '_') || 'FULL_TIME',
+  }
+
+  // Add job location
+  if (locationInfo.isRemote) {
+    jsonLd.jobLocationType = 'TELECOMMUTE'
+    if (locationInfo.country) {
+      jsonLd.applicantLocationRequirements = {
+        '@type': 'Country',
+        name: locationInfo.country,
+      }
+    }
+  }
+
+  jsonLd.jobLocation = {
+    '@type': 'Place',
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: locationInfo.locality || 'Remote',
+      addressRegion: locationInfo.locality || 'Remote',
+      addressCountry: locationInfo.country || 'US',
     },
-    employmentType: job.job_type?.toUpperCase().replace('-', '_'),
-    ...(job.salary_min && {
-      baseSalary: {
-        '@type': 'MonetaryAmount',
-        currency: 'USD',
-        value: {
-          '@type': 'QuantitativeValue',
-          minValue: job.salary_min,
-          maxValue: job.salary_max || job.salary_min,
-          unitText: 'YEAR',
-        },
+  }
+
+  // Add base salary if available
+  if (job.salary_min || job.salary_max) {
+    jsonLd.baseSalary = {
+      '@type': 'MonetaryAmount',
+      currency: 'USD',
+      value: {
+        '@type': 'QuantitativeValue',
+        ...(job.salary_min && { minValue: job.salary_min }),
+        ...(job.salary_max && { maxValue: job.salary_max }),
+        ...(!job.salary_min && job.salary_max && { value: job.salary_max }),
+        ...(!job.salary_max && job.salary_min && { value: job.salary_min }),
+        unitText: 'YEAR',
       },
-    }),
+    }
   }
 
   return (

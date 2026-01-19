@@ -117,7 +117,6 @@ function PremiumContent() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [userEmail, setUserEmail] = useState<string | null>(null)
-  const [inputEmail, setInputEmail] = useState('')
   const [userId, setUserId] = useState<string | null>(null)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
@@ -125,7 +124,6 @@ function PremiumContent() {
   const { openLoginModal } = useSignupModal()
 
   const skipUrl = searchParams.get('skip_url') || '/'
-  const emailParam = searchParams.get('email')
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -137,12 +135,7 @@ function PremiumContent() {
       }
     }
     checkAuth()
-
-    // Pre-fill email from URL param
-    if (emailParam && !inputEmail) {
-      setInputEmail(emailParam)
-    }
-  }, [emailParam])
+  }, [])
 
   // Fetch job count
   useEffect(() => {
@@ -165,13 +158,11 @@ function PremiumContent() {
     setError(null)
     setSuccessMessage(null)
 
-    const emailToUse = userEmail || inputEmail || undefined
-
     try {
       const response = await fetch('/api/subscribe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan: selectedPlan, email: emailToUse }),
+        body: JSON.stringify({ plan: selectedPlan, email: userEmail }),
       })
 
       const data = await response.json()
@@ -357,19 +348,6 @@ function PremiumContent() {
                   </button>
                 ))}
               </div>
-
-              {/* Email input for non-logged-in users */}
-              {!userEmail && (
-                <div className="mb-4">
-                  <input
-                    type="email"
-                    placeholder="Enter your email"
-                    value={inputEmail}
-                    onChange={(e) => setInputEmail(e.target.value)}
-                    className="w-full px-4 py-3 rounded-lg border border-neutral-200 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-900 focus:border-transparent"
-                  />
-                </div>
-              )}
 
               {error && (
                 <div className="mb-4 px-4 py-2.5 rounded-lg text-sm bg-red-50 text-red-800 border border-red-200">
