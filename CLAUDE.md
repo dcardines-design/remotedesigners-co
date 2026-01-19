@@ -95,11 +95,37 @@ curl -s "https://api.cron-job.org/jobs" \
 
 ---
 
+## RapidAPI Configuration
+
+**API Key:** `38599ce5a3msha770cf6e1356f79p13b1d3jsnb4ea6f7c6f08`
+
+### Indeed API (indeed12.p.rapidapi.com)
+- Used for regional job searches (US, PH, CA, GB, AU, IN)
+- Endpoints: `/jobs/search` and `/job/{id}`
+- Rate limit: PRO plan (~100 requests/hour)
+- Schedule: Every 2 hours to avoid rate limits
+
+### Remote Jobs API (remote-jobs1.p.rapidapi.com)
+- Aggregates remote jobs from multiple sources
+- Endpoint: `/jobs?country=us&employment_type=fulltime&limit=50`
+- Filters for design jobs automatically
+- Schedule: Every hour at :35
+
+```bash
+# Test Remote Jobs API
+curl --request GET \
+  --url 'https://remote-jobs1.p.rapidapi.com/jobs?country=us&employment_type=fulltime&limit=50' \
+  --header 'x-rapidapi-host: remote-jobs1.p.rapidapi.com' \
+  --header 'x-rapidapi-key: 38599ce5a3msha770cf6e1356f79p13b1d3jsnb4ea6f7c6f08'
+```
+
+---
+
 ## Environment Variables
 
 Key variables in `.env.local`:
 - `CRON_SECRET` - Auth token for cron endpoints
-- `RAPIDAPI_KEY` - Indeed API access
+- `RAPIDAPI_KEY` - RapidAPI access (Indeed + Remote Jobs)
 - `SUPABASE_URL` / `SUPABASE_SERVICE_KEY` - Database
 - `OPENROUTER_API_KEY` - AI categorization
 - `STRIPE_*` - Payment processing
