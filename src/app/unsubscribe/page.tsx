@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { SuccessIcon } from '@/components/ui'
+import { SuccessIcon, Button } from '@/components/ui'
 
 function UnsubscribeContent() {
   const searchParams = useSearchParams()
@@ -38,8 +38,34 @@ function UnsubscribeContent() {
   }, [token])
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex items-center justify-center px-4">
-      <div className="max-w-md w-full text-center">
+    <div className="min-h-screen bg-neutral-50 flex items-center justify-center px-4 relative">
+      {/* Squirrel background image - Mobile */}
+      <div className="md:hidden absolute left-0 right-0 pointer-events-none" style={{ top: '-64px', height: '50vh' }}>
+        <img
+          src="/unsubscribe-bg.png"
+          alt=""
+          className="w-full h-full object-cover object-top"
+          style={{ opacity: 0.2 }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(to bottom, rgba(250,250,250,0) 0%, rgba(250,250,250,0) 40%, rgba(250,250,250,1) 100%)' }}
+        />
+      </div>
+      {/* Background image - Desktop */}
+      <div className="hidden md:block absolute left-0 right-0 pointer-events-none" style={{ top: '-64px', height: '40vh' }}>
+        <img
+          src="/unsubscribe-bg.png"
+          alt=""
+          className="w-full h-full object-cover object-top"
+          style={{ opacity: 0.2 }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(to bottom, rgba(250,250,250,0) 0%, rgba(250,250,250,0) 60%, rgba(250,250,250,1) 100%)' }}
+        />
+      </div>
+      <div className="max-w-md w-full text-center relative z-10">
         {status === 'loading' && (
           <>
             <div className="w-12 h-12 border-4 border-neutral-200 border-t-neutral-900 rounded-full animate-spin mx-auto mb-6" />
@@ -53,11 +79,10 @@ function UnsubscribeContent() {
             <SuccessIcon size="md" className="mx-auto mb-6" />
             <h1 className="text-2xl font-semibold text-neutral-900 mb-2">You've been unsubscribed</h1>
             <p className="text-neutral-500 mb-8">You won't receive any more emails from us. We're sorry to see you go!</p>
-            <Link
-              href="/"
-              className="inline-block px-6 py-3 bg-neutral-800 text-white rounded-lg font-medium hover:bg-neutral-700 transition-colors"
-            >
-              Back to Homepage
+            <Link href="/">
+              <Button variant="primary" size="lg">
+                Back to Homepage
+              </Button>
             </Link>
           </>
         )}
@@ -71,11 +96,10 @@ function UnsubscribeContent() {
             </div>
             <h1 className="text-2xl font-semibold text-neutral-900 mb-2">Something went wrong</h1>
             <p className="text-neutral-500 mb-8">We couldn't process your unsubscribe request. Please try again or contact support.</p>
-            <Link
-              href="/"
-              className="inline-block px-6 py-3 bg-neutral-800 text-white rounded-lg font-medium hover:bg-neutral-700 transition-colors"
-            >
-              Back to Homepage
+            <Link href="/">
+              <Button variant="primary" size="lg">
+                Back to Homepage
+              </Button>
             </Link>
           </>
         )}
@@ -90,11 +114,10 @@ function UnsubscribeContent() {
             </div>
             <h1 className="text-2xl font-semibold text-neutral-900 mb-2">Invalid Link</h1>
             <p className="text-neutral-500 mb-8">This unsubscribe link is invalid or has expired.</p>
-            <Link
-              href="/"
-              className="inline-block px-6 py-3 bg-neutral-800 text-white rounded-lg font-medium hover:bg-neutral-700 transition-colors"
-            >
-              Back to Homepage
+            <Link href="/">
+              <Button variant="primary" size="lg">
+                Back to Homepage
+              </Button>
             </Link>
           </>
         )}
@@ -106,8 +129,34 @@ function UnsubscribeContent() {
 export default function UnsubscribePage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-neutral-50 flex items-center justify-center px-4">
-        <div className="max-w-md w-full text-center">
+      <div className="min-h-screen bg-neutral-50 flex items-center justify-center px-4 relative">
+        {/* Mobile */}
+        <div className="md:hidden absolute left-0 right-0 pointer-events-none" style={{ top: '-64px', height: '50vh' }}>
+          <img
+            src="/unsubscribe-bg.png"
+            alt=""
+            className="w-full h-full object-cover object-top"
+            style={{ opacity: 0.2 }}
+          />
+          <div
+            className="absolute inset-0"
+            style={{ background: 'linear-gradient(to bottom, rgba(250,250,250,0) 0%, rgba(250,250,250,0) 40%, rgba(250,250,250,1) 100%)' }}
+          />
+        </div>
+        {/* Desktop */}
+        <div className="hidden md:block absolute left-0 right-0 pointer-events-none" style={{ top: '-64px', height: '40vh' }}>
+          <img
+            src="/unsubscribe-bg.png"
+            alt=""
+            className="w-full h-full object-cover object-top"
+            style={{ opacity: 0.2 }}
+          />
+          <div
+            className="absolute inset-0"
+            style={{ background: 'linear-gradient(to bottom, rgba(250,250,250,0) 0%, rgba(250,250,250,0) 40%, rgba(250,250,250,1) 100%)' }}
+          />
+        </div>
+        <div className="max-w-md w-full text-center relative z-10">
           <div className="w-12 h-12 border-4 border-neutral-200 border-t-neutral-900 rounded-full animate-spin mx-auto mb-6" />
           <h1 className="text-2xl font-semibold text-neutral-900 mb-2">Loading...</h1>
         </div>

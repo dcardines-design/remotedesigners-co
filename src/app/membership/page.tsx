@@ -225,15 +225,21 @@ function PremiumContent() {
   return (
     <div className="min-h-screen bg-neutral-50">
       {/* Hero Background - contained to hero area */}
-      <div className="absolute top-0 left-0 right-0 h-[1200px] overflow-hidden pointer-events-none">
+      <div className="absolute top-0 left-0 right-0 h-[50vh] md:h-[600px] overflow-hidden pointer-events-none">
         <img
           src="/premium-bg.png"
           alt=""
           className="w-full h-auto opacity-[0.12] object-cover"
         />
+        {/* Mobile gradient - starts fading later for more image visibility */}
         <div
-          className="absolute inset-0"
-          style={{ background: 'linear-gradient(to bottom, rgba(250,250,250,0) 0%, rgba(250,250,250,0.5) 15%, rgba(250,250,250,1) 30%)' }}
+          className="absolute inset-0 md:hidden"
+          style={{ background: 'linear-gradient(to bottom, rgba(250,250,250,0) 0%, rgba(250,250,250,0.3) 50%, rgba(250,250,250,0.7) 70%, rgba(250,250,250,1) 90%)' }}
+        />
+        {/* Desktop gradient - original */}
+        <div
+          className="absolute inset-0 hidden md:block"
+          style={{ background: 'linear-gradient(to bottom, rgba(250,250,250,0) 0%, rgba(250,250,250,0) 50%, rgba(250,250,250,1) 100%)' }}
         />
       </div>
 
@@ -268,7 +274,7 @@ function PremiumContent() {
             }
           `}</style>
           */}
-          <h1 className="text-5xl md:text-6xl font-medium text-neutral-900 tracking-tight mb-4 font-display">
+          <h1 className="text-5xl md:text-5xl font-medium text-neutral-900 tracking-tight mb-4 font-display">
             Land Your <AnimatedGradientText><span className="font-ivy-display">Dream</span></AnimatedGradientText><br className="md:hidden" /> Design Job
           </h1>
           <p className="text-lg text-neutral-500">

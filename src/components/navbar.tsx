@@ -125,6 +125,8 @@ export function Navbar() {
   const isSEOPage = pathname?.startsWith('/remote-')
   const isPremiumPage = pathname === '/membership'
   const isSuccessPage = pathname === '/post-job/success'
+  const isUnsubscribePage = pathname === '/unsubscribe'
+  const [isTransparentNavbarPage, setIsTransparentNavbarPage] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -135,6 +137,20 @@ export function Navbar() {
     handleScroll() // Check initial state
 
     return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // Check for transparent-navbar-page class on body (set by 404 and other pages)
+  useEffect(() => {
+    const checkBodyClass = () => {
+      setIsTransparentNavbarPage(document.body.classList.contains('transparent-navbar-page'))
+    }
+    checkBodyClass()
+
+    // Use MutationObserver to detect class changes
+    const observer = new MutationObserver(checkBodyClass)
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] })
+
+    return () => observer.disconnect()
   }, [])
 
   useEffect(() => {
@@ -248,7 +264,7 @@ export function Navbar() {
     router.push('/')
   }
 
-  const isTransparent = (isHomePage || isSEOPage || isPremiumPage || isSuccessPage) && !scrolled && !mobileMenuOpen
+  const isTransparent = (isHomePage || isSEOPage || isPremiumPage || isSuccessPage || isUnsubscribePage || isTransparentNavbarPage) && !scrolled && !mobileMenuOpen
 
   return (
     <nav
