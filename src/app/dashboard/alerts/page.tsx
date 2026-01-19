@@ -188,7 +188,7 @@ export default function AlertsPage() {
             </svg>
             Back to jobs
           </Link>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-4xl font-semibold text-neutral-900">My Job Alerts</h1>
               <p className="text-neutral-500 mt-1">
@@ -196,9 +196,11 @@ export default function AlertsPage() {
               </p>
             </div>
             {!alertData?.hasAlerts && (
-              <RainbowButton onClick={() => setIsModalOpen(true)} size="sm">
-                Create alert
-              </RainbowButton>
+              <div className="self-start md:self-auto">
+                <RainbowButton onClick={() => setIsModalOpen(true)} size="sm">
+                  Create alert
+                </RainbowButton>
+              </div>
             )}
           </div>
         </div>
@@ -207,16 +209,34 @@ export default function AlertsPage() {
           /* Alert Card */
           <div className="border border-neutral-200 rounded-xl bg-white overflow-hidden">
             {/* Status Header */}
-            <div className={`px-6 py-5 flex items-center justify-between border-b ${
+            <div className={`px-6 py-5 border-b ${
               alertData.alert.isActive ? 'bg-green-50 border-green-100' : 'bg-neutral-50 border-neutral-100'
             }`}>
-              <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                  alertData.alert.isActive ? 'bg-green-100' : 'bg-neutral-200'
-                }`}>
-                  <Bell className={`w-6 h-6 ${alertData.alert.isActive ? 'text-green-600' : 'text-neutral-400'}`} strokeWidth={1.5} />
+              {/* Mobile layout: stacked with buttons top-right */}
+              <div className="relative md:hidden">
+                <div className="flex items-center gap-2 absolute top-0 right-0">
+                  <button
+                    onClick={handleTogglePause}
+                    disabled={actionLoading}
+                    className="flex items-center justify-center w-9 h-9 rounded-lg border bg-white border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[1px] active:shadow-none transition-all disabled:opacity-50"
+                    title={alertData.alert.isActive ? 'Pause alert' : 'Resume alert'}
+                  >
+                    {alertData.alert.isActive ? <Pause className="w-4 h-4 text-neutral-500" /> : <Play className="w-4 h-4 text-neutral-500" />}
+                  </button>
+                  <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="flex items-center justify-center w-9 h-9 rounded-lg border bg-white border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[1px] active:shadow-none transition-all"
+                    title="Edit preferences"
+                  >
+                    <Pencil className="w-4 h-4 text-neutral-500" />
+                  </button>
                 </div>
-                <div>
+                <div className="flex flex-col items-start gap-3 pr-24">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                    alertData.alert.isActive ? 'bg-green-100' : 'bg-neutral-200'
+                  }`}>
+                    <Bell className={`w-6 h-6 ${alertData.alert.isActive ? 'text-green-600' : 'text-neutral-400'}`} strokeWidth={1.5} />
+                  </div>
                   <div className="flex items-center gap-2">
                     <span className={`text-[10px] font-medium tracking-wider px-2 py-0.5 rounded ${
                       alertData.alert.isActive
@@ -239,28 +259,66 @@ export default function AlertsPage() {
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-neutral-500 mt-1">
+                  <p className="text-sm text-neutral-500">
                     {alertData.isPaidUser ? 'Daily personalized alerts' : 'Weekly alerts'}
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleTogglePause}
-                  disabled={actionLoading}
-                  className="flex items-center justify-center w-9 h-9 rounded-lg border bg-white border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.05)] hover:translate-y-[1px] transition-all disabled:opacity-50"
-                  title={alertData.alert.isActive ? 'Pause alert' : 'Resume alert'}
-                >
-                  {alertData.alert.isActive ? <Pause className="w-4 h-4 text-neutral-500" /> : <Play className="w-4 h-4 text-neutral-500" />}
-                </button>
-                <button
-                  onClick={() => setIsModalOpen(true)}
-                  className="flex items-center justify-center w-9 h-9 rounded-lg border bg-white border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.05)] hover:translate-y-[1px] transition-all"
-                  title="Edit preferences"
-                >
-                  <Pencil className="w-4 h-4 text-neutral-500" />
-                </button>
+              {/* Desktop layout: horizontal */}
+              <div className="hidden md:flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                    alertData.alert.isActive ? 'bg-green-100' : 'bg-neutral-200'
+                  }`}>
+                    <Bell className={`w-6 h-6 ${alertData.alert.isActive ? 'text-green-600' : 'text-neutral-400'}`} strokeWidth={1.5} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] font-medium tracking-wider px-2 py-0.5 rounded ${
+                        alertData.alert.isActive
+                          ? 'bg-green-500 text-white'
+                          : 'bg-neutral-300 text-neutral-600'
+                      }`}>
+                        {alertData.alert.isActive ? 'ACTIVE' : 'PAUSED'}
+                      </span>
+                      {alertData.isPaidUser && (
+                        <span className="relative inline-flex items-center bg-pink-600 text-white text-[10px] font-medium tracking-wider px-2 py-0.5 rounded overflow-hidden">
+                          <span
+                            className="absolute animate-get-pro-shine"
+                            style={{
+                              inset: '-100%',
+                              width: '300%',
+                              backgroundImage: 'linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.3) 40%, rgba(255,255,255,0.3) 45%, transparent 45%, transparent 47%, rgba(255,255,255,0.2) 47%, rgba(255,255,255,0.2) 48%, transparent 48%)',
+                            }}
+                          />
+                          <span className="relative">MEMBER</span>
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-neutral-500 mt-1">
+                      {alertData.isPaidUser ? 'Daily personalized alerts' : 'Weekly alerts'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleTogglePause}
+                    disabled={actionLoading}
+                    className="flex items-center justify-center w-9 h-9 rounded-lg border bg-white border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.05)] hover:translate-y-[1px] transition-all disabled:opacity-50"
+                    title={alertData.alert.isActive ? 'Pause alert' : 'Resume alert'}
+                  >
+                    {alertData.alert.isActive ? <Pause className="w-4 h-4 text-neutral-500" /> : <Play className="w-4 h-4 text-neutral-500" />}
+                  </button>
+                  <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="flex items-center justify-center w-9 h-9 rounded-lg border bg-white border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.05)] hover:translate-y-[1px] transition-all"
+                    title="Edit preferences"
+                  >
+                    <Pencil className="w-4 h-4 text-neutral-500" />
+                  </button>
+                </div>
               </div>
             </div>
 

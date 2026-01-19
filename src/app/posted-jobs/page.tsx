@@ -168,16 +168,18 @@ export default function PostedJobsPage() {
             </svg>
             Back to jobs
           </Link>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-4xl font-semibold text-neutral-900">Jobs Posted</h1>
               <p className="text-neutral-500 mt-1">
                 Manage jobs you've posted
               </p>
             </div>
-            <RainbowButton href="/post-job" size="sm">
-              Post a new job
-            </RainbowButton>
+            <div className="self-start md:self-auto">
+              <RainbowButton href="/post-job" size="sm">
+                Post a new job
+              </RainbowButton>
+            </div>
           </div>
         </div>
 

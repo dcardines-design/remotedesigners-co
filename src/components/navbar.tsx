@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import type { User } from '@supabase/supabase-js'
 import { Button, RainbowButton, PersonalizedAlertsModal } from '@/components/ui'
-import { Bell, ArrowUpRight, Menu, X } from 'lucide-react'
+import { Bell, ArrowUpRight, Menu, X, Briefcase, LogIn, Bookmark, FileText, LogOut, Sparkles } from 'lucide-react'
 import { useSignupModal } from '@/context/signup-modal-context'
 import { isCompMember } from '@/lib/admin'
 
@@ -57,22 +57,25 @@ function UserDropdown({ email, onSignOut, showBilling, billingUrl, isMember }: {
             <Link
               href="/saved-jobs"
               onClick={() => setOpen(false)}
-              className="block w-full px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
+              className="flex items-center gap-2 w-full px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
             >
+              <Bookmark className="w-4 h-4 text-neutral-400" />
               Saved Jobs
             </Link>
             <Link
               href="/dashboard/alerts"
               onClick={() => setOpen(false)}
-              className="block w-full px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
+              className="flex items-center gap-2 w-full px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
             >
+              <Bell className="w-4 h-4 text-neutral-400" />
               My Job Alerts
             </Link>
             <Link
               href="/posted-jobs"
               onClick={() => setOpen(false)}
-              className="block w-full px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
+              className="flex items-center gap-2 w-full px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
             >
+              <FileText className="w-4 h-4 text-neutral-400" />
               Jobs Posted
             </Link>
             {showBilling && (
@@ -315,13 +318,21 @@ export function Navbar() {
             )}
           </div>
 
-          {/* Mobile hamburger */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden flex items-center justify-center w-10 h-10 rounded-lg border border-neutral-200 bg-white shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]"
-          >
-            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
+          {/* Mobile buttons */}
+          <div className="md:hidden flex items-center gap-2">
+            <button
+              onClick={() => setAlertsModalOpen(true)}
+              className="flex items-center justify-center w-10 h-10 rounded-lg border border-neutral-200 bg-white shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]"
+            >
+              <Bell className="w-5 h-5 text-neutral-600" />
+            </button>
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="flex items-center justify-center w-10 h-10 rounded-lg border border-neutral-200 bg-white shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -334,89 +345,105 @@ export function Navbar() {
             onClick={() => setMobileMenuOpen(false)}
           />
           <div className="md:hidden fixed top-16 left-0 right-0 bottom-0 bg-neutral-50 z-50 animate-fade-in flex flex-col">
-            {/* Top menu items */}
-            <div className="px-4 py-4 space-y-3">
+            {/* Top: User email status */}
+            {user && (
+              <div className="px-4 pt-4">
+                <div className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-neutral-900 bg-neutral-100 border border-neutral-200 rounded-lg">
+                  <span className="truncate">{user.email}</span>
+                  {hasSubscription === true && (
+                    <span className="relative inline-flex items-center bg-pink-600 text-white text-[8px] font-medium tracking-wider px-1.5 py-0 rounded overflow-hidden flex-shrink-0">
+                      <span
+                        className="absolute animate-get-pro-shine"
+                        style={{
+                          inset: '-100%',
+                          width: '300%',
+                          backgroundImage: 'linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.3) 40%, rgba(255,255,255,0.3) 45%, transparent 45%, transparent 47%, rgba(255,255,255,0.2) 47%, rgba(255,255,255,0.2) 48%, transparent 48%)',
+                        }}
+                      />
+                      <span className="relative">MEMBER</span>
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Bottom: All action buttons */}
+            <div className="mt-auto px-4 pb-8 space-y-3">
+              <Link
+                href="/post-job"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2 w-full px-4 py-3 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[1px] active:shadow-none transition-all"
+              >
+                <Briefcase className="w-4 h-4 text-neutral-400" />
+                Post a job
+              </Link>
               {!user && (
                 <button
                   onClick={() => {
                     setMobileMenuOpen(false)
                     openLoginModal()
                   }}
-                  className="w-full text-left px-4 py-3 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[1px] active:shadow-none transition-all"
+                  className="w-full text-left px-4 py-3 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[1px] active:shadow-none transition-all flex items-center gap-2"
                 >
+                  <LogIn className="w-4 h-4 text-neutral-400" />
                   Log in
                 </button>
               )}
-              <Link
-                href="/post-job"
-                onClick={() => setMobileMenuOpen(false)}
-                className="block w-full px-4 py-3 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[1px] active:shadow-none transition-all"
-              >
-                Post a job
-              </Link>
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false)
-                  setAlertsModalOpen(true)
-                }}
-                className="w-full text-left px-4 py-3 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[1px] active:shadow-none transition-all flex items-center gap-2"
-              >
-                <Bell className="w-4 h-4" />
-                Job Alerts
-              </button>
               {user && (
                 <>
-                  {/* User email display */}
-                  <div className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-neutral-900 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]">
-                    <span className="truncate">{user.email}</span>
-                    {hasSubscription === true && (
-                      <span className="relative inline-flex items-center bg-pink-600 text-white text-[8px] font-medium tracking-wider px-1.5 py-0 rounded overflow-hidden flex-shrink-0">
-                        <span
-                          className="absolute animate-get-pro-shine"
-                          style={{
-                            inset: '-100%',
-                            width: '300%',
-                            backgroundImage: 'linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.3) 40%, rgba(255,255,255,0.3) 45%, transparent 45%, transparent 47%, rgba(255,255,255,0.2) 47%, rgba(255,255,255,0.2) 48%, transparent 48%)',
-                          }}
-                        />
-                        <span className="relative">MEMBER</span>
-                      </span>
-                    )}
-                  </div>
                   <Link
                     href="/saved-jobs"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="block w-full px-4 py-3 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[1px] active:shadow-none transition-all"
+                    className="flex items-center gap-2 w-full px-4 py-3 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[1px] active:shadow-none transition-all"
                   >
+                    <Bookmark className="w-4 h-4 text-neutral-400" />
                     Saved Jobs
+                  </Link>
+                  <Link
+                    href="/dashboard/alerts"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2 w-full px-4 py-3 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[1px] active:shadow-none transition-all"
+                  >
+                    <Bell className="w-4 h-4 text-neutral-400" />
+                    My Job Alerts
                   </Link>
                   <Link
                     href="/posted-jobs"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="block w-full px-4 py-3 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[1px] active:shadow-none transition-all"
+                    className="flex items-center gap-2 w-full px-4 py-3 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[1px] active:shadow-none transition-all"
                   >
+                    <FileText className="w-4 h-4 text-neutral-400" />
                     Jobs Posted
                   </Link>
+                  {showBilling && (
+                    <a
+                      href={billingUrl || '/api/stripe/portal'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[1px] active:shadow-none transition-all"
+                    >
+                      Manage Billing
+                      <ArrowUpRight className="w-4 h-4 text-neutral-400" />
+                    </a>
+                  )}
                   <button
                     onClick={() => {
                       setMobileMenuOpen(false)
                       handleSignOut()
                     }}
-                    className="w-full text-left px-4 py-3 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[1px] active:shadow-none transition-all"
+                    className="w-full text-left px-4 py-3 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[1px] active:shadow-none transition-all flex items-center gap-2"
                   >
+                    <LogOut className="w-4 h-4 text-neutral-400" />
                     Logout
                   </button>
                 </>
               )}
-            </div>
-
-            {/* Bottom: Get Membership */}
-            {authLoaded && hasSubscription === false && (
-              <div className="mt-auto px-4 pb-8">
+              {authLoaded && hasSubscription === false && (
                 <Link
                   href="/membership"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="relative block w-full px-4 py-3 text-sm font-medium text-white bg-pink-600 border border-pink-700 rounded-lg shadow-[0px_2px_0px_0px_#9d174d] active:translate-y-[1px] active:shadow-none transition-all text-center overflow-hidden"
+                  className="relative flex items-center justify-center gap-2 w-full px-4 py-3 text-sm font-medium text-white bg-pink-600 border border-pink-700 rounded-lg shadow-[0px_2px_0px_0px_#9d174d] active:translate-y-[1px] active:shadow-none transition-all overflow-hidden"
                 >
                   <span
                     className="absolute animate-get-pro-shine"
@@ -426,10 +453,11 @@ export function Navbar() {
                       backgroundImage: 'linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.2) 40%, rgba(255,255,255,0.2) 45%, transparent 45%, transparent 47%, rgba(255,255,255,0.15) 47%, rgba(255,255,255,0.15) 48%, transparent 48%)',
                     }}
                   />
+                  <Sparkles className="w-4 h-4 relative z-10" />
                   <span className="relative z-10">Get Membership</span>
                 </Link>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </>
       )}
