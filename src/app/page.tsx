@@ -11,6 +11,7 @@ import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import { toast } from 'sonner'
 import { FREE_JOBS_LIMIT } from '@/lib/stripe'
 import { isCompMember } from '@/lib/admin'
+import { trackEvent } from '@/components/posthog-provider'
 
 // Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -1003,6 +1004,13 @@ function HomeContent() {
   }, [filters])
 
   const handleFilterChange = (key: keyof FilterState, value: any) => {
+    // Track filter changes in PostHog
+    if (key === 'search' && value) {
+      trackEvent.search(value, jobs.length)
+    } else if (key !== 'search' && value) {
+      const filterValue = Array.isArray(value) ? value.join(',') : String(value)
+      trackEvent.filterApplied(key, filterValue)
+    }
     setFilters(prev => ({ ...prev, [key]: value }))
   }
 

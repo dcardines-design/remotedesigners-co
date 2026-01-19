@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import React from 'react'
+import { trackEvent } from '@/components/posthog-provider'
 import {
   getInitials,
   getCompanyLogoUrl,
@@ -355,7 +356,12 @@ export function JobCard({
                     href={isSubscribed ? job.apply_url : "/membership"}
                     target={isSubscribed ? "_blank" : undefined}
                     rel={isSubscribed ? "noopener noreferrer" : undefined}
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (isSubscribed) {
+                        trackEvent.applyClick(job.id, job.title, job.company, job.apply_url)
+                      }
+                    }}
                     className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-neutral-800 rounded shadow-[0px_2px_0px_0px_rgba(0,0,0,0.2)] hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.2)] active:translate-y-[2px] active:shadow-none transition-all"
                   >
                     Apply

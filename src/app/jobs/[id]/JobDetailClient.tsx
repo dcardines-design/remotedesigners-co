@@ -8,6 +8,7 @@ import { SocialProof, RainbowButton } from '@/components/ui'
 import { useSignupModal } from '@/context/signup-modal-context'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import { isCompMember } from '@/lib/admin'
+import { trackEvent } from '@/components/posthog-provider'
 
 interface Job {
   id: string
@@ -397,6 +398,9 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
   // Track page view
   useEffect(() => {
     if (!initialJob) return
+    // PostHog tracking
+    trackEvent.jobView(initialJob.id, initialJob.title, initialJob.company)
+    // Internal tracking
     fetch(`/api/jobs/${initialJob.id}/track`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -496,12 +500,14 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
           .eq('user_id', userId)
           .eq('job_id', job.id)
         setIsSaved(false)
+        trackEvent.jobSave(job.id, job.title, false)
         window.dispatchEvent(new Event('saved-jobs-changed'))
       } else {
         await supabase
           .from('saved_jobs')
           .insert({ user_id: userId, job_id: job.id })
         setIsSaved(true)
+        trackEvent.jobSave(job.id, job.title, true)
         window.dispatchEvent(new Event('saved-jobs-changed'))
       }
     } catch (err) {
@@ -817,6 +823,9 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
                       router.push(`/membership?skip_url=${encodeURIComponent(window.location.href)}`)
                       return
                     }
+                    // PostHog tracking
+                    trackEvent.applyClick(job.id, job.title, job.company, job.apply_url)
+                    // Internal tracking
                     fetch(`/api/jobs/${job.id}/track`, {
                       method: 'POST',
                       headers: { 'Content-Type': 'application/json' },

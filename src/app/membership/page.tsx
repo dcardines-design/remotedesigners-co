@@ -8,6 +8,7 @@ import { HeroBackground } from '@/components/hero-background'
 import { SUBSCRIPTION_PRICING } from '@/lib/stripe'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import { useSignupModal } from '@/context/signup-modal-context'
+import { trackEvent } from '@/components/posthog-provider'
 
 // Animated gradient text component with fabric-like flowing effect
 function AnimatedGradientText({ children }: { children: React.ReactNode }) {
@@ -158,6 +159,10 @@ function PremiumContent() {
     setError(null)
     setSuccessMessage(null)
 
+    // Track subscription checkout started
+    const planData = plans.find(p => p.id === selectedPlan)
+    trackEvent.jobPostPaymentStarted(planData?.price || 0)
+
     try {
       const response = await fetch('/api/subscribe/checkout', {
         method: 'POST',
@@ -204,6 +209,7 @@ function PremiumContent() {
               console.error('Failed to save pending preferences:', e)
             }
           }
+          trackEvent.subscriptionStarted(selectedPlan, planData?.price || 0)
           window.location.href = '/?subscribed=true'
           return
         }

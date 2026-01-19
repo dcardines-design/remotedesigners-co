@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import { Input, RainbowButton } from '@/components/ui'
+import { trackEvent } from '@/components/posthog-provider'
 
 interface SignupModalProps {
   isOpen: boolean
@@ -50,6 +51,7 @@ export function SignupModal({ isOpen, onClose, onSwitchToLogin }: SignupModalPro
     if (error) {
       setMessage({ type: 'error', text: error.message })
     } else {
+      trackEvent.signUp('magic_link')
       setMessage({
         type: 'success',
         text: 'Check your email for the magic link to create your account.',
