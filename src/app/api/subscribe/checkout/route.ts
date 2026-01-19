@@ -14,6 +14,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
     }
 
+    // Validate required environment variables for production
+    if (!TEST_MODE) {
+      if (!process.env.STRIPE_SECRET_KEY) {
+        console.error('STRIPE_SECRET_KEY is not configured')
+        return NextResponse.json({ error: 'Payment system not configured' }, { status: 500 })
+      }
+      if (!process.env.NEXT_PUBLIC_APP_URL) {
+        console.error('NEXT_PUBLIC_APP_URL is not configured')
+        return NextResponse.json({ error: 'App URL not configured' }, { status: 500 })
+      }
+    }
+
     // Check if user is logged in
     const supabase = await createAuthSupabaseClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -108,8 +120,9 @@ export async function POST(request: Request) {
     })
   } catch (error) {
     console.error('Subscription checkout error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: 'Failed to create checkout session' },
+      { error: `Failed to create checkout session: ${errorMessage}` },
       { status: 500 }
     )
   }
