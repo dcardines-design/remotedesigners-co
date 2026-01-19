@@ -400,7 +400,7 @@ export async function GET(request: NextRequest) {
             from: 'RemoteDesigners.co <hello@remotedesigners.co>',
             to: testEmail,
             subject: isPaidTest
-              ? `[TEST] ${recentJobs.length} Jobs Matching Your Preferences 🔔`
+              ? `[TEST] ${recentJobs.length} New Jobs For You 🔔`
               : `[TEST] ${recentJobs.length} New Remote Design Jobs 🎨`,
             html: generateEmailHTML(recentJobs as Job[], 'test-token', {
               isPaidUser: isPaidTest,
@@ -449,7 +449,7 @@ export async function GET(request: NextRequest) {
         from: 'RemoteDesigners.co <hello@remotedesigners.co>',
         to: testEmail,
         subject: isPaidTest
-          ? `[TEST] ${jobsForTest.length} Jobs Matching Your Preferences 🔔`
+          ? `[TEST] ${jobsForTest.length} New Jobs For You 🔔`
           : `[TEST] ${jobsForTest.length} New Remote Design Jobs 🎨`,
         html: generateEmailHTML(jobsForTest as Job[], 'test-token', {
           isPaidUser: isPaidTest,
@@ -533,7 +533,7 @@ export async function GET(request: NextRequest) {
         const isPersonalized = subscriber.isPaidUser && !!hasPreferences
         const subject = subscriber.isPaidUser
           ? isPersonalized
-            ? `${jobsToSend.length} Jobs Matching Your Preferences 🔔`
+            ? `${jobsToSend.length} New Jobs For You 🔔`
             : `${jobsToSend.length} New Remote Design Jobs 🎨`
           : `${jobsToSend.length} New Remote Design Jobs 🎨`
 
