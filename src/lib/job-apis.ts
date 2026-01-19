@@ -744,8 +744,8 @@ export async function fetchIndeedJobs(region?: IndeedRegion): Promise<Normalized
       const searchResults = data.hits || data.jobs || []
       console.log(`Indeed ${locality}: Found ${searchResults.length} results for "${query}"`)
 
-      // Fetch details for each job (limit to avoid rate limits)
-      for (const result of searchResults.slice(0, 5)) {
+      // Fetch details for each job (limit to 3 to stay within timeout)
+      for (const result of searchResults.slice(0, 3)) {
         if (seenIds.has(result.id)) continue
         seenIds.add(result.id)
 
@@ -798,12 +798,12 @@ export async function fetchIndeedJobs(region?: IndeedRegion): Promise<Normalized
           is_featured: false,
         })
 
-        // Rate limiting between detail requests
-        await new Promise(resolve => setTimeout(resolve, 300))
+        // Rate limiting between detail requests (reduced for faster sync)
+        await new Promise(resolve => setTimeout(resolve, 100))
       }
 
-      // Rate limiting between search queries
-      await new Promise(resolve => setTimeout(resolve, 500))
+      // Rate limiting between search queries (reduced for faster sync)
+      await new Promise(resolve => setTimeout(resolve, 150))
     }
 
     console.log(`Indeed: Fetched ${allJobs.length} jobs with details`)
