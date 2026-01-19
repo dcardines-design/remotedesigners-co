@@ -55,8 +55,8 @@ type Plan = 'monthly' | 'quarterly' | 'annual'
 
 const plans: { id: Plan; label: string; price: number; period: string; perMonth: string; savings?: string; savingsAmount?: string; savingsYearly?: string }[] = [
   { id: 'monthly', label: 'Monthly', price: SUBSCRIPTION_PRICING.MONTHLY, period: '/mo', perMonth: '' },
-  { id: 'quarterly', label: 'Quarterly', price: SUBSCRIPTION_PRICING.QUARTERLY, period: '/quarter', perMonth: '$9.67/mo', savings: 'Save 25%', savingsAmount: 'Save $3/mo', savingsYearly: '$9.67/mo' },
-  { id: 'annual', label: 'Annual', price: SUBSCRIPTION_PRICING.ANNUAL, period: '/year', perMonth: '$4.08/mo', savings: 'Best Value', savingsAmount: 'Save $9/mo', savingsYearly: '$4.08/mo' },
+  { id: 'quarterly', label: 'Quarterly', price: SUBSCRIPTION_PRICING.QUARTERLY, period: '/quarter', perMonth: '$4/mo', savings: 'Save 20%', savingsAmount: 'Save $1/mo', savingsYearly: '$4/mo' },
+  { id: 'annual', label: 'Annual', price: SUBSCRIPTION_PRICING.ANNUAL, period: '/year', perMonth: '$2.42/mo', savings: 'Best Value', savingsAmount: 'Save $2.57/mo', savingsYearly: '$2.42/mo' },
 ]
 
 const stats = [

@@ -44,9 +44,9 @@ export const JOB_POSTING_PRICES = {
 
 // Subscription Pricing (in USD)
 export const SUBSCRIPTION_PRICING = {
-  MONTHLY: 12.99,
-  QUARTERLY: 29, // ~$9.67/mo (25% off)
-  ANNUAL: 49, // ~$4.08/mo (68% off)
+  MONTHLY: 4.99,
+  QUARTERLY: 12, // $4/mo (20% off)
+  ANNUAL: 29, // ~$2.42/mo (52% off)
 }
 
 export type SubscriptionPlan = 'monthly' | 'quarterly' | 'annual'
