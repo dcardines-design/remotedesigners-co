@@ -410,7 +410,24 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: 'Resend not configured' }, { status: 500 })
       }
       const isPaidTest = testTier === 'paid'
-      const jobsForTest = isPaidTest ? last24hJobs : last7dJobs
+
+      // Fetch real preferences if subscriber exists
+      const { data: testSubscriber } = await supabase
+        .from('subscribers')
+        .select('preferences')
+        .eq('email', testEmail.toLowerCase())
+        .single()
+
+      const testPreferences = testSubscriber?.preferences as Subscriber['preferences'] | undefined
+      const hasPrefs = !!(testPreferences?.jobTypes?.length || testPreferences?.locations?.length)
+
+      // Filter jobs by preferences if they exist
+      let jobsForTest = isPaidTest ? last24hJobs : last7dJobs
+      if (hasPrefs) {
+        jobsForTest = jobsForTest.filter(job => jobMatchesPreferences(job as Job, testPreferences))
+      }
+
+      const isPersonalized = isPaidTest && hasPrefs
 
       const { error: sendError } = await resend.emails.send({
         from: 'RemoteDesigners.co <hello@remotedesigners.co>',
@@ -420,8 +437,9 @@ export async function GET(request: NextRequest) {
           : `[TEST] ${jobsForTest.length} New Remote Design Jobs`,
         html: generateEmailHTML(jobsForTest as Job[], 'test-token', {
           isPaidUser: isPaidTest,
-          isPersonalized: isPaidTest,
-          jobTimeframe: isPaidTest ? '24h' : '7d'
+          isPersonalized,
+          jobTimeframe: isPaidTest ? '24h' : '7d',
+          preferences: testPreferences,
         }),
       })
 
@@ -435,7 +453,8 @@ export async function GET(request: NextRequest) {
         message: `Test email sent to ${testEmail} (tier: ${testTier || 'free'})`,
         jobs: jobsForTest.length,
         last24hCount: last24hJobs.length,
-        last7dCount: last7dJobs.length
+        last7dCount: last7dJobs.length,
+        preferences: testPreferences,
       })
     }
 
