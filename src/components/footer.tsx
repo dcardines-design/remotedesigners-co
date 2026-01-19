@@ -117,7 +117,6 @@ export function Footer() {
           <div>
             <h3 className="text-white text-sm font-medium mb-4">Company</h3>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
               <li><Link href="/post-job" className="hover:text-white transition-colors">Post a Job</Link></li>
               <li><button onClick={() => setIsLoginModalOpen(true)} className="hover:text-white transition-colors">Log In</button></li>
               <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
