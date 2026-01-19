@@ -41,12 +41,27 @@ export async function syncJobs(jobs: NormalizedJob[], sourceName: string) {
     posted_at: job.posted_at,
   }))
 
-  // Filter out duplicates
-  const jobsToInsert = allJobs.filter(job =>
-    !existingIds.has(job.external_id) && !existingByUrl.has(job.apply_url)
-  )
+  // Filter out duplicates and find jobs to update (better descriptions)
+  const jobsToInsert: typeof allJobs = []
+  const jobsToUpdate: Array<{ id: string; description: string }> = []
 
-  console.log(`${sourceName}: ${jobsToInsert.length} new jobs (${allJobs.length - jobsToInsert.length} already exist)`)
+  for (const job of allJobs) {
+    const existingByIdMatch = existingById.get(job.external_id)
+    const existingByUrlMatch = existingByUrl.get(job.apply_url)
+    const existing = existingByIdMatch || existingByUrlMatch
+
+    if (!existing) {
+      // New job - insert it
+      jobsToInsert.push(job)
+    } else if (job.description && job.description.length > 100) {
+      // Existing job - check if new description is significantly better (50%+ longer)
+      if (job.description.length > existing.descLength * 1.5) {
+        jobsToUpdate.push({ id: existing.id, description: job.description.slice(0, 20000) })
+      }
+    }
+  }
+
+  console.log(`${sourceName}: ${jobsToInsert.length} new, ${jobsToUpdate.length} to update, ${allJobs.length - jobsToInsert.length - jobsToUpdate.length} unchanged`)
 
   // Insert new jobs in batches
   let inserted = 0
@@ -79,7 +94,18 @@ export async function syncJobs(jobs: NormalizedJob[], sourceName: string) {
     }
   }
 
-  console.log(`${sourceName} sync complete: ${inserted} inserted, ${skipped} skipped${tweeted ? ', tweeted' : ''}`)
+  // Update jobs with better descriptions
+  let updated = 0
+  for (const job of jobsToUpdate) {
+    const { error } = await supabase
+      .from('jobs')
+      .update({ description: job.description })
+      .eq('id', job.id)
 
-  return { source: sourceName, fetched: jobs.length, inserted, skipped }
+    if (!error) updated++
+  }
+
+  console.log(`${sourceName} sync complete: ${inserted} inserted, ${updated} updated, ${skipped} skipped${tweeted ? ', tweeted' : ''}`)
+
+  return { source: sourceName, fetched: jobs.length, inserted, updated, skipped }
 }
