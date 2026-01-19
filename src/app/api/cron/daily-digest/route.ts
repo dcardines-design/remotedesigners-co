@@ -1,16 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase'
-import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses'
+import { Resend } from 'resend'
 import { generateJobSlug } from '@/lib/slug'
 
-const sesClient = process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY
-  ? new SESClient({
-      region: process.env.AWS_REGION || 'us-east-1',
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      },
-    })
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
   : null
 
 // Verify cron secret to prevent unauthorized access
@@ -167,6 +161,16 @@ function formatSalary(job: Job): string | null {
   return null
 }
 
+// Generate a consistent color based on company name
+function getCompanyColor(company: string): string {
+  const colors = ['#667eea', '#f59e0b', '#10b981', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16']
+  let hash = 0
+  for (let i = 0; i < company.length; i++) {
+    hash = company.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  return colors[Math.abs(hash) % colors.length]
+}
+
 interface EmailOptions {
   isPaidUser: boolean
   isPersonalized: boolean
@@ -179,17 +183,16 @@ function generateEmailHTML(jobs: Job[], unsubscribeToken: string, options: Email
   const jobsHTML = jobs.slice(0, 10).map(job => {
     const salary = formatSalary(job)
     const jobUrl = `https://remotedesigners.co/jobs/${generateJobSlug(job.title, job.company, job.id)}`
+    const color = getCompanyColor(job.company)
 
+    // Always use letter avatar for email compatibility
     return `
       <tr>
         <td style="padding: 20px 0; border-bottom: 1px solid #e5e5e5;">
           <table cellpadding="0" cellspacing="0" border="0" width="100%">
             <tr>
               <td width="50" valign="top">
-                ${job.company_logo
-                  ? `<img src="${job.company_logo}" alt="${job.company}" width="44" height="44" style="border-radius: 8px; object-fit: contain;" />`
-                  : `<div style="width: 44px; height: 44px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; text-align: center; line-height: 44px; color: white; font-weight: 600;">${job.company.charAt(0)}</div>`
-                }
+                <div style="width: 44px; height: 44px; background: ${color}; border-radius: 8px; text-align: center; line-height: 44px; color: white; font-weight: 600; font-size: 18px;">${job.company.charAt(0).toUpperCase()}</div>
               </td>
               <td style="padding-left: 16px;">
                 <a href="${jobUrl}" style="font-size: 16px; font-weight: 600; color: #171717; text-decoration: none;">${job.title}</a>
@@ -232,7 +235,7 @@ function generateEmailHTML(jobs: Job[], unsubscribeToken: string, options: Email
                       <td style="padding: 20px;">
                         <p style="margin: 0 0 8px; font-size: 15px; font-weight: 600; color: white;">Get Daily Personalized Alerts</p>
                         <p style="margin: 0 0 12px; font-size: 13px; color: rgba(255,255,255,0.85);">Upgrade to receive daily job alerts tailored to your preferences.</p>
-                        <a href="https://remotedesigners.co/pricing" style="display: inline-block; padding: 8px 16px; background: white; color: #667eea; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600;">Upgrade Now</a>
+                        <a href="https://remotedesigners.co/membership" style="display: inline-block; padding: 8px 16px; background: white; color: #667eea; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 600;">Upgrade Now</a>
                       </td>
                     </tr>
                   </table>
@@ -356,34 +359,29 @@ export async function GET(request: NextRequest) {
           .limit(10)
 
         if (recentJobs && recentJobs.length > 0) {
-          if (!sesClient) {
-            return NextResponse.json({ error: 'AWS SES not configured' }, { status: 500 })
+          if (!resend) {
+            return NextResponse.json({ error: 'Resend not configured' }, { status: 500 })
           }
-          const fromEmail = process.env.SES_FROM_EMAIL || 'hello@remotedesigners.co'
           const isPaidTest = testTier === 'paid'
-          const command = new SendEmailCommand({
-            Source: `RemoteDesigners.co <${fromEmail}>`,
-            Destination: { ToAddresses: [testEmail] },
-            Message: {
-              Subject: {
-                Data: isPaidTest
-                  ? `[TEST] ${recentJobs.length} Jobs Matching Your Preferences 🎯`
-                  : `[TEST] ${recentJobs.length} New Remote Design Jobs 🎨`,
-                Charset: 'UTF-8'
-              },
-              Body: {
-                Html: {
-                  Data: generateEmailHTML(recentJobs as Job[], 'test-token', {
-                    isPaidUser: isPaidTest,
-                    isPersonalized: isPaidTest,
-                    jobTimeframe: isPaidTest ? '24h' : '7d'
-                  }),
-                  Charset: 'UTF-8'
-                }
-              },
-            },
+
+          const { error: sendError } = await resend.emails.send({
+            from: 'RemoteDesigners.co <hello@remotedesigners.co>',
+            to: testEmail,
+            subject: isPaidTest
+              ? `[TEST] ${recentJobs.length} Jobs Matching Your Preferences`
+              : `[TEST] ${recentJobs.length} New Remote Design Jobs`,
+            html: generateEmailHTML(recentJobs as Job[], 'test-token', {
+              isPaidUser: isPaidTest,
+              isPersonalized: isPaidTest,
+              jobTimeframe: isPaidTest ? '24h' : '7d'
+            }),
           })
-          await sesClient.send(command)
+
+          if (sendError) {
+            console.error('Failed to send test email:', sendError)
+            return NextResponse.json({ error: 'Failed to send email' }, { status: 500 })
+          }
+
           return NextResponse.json({ success: true, message: `Test email sent to ${testEmail} (tier: ${testTier || 'free'})`, jobs: recentJobs.length })
         }
       }
@@ -392,36 +390,30 @@ export async function GET(request: NextRequest) {
 
     // In test mode, just send to the test email
     if (testEmail) {
-      if (!sesClient) {
-        return NextResponse.json({ error: 'AWS SES not configured' }, { status: 500 })
+      if (!resend) {
+        return NextResponse.json({ error: 'Resend not configured' }, { status: 500 })
       }
-      const fromEmail = process.env.SES_FROM_EMAIL || 'hello@remotedesigners.co'
       const isPaidTest = testTier === 'paid'
       const jobsForTest = isPaidTest ? last24hJobs : last7dJobs
 
-      const command = new SendEmailCommand({
-        Source: `RemoteDesigners.co <${fromEmail}>`,
-        Destination: { ToAddresses: [testEmail] },
-        Message: {
-          Subject: {
-            Data: isPaidTest
-              ? `[TEST] ${jobsForTest.length} Jobs Matching Your Preferences 🎯`
-              : `[TEST] ${jobsForTest.length} New Remote Design Jobs 🎨`,
-            Charset: 'UTF-8'
-          },
-          Body: {
-            Html: {
-              Data: generateEmailHTML(jobsForTest as Job[], 'test-token', {
-                isPaidUser: isPaidTest,
-                isPersonalized: isPaidTest,
-                jobTimeframe: isPaidTest ? '24h' : '7d'
-              }),
-              Charset: 'UTF-8'
-            }
-          },
-        },
+      const { error: sendError } = await resend.emails.send({
+        from: 'RemoteDesigners.co <hello@remotedesigners.co>',
+        to: testEmail,
+        subject: isPaidTest
+          ? `[TEST] ${jobsForTest.length} Jobs Matching Your Preferences`
+          : `[TEST] ${jobsForTest.length} New Remote Design Jobs`,
+        html: generateEmailHTML(jobsForTest as Job[], 'test-token', {
+          isPaidUser: isPaidTest,
+          isPersonalized: isPaidTest,
+          jobTimeframe: isPaidTest ? '24h' : '7d'
+        }),
       })
-      await sesClient.send(command)
+
+      if (sendError) {
+        console.error('Failed to send test email:', sendError)
+        return NextResponse.json({ error: 'Failed to send email' }, { status: 500 })
+      }
+
       return NextResponse.json({
         success: true,
         message: `Test email sent to ${testEmail} (tier: ${testTier || 'free'})`,
@@ -438,13 +430,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ message: 'No active subscribers', sent: 0 })
     }
 
-    // Check if SES is configured
-    if (!sesClient) {
-      console.error('AWS SES not configured')
+    // Check if Resend is configured
+    if (!resend) {
+      console.error('Resend not configured')
       return NextResponse.json({ error: 'Email service not configured' }, { status: 500 })
     }
-
-    const fromEmail = process.env.SES_FROM_EMAIL || 'hello@remotedesigners.co'
 
     // Send emails
     let sent = 0
@@ -492,34 +482,26 @@ export async function GET(request: NextRequest) {
         const isPersonalized = subscriber.isPaidUser && !!hasPreferences
         const subject = subscriber.isPaidUser
           ? isPersonalized
-            ? `${jobsToSend.length} Jobs Matching Your Preferences 🎯`
-            : `${jobsToSend.length} New Remote Design Jobs 🎨`
-          : `${jobsToSend.length} New Remote Design Jobs 🎨`
+            ? `${jobsToSend.length} Jobs Matching Your Preferences`
+            : `${jobsToSend.length} New Remote Design Jobs`
+          : `${jobsToSend.length} New Remote Design Jobs`
 
-        const command = new SendEmailCommand({
-          Source: `RemoteDesigners.co <${fromEmail}>`,
-          Destination: {
-            ToAddresses: [subscriber.email],
-          },
-          Message: {
-            Subject: {
-              Data: subject,
-              Charset: 'UTF-8',
-            },
-            Body: {
-              Html: {
-                Data: generateEmailHTML(jobsToSend as Job[], subscriber.unsubscribe_token, {
-                  isPaidUser: subscriber.isPaidUser,
-                  isPersonalized,
-                  jobTimeframe: subscriber.isPaidUser ? '24h' : '7d'
-                }),
-                Charset: 'UTF-8',
-              },
-            },
-          },
+        const { error: sendError } = await resend.emails.send({
+          from: 'RemoteDesigners.co <hello@remotedesigners.co>',
+          to: subscriber.email,
+          subject,
+          html: generateEmailHTML(jobsToSend as Job[], subscriber.unsubscribe_token, {
+            isPaidUser: subscriber.isPaidUser,
+            isPersonalized,
+            jobTimeframe: subscriber.isPaidUser ? '24h' : '7d'
+          }),
         })
 
-        await sesClient.send(command)
+        if (sendError) {
+          console.error(`Failed to send to ${subscriber.email}:`, sendError)
+          failed++
+          continue
+        }
 
         // Update last_email_sent_at
         await supabase
