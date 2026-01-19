@@ -720,9 +720,9 @@ export async function fetchIndeedJobs(region?: IndeedRegion): Promise<Normalized
     const seenIds = new Set<string>()
 
     // Get searches for specified region or all regions
-    const searches = region
-      ? INDEED_REGIONS[region].searches
-      : Object.values(INDEED_REGIONS).flatMap(r => r.searches)
+    const searches: Array<{ query: string; locality: string }> = region
+      ? [...INDEED_REGIONS[region].searches]
+      : Object.values(INDEED_REGIONS).flatMap(r => [...r.searches])
 
     for (const { query, locality } of searches) {
       const response = await fetch(

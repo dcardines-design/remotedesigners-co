@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { syncJobs } from '@/lib/sync-jobs'
+import { NormalizedJob } from '@/lib/job-apis'
 
 interface IndeedJob {
   id: string
@@ -28,23 +29,6 @@ interface IndeedJobDetails {
   }
   job_type?: string
   link?: string
-}
-
-interface NormalizedJob {
-  title: string
-  company: string
-  company_logo?: string
-  location: string
-  salary_min?: number
-  salary_max?: number
-  salary_text?: string
-  description?: string
-  job_type?: string
-  experience_level?: string
-  skills: string[]
-  apply_url: string
-  external_id: string
-  posted_at: string
 }
 
 const DESIGN_KEYWORDS = [
@@ -181,6 +165,8 @@ async function fetchIndeedAsiaJobs(): Promise<NormalizedJob[]> {
             : `${jobLocation} (Remote)`
 
           allJobs.push({
+            id: `indeed-asia-${result.id}`,
+            source: 'indeed' as const,
             title: result.title,
             company: result.company_name || 'Unknown',
             location: finalLocation,
@@ -190,8 +176,8 @@ async function fetchIndeedAsiaJobs(): Promise<NormalizedJob[]> {
             job_type: details?.job_type?.toLowerCase() || 'full-time',
             skills: extractSkills(details?.description || ''),
             apply_url: result.link || details?.link || `https://indeed.com/viewjob?jk=${result.id}`,
-            external_id: `indeed_asia_${result.id}`,
             posted_at: new Date().toISOString(),
+            is_featured: false,
           })
         }
 
