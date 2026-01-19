@@ -8,7 +8,7 @@ import { HeroBackground } from '@/components/hero-background'
 import { SUBSCRIPTION_PRICING } from '@/lib/stripe'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import { useSignupModal } from '@/context/signup-modal-context'
-import { trackEvent } from '@/components/posthog-provider'
+import { trackEvent } from '@/components/analytics-provider'
 
 // Animated gradient text component with fabric-like flowing effect
 function AnimatedGradientText({ children }: { children: React.ReactNode }) {

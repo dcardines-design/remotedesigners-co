@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import { Input, RainbowButton } from '@/components/ui'
-import { trackEvent } from '@/components/posthog-provider'
+import { trackEvent } from '@/components/analytics-provider'
 
 interface SignupModalProps {
   isOpen: boolean

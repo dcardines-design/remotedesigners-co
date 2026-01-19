@@ -4,7 +4,7 @@ import './globals.css'
 import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
 import { SignupModalProvider } from '@/context/signup-modal-context'
-import { PostHogProvider } from '@/components/posthog-provider'
+import { AnalyticsProvider } from '@/components/analytics-provider'
 import { Toaster } from 'sonner'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -114,7 +114,7 @@ export default function RootLayout({
         <script src="https://js.stripe.com/v3/" defer></script>
       </head>
       <body className={`${inter.className} ${dmSans.variable}`}>
-        <PostHogProvider>
+        <AnalyticsProvider>
           <SignupModalProvider>
             <Navbar />
             <main className="min-h-screen pb-16">
@@ -131,7 +131,7 @@ export default function RootLayout({
               }}
             />
           </SignupModalProvider>
-        </PostHogProvider>
+        </AnalyticsProvider>
       </body>
     </html>
   )

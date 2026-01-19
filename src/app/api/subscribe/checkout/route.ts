@@ -16,9 +16,15 @@ export async function POST(request: Request) {
 
     // Validate required environment variables for production
     if (!TEST_MODE) {
-      if (!process.env.STRIPE_SECRET_KEY) {
+      const stripeKey = process.env.STRIPE_SECRET_KEY
+      if (!stripeKey) {
         console.error('STRIPE_SECRET_KEY is not configured')
         return NextResponse.json({ error: 'Payment system not configured' }, { status: 500 })
+      }
+      // Check key format
+      if (!stripeKey.startsWith('sk_live_') && !stripeKey.startsWith('sk_test_')) {
+        console.error('STRIPE_SECRET_KEY has invalid format, starts with:', stripeKey.substring(0, 10))
+        return NextResponse.json({ error: `Invalid Stripe key format (starts with: ${stripeKey.substring(0, 8)}...)` }, { status: 500 })
       }
       if (!process.env.NEXT_PUBLIC_APP_URL) {
         console.error('NEXT_PUBLIC_APP_URL is not configured')

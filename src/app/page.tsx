@@ -11,7 +11,7 @@ import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import { toast } from 'sonner'
 import { FREE_JOBS_LIMIT } from '@/lib/stripe'
 import { isCompMember } from '@/lib/admin'
-import { trackEvent } from '@/components/posthog-provider'
+import { trackEvent } from '@/components/analytics-provider'
 
 // Debounce hook
 function useDebounce<T>(value: T, delay: number): T {

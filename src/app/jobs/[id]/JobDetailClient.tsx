@@ -8,7 +8,7 @@ import { SocialProof, RainbowButton } from '@/components/ui'
 import { useSignupModal } from '@/context/signup-modal-context'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import { isCompMember } from '@/lib/admin'
-import { trackEvent } from '@/components/posthog-provider'
+import { trackEvent } from '@/components/analytics-provider'
 
 interface Job {
   id: string

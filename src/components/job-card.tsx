@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import React from 'react'
-import { trackEvent } from '@/components/posthog-provider'
+import { trackEvent } from '@/components/analytics-provider'
 import {
   getInitials,
   getCompanyLogoUrl,
