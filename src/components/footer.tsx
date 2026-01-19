@@ -131,9 +131,9 @@ export function Footer() {
             <Image
               src="/logo-white.png"
               alt="RemoteDesigners.co"
-              width={180}
-              height={36}
-              className="h-7 w-auto"
+              width={240}
+              height={48}
+              className="h-10 w-auto"
             />
           </div>
           <p className="text-sm">
