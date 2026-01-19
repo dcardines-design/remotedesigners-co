@@ -281,7 +281,23 @@ export function PersonalizedAlertsModal({
         {/* Header */}
         <div className="px-6 pt-6 pb-2">
           <h2 className="text-xl font-semibold text-neutral-900">
-            {isUpdate ? 'Update Job Alert' : 'Create Job Alert'}
+            {isUpdate ? (
+              'Update Job Alert'
+            ) : (
+              <>
+                Create{' '}
+                <span
+                  className="font-ivy-display bg-clip-text text-transparent"
+                  style={{
+                    backgroundImage:
+                      'linear-gradient(135deg, #0D9488 0%, #0891B2 15%, #2563EB 30%, #7C3AED 45%, #EC4899 60%, #F97316 75%, #EAB308 90%, #10B981 100%)',
+                  }}
+                >
+                  {isMember ? 'Daily' : 'Weekly'}
+                </span>{' '}
+                Job Alert
+              </>
+            )}
           </h2>
           <p className="text-sm text-neutral-500 mt-1">
             {isUpdate
