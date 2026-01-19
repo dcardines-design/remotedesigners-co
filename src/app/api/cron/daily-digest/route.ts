@@ -212,17 +212,13 @@ function generateEmailHTML(jobs: Job[], unsubscribeToken: string, options: Email
   const timeframeText = jobTimeframe === '24h' ? 'last 24 hours' : 'last 7 days'
 
   let introText: string
-  let headerSubtitle: string
 
   if (isPaidUser && isPersonalized) {
-    introText = `Here are the latest remote design jobs matching your preferences. We found <strong>${jobs.length} new opportunities</strong> for you!`
-    headerSubtitle = 'Your Personalized Job Alerts'
+    introText = `Stop doom-scrolling LinkedIn. We did the work for you – <strong>${jobs.length} design gigs</strong> matching your preferences, actually worth your time.`
   } else if (isPaidUser) {
-    introText = `Here are the latest remote design jobs from the ${timeframeText}. We found <strong>${jobs.length} new opportunities</strong> for you!`
-    headerSubtitle = 'Your Daily Job Alerts'
+    introText = `Good news – we've been hunting while you slept. Here are <strong>${jobs.length} fresh design opportunities</strong> from the ${timeframeText}. One of them could be *the* one.`
   } else {
-    introText = `Here are the latest remote design jobs from the ${timeframeText}. We found <strong>${jobs.length} new opportunities</strong> for you!`
-    headerSubtitle = 'Remote Design Jobs'
+    introText = `We scraped the internet so you don't have to. <strong>${jobs.length} new remote design jobs</strong> from the ${timeframeText} – your next gig might be hiding in here.`
   }
 
   // Upgrade CTA for free users
@@ -257,9 +253,8 @@ function generateEmailHTML(jobs: Job[], unsubscribeToken: string, options: Email
             <table cellpadding="0" cellspacing="0" border="0" width="600" style="background-color: white; border-radius: 12px; overflow: hidden;">
               <!-- Header -->
               <tr>
-                <td style="padding: 30px; background: #171717; text-align: center;">
-                  <h1 style="margin: 0; color: white; font-size: 24px; font-weight: 600;">RemoteDesigners.co</h1>
-                  <p style="margin: 8px 0 0; color: #a3a3a3; font-size: 14px;">${headerSubtitle}</p>
+                <td style="padding: 0; background: #171717;">
+                  <img src="https://remotedesigners.co/email-header-daily.png" alt="Daily Job Alerts - RemoteDesigners.co" width="600" style="display: block; width: 100%; height: auto;" />
                 </td>
               </tr>
 
