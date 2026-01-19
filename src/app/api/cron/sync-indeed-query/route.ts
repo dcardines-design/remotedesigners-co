@@ -138,8 +138,9 @@ async function fetchIndeedQuery(region: Region, queryType: QueryType): Promise<N
     const results: IndeedSearchResult[] = data.hits || data.jobs || []
     console.log(`Indeed ${region}/${queryType}: Found ${results.length} results`)
 
-    // Fetch details for up to 5 jobs (fast with single query)
-    for (const result of results.slice(0, 5)) {
+    // Fetch details for up to 3 jobs to stay within rate limits
+    // 20 cron jobs × (1 search + 3 details) = 80 API calls/hour
+    for (const result of results.slice(0, 3)) {
       if (seenIds.has(result.id)) continue
       seenIds.add(result.id)
 
