@@ -35,6 +35,9 @@ Folder ID: 55290
 #### Indeed Regional Sync (Granular)
 Base URL: `/api/cron/sync-indeed-query?region=XX&type=YY`
 
+**Schedule:** Every 2 hours (to stay within Indeed API rate limits)
+**Hours:** 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22
+
 | Region | Types | Minutes |
 |--------|-------|---------|
 | US | ui, ux, product, graphic | :00, :02, :04, :06 |
@@ -43,6 +46,8 @@ Base URL: `/api/cron/sync-indeed-query?region=XX&type=YY`
 | GB | ui, ux, product | :30, :32, :34 |
 | AU | ui, ux, product | :40, :42, :44 |
 | IN | ui, ux, product | :50, :52, :54 |
+
+**API Usage:** 20 jobs × 4 calls × 12 runs/day = 960 calls/day
 
 #### Other Jobs
 | Job | URL | Schedule |
