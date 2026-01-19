@@ -436,10 +436,10 @@ function PremiumContent() {
       </div>
 
       {/* FAQs */}
-      <div className="px-4 pb-20 relative z-10">
+      <div className="px-4 pb-4 md:pb-20 relative z-10">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-2xl font-semibold text-neutral-900 text-center mb-2">Frequently Asked Questions</h2>
-          <p className="text-neutral-500 text-center mb-10">Everything you need to know about the membership</p>
+          <h2 className="text-xl md:text-2xl font-semibold text-neutral-900 text-center mb-2">Frequently Asked Questions</h2>
+          <p className="text-sm md:text-base text-neutral-500 text-center mb-6 md:mb-10">Everything you need to know about the membership</p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 items-start">
             {faqs.map((faq, i) => {

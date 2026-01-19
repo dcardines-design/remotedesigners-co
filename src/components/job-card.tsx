@@ -224,9 +224,9 @@ export function JobCard({
         style={rainbowStyle}
       />
 
-      <div className="flex gap-4 pl-3">
+      <div className="flex flex-col gap-3 px-2 md:pl-3 md:pr-0 md:flex-row md:gap-4">
         {/* Company Avatar */}
-        <div className="w-12 h-12 rounded-full bg-white border border-neutral-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
+        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border border-neutral-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
           <img
             src={getSourceFavicon(job.source || '') || job.company_logo || getCompanyLogoUrl(job.company)}
             alt={job.company}
@@ -248,7 +248,8 @@ export function JobCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-4 mb-1">
             <h3 className="text-lg font-normal text-neutral-900">{cleanJobTitle(job.title)}</h3>
-            <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Desktop: badges top right */}
+            <div className="hidden md:flex items-center gap-2 flex-shrink-0">
               {job.is_sticky && (() => {
                 // Determine sticky type: 24h = blue, 7d = purple
                 const is7Day = job.sticky_until && job.posted_at
@@ -276,8 +277,8 @@ export function JobCard({
             {job.company} · {formatLocation(job.location)}
           </p>
 
-          <div className="flex items-end justify-between gap-4">
-            <div className="flex flex-wrap gap-2 max-w-[70%]">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="flex flex-wrap gap-2 md:max-w-[70%]">
               {visibleChips.map(chip => (
                 <span key={chip.key}>{chip.element}</span>
               ))}
@@ -297,50 +298,74 @@ export function JobCard({
               )}
             </div>
 
-            {showActions && (
-              <div className="flex items-center gap-2">
-                {onSave && (
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      onSave(e, job.id)
-                    }}
-                    disabled={isSaving}
-                    className={`flex-shrink-0 flex items-center justify-center w-8 h-8 rounded border transition-all ${
-                      isSaved
-                        ? 'bg-white border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]'
-                        : 'bg-white border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.05)]'
-                    } ${isSaving ? 'opacity-50' : ''}`}
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill={isSaved ? '#ef4444' : 'none'}
-                      stroke={isSaved ? '#ef4444' : '#737373'}
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-                    </svg>
-                  </button>
+            <div className="flex items-center justify-between md:justify-end gap-2">
+              {/* Mobile: badges on left */}
+              <div className="flex md:hidden items-center gap-2">
+                {job.is_sticky && (() => {
+                  const is7Day = job.sticky_until && job.posted_at
+                    ? (new Date(job.sticky_until).getTime() - new Date(job.posted_at).getTime()) > 2 * 24 * 60 * 60 * 1000
+                    : true
+                  const pinColor = is7Day ? 'text-purple-500' : 'text-blue-500'
+                  return (
+                    <span className={`${pinColor} flex items-center`}>
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M16 4l4 4-1.5 1.5-1-1L14 12l1 5-3 3-2.5-5L5 19.5 4.5 19l4.5-4.5-5-2.5 3-3 5 1 3.5-3.5-1-1L16 4z"/>
+                      </svg>
+                    </span>
+                  )
+                })()}
+                {isNew && (
+                  <span className="bg-green-500 text-white text-[10px] font-medium tracking-wider px-2 py-0.5 rounded">
+                    NEW
+                  </span>
                 )}
-                <a
-                  href={isSubscribed ? job.apply_url : "/membership"}
-                  target={isSubscribed ? "_blank" : undefined}
-                  rel={isSubscribed ? "noopener noreferrer" : undefined}
-                  onClick={(e) => e.stopPropagation()}
-                  className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-neutral-800 rounded shadow-[0px_2px_0px_0px_rgba(0,0,0,0.2)] hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.2)] active:translate-y-[2px] active:shadow-none transition-all"
-                >
-                  Apply
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17L17 7M17 7H7M17 7v10" />
-                  </svg>
-                </a>
+                <span className="text-sm text-neutral-400">{timeAgo}</span>
               </div>
-            )}
+              {showActions && (
+                <div className="flex items-center gap-2">
+                  {onSave && (
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        onSave(e, job.id)
+                      }}
+                      disabled={isSaving}
+                      className={`flex-shrink-0 flex items-center justify-center w-8 h-8 rounded border transition-all ${
+                        isSaved
+                          ? 'bg-white border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]'
+                          : 'bg-white border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.05)]'
+                      } ${isSaving ? 'opacity-50' : ''}`}
+                    >
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill={isSaved ? '#ef4444' : 'none'}
+                        stroke={isSaved ? '#ef4444' : '#737373'}
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                      </svg>
+                    </button>
+                  )}
+                  <a
+                    href={isSubscribed ? job.apply_url : "/membership"}
+                    target={isSubscribed ? "_blank" : undefined}
+                    rel={isSubscribed ? "noopener noreferrer" : undefined}
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-neutral-800 rounded shadow-[0px_2px_0px_0px_rgba(0,0,0,0.2)] hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.2)] active:translate-y-[2px] active:shadow-none transition-all"
+                  >
+                    Apply
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17L17 7M17 7H7M17 7v10" />
+                    </svg>
+                  </a>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

@@ -245,7 +245,7 @@ export function Navbar() {
     router.push('/')
   }
 
-  const isTransparent = (isHomePage || isSEOPage || isPremiumPage || isSuccessPage) && !scrolled
+  const isTransparent = (isHomePage || isSEOPage || isPremiumPage || isSuccessPage) && !scrolled && !mobileMenuOpen
 
   return (
     <nav
@@ -327,74 +327,94 @@ export function Navbar() {
 
       {/* Mobile menu dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-neutral-200 shadow-lg">
-          <div className="px-4 py-4 space-y-3">
-            {!user && (
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false)
-                  openLoginModal()
-                }}
-                className="w-full text-left px-4 py-3 text-sm font-medium text-neutral-700 bg-neutral-50 rounded-lg"
-              >
-                Log in
-              </button>
-            )}
-            <Link
-              href="/post-job"
-              onClick={() => setMobileMenuOpen(false)}
-              className="block w-full px-4 py-3 text-sm font-medium text-neutral-700 bg-neutral-50 rounded-lg"
-            >
-              Post a job
-            </Link>
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false)
-                setAlertsModalOpen(true)
-              }}
-              className="w-full text-left px-4 py-3 text-sm font-medium text-neutral-700 bg-neutral-50 rounded-lg flex items-center gap-2"
-            >
-              <Bell className="w-4 h-4" />
-              Job Alerts
-            </button>
-            {user && (
-              <>
-                <Link
-                  href="/saved-jobs"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block w-full px-4 py-3 text-sm font-medium text-neutral-700 bg-neutral-50 rounded-lg"
-                >
-                  Saved Jobs
-                </Link>
-                <Link
-                  href="/posted-jobs"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block w-full px-4 py-3 text-sm font-medium text-neutral-700 bg-neutral-50 rounded-lg"
-                >
-                  Jobs Posted
-                </Link>
+        <>
+          {/* Backdrop overlay - starts below navbar */}
+          <div
+            className="md:hidden fixed inset-x-0 top-16 bottom-0 bg-black/20 backdrop-blur-sm animate-fade-in"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+          <div className="md:hidden fixed top-16 left-0 right-0 bottom-0 bg-neutral-50 z-50 animate-fade-in flex flex-col">
+            {/* Top menu items */}
+            <div className="px-4 py-4 space-y-3">
+              {!user && (
                 <button
                   onClick={() => {
                     setMobileMenuOpen(false)
-                    handleSignOut()
+                    openLoginModal()
                   }}
-                  className="w-full text-left px-4 py-3 text-sm font-medium text-neutral-700 bg-neutral-50 rounded-lg"
+                  className="w-full text-left px-4 py-3 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[1px] active:shadow-none transition-all"
                 >
-                  Logout
+                  Log in
                 </button>
-              </>
-            )}
-            {authLoaded && hasSubscription === false && (
+              )}
               <Link
-                href="/membership"
+                href="/post-job"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block w-full px-4 py-3 text-sm font-medium text-white bg-pink-600 rounded-lg text-center"
+                className="block w-full px-4 py-3 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[1px] active:shadow-none transition-all"
               >
-                Get Membership
+                Post a job
               </Link>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false)
+                  setAlertsModalOpen(true)
+                }}
+                className="w-full text-left px-4 py-3 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[1px] active:shadow-none transition-all flex items-center gap-2"
+              >
+                <Bell className="w-4 h-4" />
+                Job Alerts
+              </button>
+              {user && (
+                <>
+                  <Link
+                    href="/saved-jobs"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block w-full px-4 py-3 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[1px] active:shadow-none transition-all"
+                  >
+                    Saved Jobs
+                  </Link>
+                  <Link
+                    href="/posted-jobs"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block w-full px-4 py-3 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[1px] active:shadow-none transition-all"
+                  >
+                    Jobs Posted
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false)
+                      handleSignOut()
+                    }}
+                    className="w-full text-left px-4 py-3 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[1px] active:shadow-none transition-all"
+                  >
+                    Logout
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Bottom: Get Membership */}
+            {authLoaded && hasSubscription === false && (
+              <div className="mt-auto px-4 pb-8">
+                <Link
+                  href="/membership"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="relative block w-full px-4 py-3 text-sm font-medium text-white bg-pink-600 border border-pink-700 rounded-lg shadow-[0px_2px_0px_0px_#9d174d] active:translate-y-[1px] active:shadow-none transition-all text-center overflow-hidden"
+                >
+                  <span
+                    className="absolute animate-get-pro-shine"
+                    style={{
+                      inset: '-100%',
+                      width: '300%',
+                      backgroundImage: 'linear-gradient(45deg, transparent 40%, rgba(255,255,255,0.2) 40%, rgba(255,255,255,0.2) 45%, transparent 45%, transparent 47%, rgba(255,255,255,0.15) 47%, rgba(255,255,255,0.15) 48%, transparent 48%)',
+                    }}
+                  />
+                  <span className="relative z-10">Get Membership</span>
+                </Link>
+              </div>
             )}
           </div>
-        </div>
+        </>
       )}
 
       <PersonalizedAlertsModal

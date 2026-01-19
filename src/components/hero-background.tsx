@@ -12,8 +12,8 @@ export function HeroBackground({
   opacity = 0.08,
   maxHeight = '600px',
   offsetTop = '-200px',
-  mobileMaxHeight = '400px',
-  mobileOffsetTop = '-100px'
+  mobileMaxHeight = '350px',
+  mobileOffsetTop = '-160px'
 }: HeroBackgroundProps) {
   return (
     <>
@@ -30,7 +30,7 @@ export function HeroBackground({
       />
       <div
         className="absolute inset-0"
-        style={{ background: 'linear-gradient(to bottom, rgba(250,250,250,0) 0%, rgba(250,250,250,0) 60%, rgba(250,250,250,1) 100%)' }}
+        style={{ background: 'linear-gradient(to bottom, rgba(250,250,250,0) 0%, rgba(250,250,250,0) 50%, rgba(250,250,250,1) 100%)' }}
       />
     </div>
     {/* Desktop */}

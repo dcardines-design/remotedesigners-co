@@ -1072,7 +1072,7 @@ function HomeContent() {
   return (
     <>
     <div className="bg-neutral-50 min-h-screen">
-      <div className="max-w-6xl mx-auto px-8 py-16">
+      <div className="max-w-6xl mx-auto px-4 md:px-8 pt-16 pb-4 md:pb-16">
         {/* Hero Section */}
         <div className="mb-16 relative">
           <HeroBackground
@@ -1081,7 +1081,7 @@ function HomeContent() {
             maxHeight="880px"
             offsetTop="-350px"
             mobileMaxHeight="500px"
-            mobileOffsetTop="-80px"
+            mobileOffsetTop="-180px"
           />
 
           <div className="max-w-2xl mx-auto text-center relative z-10">
@@ -1112,7 +1112,7 @@ function HomeContent() {
               className="text-base sm:text-lg text-neutral-600 mb-8 sm:mb-10 leading-relaxed opacity-0"
               style={{ animation: 'hero-fade-in 0.2s ease-out 0.1s forwards' }}
             >
-              Browse thousands of remote design jobs sourced directly from company career pages, YC startups, and top remote job boards. No middlemen, just verified opportunities updated every hour with the freshest opportunities in UI, UX, product design, graphic design, and more.
+              Discover curated remote design jobs sourced directly from company career pages, YC startups, and top remote job boards. No middlemen, just verified opportunities updated every hour in UI, UX, product design, graphic design, and more.
             </p>
 
             <div className="opacity-0" style={{ animation: 'hero-fade-in 0.2s ease-out 0.15s forwards' }}>
@@ -1310,9 +1310,9 @@ function HomeContent() {
                     } : {}}
                   />
 
-                  <div className="flex gap-4 pl-3">
+                  <div className="flex flex-col gap-3 px-2 md:pl-3 md:pr-0 md:flex-row md:gap-4">
                     {/* Company Avatar */}
-                    <div className="w-12 h-12 rounded-full bg-white border border-neutral-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border border-neutral-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
                       <img
                         src={getSourceFavicon(job.source) || job.company_logo || getCompanyLogoUrl(job.company)}
                         alt={job.company}
@@ -1336,7 +1336,8 @@ function HomeContent() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-4 mb-1">
                         <h3 className="text-lg font-normal text-neutral-900">{cleanJobTitle(job.title)}</h3>
-                        <div className="flex items-center gap-2 flex-shrink-0">
+                        {/* Desktop: badges top right */}
+                        <div className="hidden md:flex items-center gap-2 flex-shrink-0">
                           {job.is_sticky && (
                             <span className={`${stickyPinColor} flex items-center`}>
                               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -1363,7 +1364,7 @@ function HomeContent() {
                         {job.company} · {formatLocation(job.location)}
                       </p>
 
-                      <div className="flex items-end justify-between gap-4">
+                      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                         {(() => {
                           const MAX_CHIPS = 5
                           const regionChip = getRegionChip(job.location)
@@ -1491,7 +1492,7 @@ function HomeContent() {
                           const remainingCount = hiddenChips.length
 
                           return (
-                            <div className="flex flex-wrap gap-2 max-w-[70%]">
+                            <div className="flex flex-wrap gap-2 md:max-w-[70%]">
                               {visibleChips.map(chip => (
                                 <span key={chip.key}>{chip.element}</span>
                               ))}
@@ -1512,7 +1513,24 @@ function HomeContent() {
                             </div>
                           )
                         })()}
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center justify-between md:justify-end gap-2">
+                          {/* Mobile: badges on left */}
+                          <div className="flex md:hidden items-center gap-2">
+                            {job.is_sticky && (
+                              <span className={`${stickyPinColor} flex items-center`}>
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M16 4l4 4-1.5 1.5-1-1L14 12l1 5-3 3-2.5-5L5 19.5 4.5 19l4.5-4.5-5-2.5 3-3 5 1 3.5-3.5-1-1L16 4z"/>
+                                </svg>
+                              </span>
+                            )}
+                            {isNew && (
+                              <span className="bg-green-500 text-white text-[10px] font-medium tracking-wider px-2 py-0.5 rounded">
+                                NEW
+                              </span>
+                            )}
+                            <span className="text-sm text-neutral-400">{timeAgo}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
                           <button
                             onClick={(e) => handleSaveJob(e, job.id)}
                             disabled={savingJobId === job.id}
@@ -1570,6 +1588,7 @@ function HomeContent() {
                               </svg>
                             </button>
                           )}
+                          </div>
                         </div>
                       </div>
                     </div>

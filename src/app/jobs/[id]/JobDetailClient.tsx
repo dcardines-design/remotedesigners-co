@@ -629,7 +629,7 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
       />
 
       <div className="bg-neutral-50 min-h-screen">
-        <div className="max-w-6xl mx-auto px-8 pt-12 pb-8">
+        <div className="max-w-6xl mx-auto px-4 md:px-8 pt-8 md:pt-12 pb-2 md:pb-8">
         {/* Breadcrumb */}
         <nav aria-label="Breadcrumb" className="mb-6">
           <ol className="flex items-center gap-2 text-sm text-neutral-500">
@@ -652,12 +652,12 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
         </nav>
 
         {/* Main Content */}
-        <div className="flex gap-12">
+        <div className="flex flex-col-reverse md:flex-row gap-6 md:gap-12">
           {/* Left Column - Job Description */}
           <div className="flex-1">
-            {/* Job Title - H1 for SEO */}
-            <h1 className="text-3xl font-semibold text-neutral-900 mb-2 tracking-tight">{job.title}</h1>
-            <p className="text-lg text-neutral-500 mb-8">{job.company} · {job.location}</p>
+            {/* Job Title - H1 for SEO (hidden on mobile, shown in sidebar) */}
+            <h1 className="hidden md:block text-3xl font-semibold text-neutral-900 mb-2 tracking-tight">{job.title}</h1>
+            <p className="hidden md:block text-lg text-neutral-500 mb-8">{job.company} · {job.location}</p>
 
             {/* Job Description */}
             <section className="mb-12">
@@ -676,10 +676,10 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
           </div>
 
           {/* Right Column - Job Sidebar */}
-          <div className="w-[360px] flex-shrink-0">
-            <div className="bg-white border border-neutral-200 rounded-xl rounded-tr-[100px] p-6 sticky top-24">
+          <div className="w-full md:w-[360px] flex-shrink-0">
+            <div className="bg-white border border-neutral-200 rounded-xl rounded-tr-[80px] md:rounded-tr-[100px] p-5 md:p-6 md:sticky md:top-24">
               {/* Company Logo */}
-              <div className="w-16 h-16 rounded-full bg-white border border-neutral-200 flex items-center justify-center mb-6 overflow-hidden">
+              <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-white border border-neutral-200 flex items-center justify-center mb-4 md:mb-6 overflow-hidden">
                 <img
                   src={job.company_logo || getCompanyLogoUrl(job.company)}
                   alt={job.company}
@@ -707,15 +707,15 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
               )}
 
               {/* Company Name */}
-              <p className="text-neutral-500 mb-2">{job.company}</p>
+              <p className="text-sm md:text-base text-neutral-500 mb-1 md:mb-2">{job.company}</p>
 
               {/* Job Title in Sidebar */}
-              <h2 className="text-2xl font-medium text-neutral-900 mb-6">{job.title}</h2>
+              <h2 className="text-xl md:text-2xl font-medium text-neutral-900 mb-4 md:mb-6">{job.title}</h2>
 
               {/* Job Details */}
-              <div className="space-y-2 mb-6">
+              <div className="space-y-1.5 md:space-y-2 mb-4 md:mb-6">
                 {/* Location */}
-                <div className="flex items-center gap-3 text-neutral-600">
+                <div className="flex items-center gap-2 md:gap-3 text-sm md:text-base text-neutral-600">
                   <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-neutral-400 flex-shrink-0">
                     <path d="M7.5 8C8.60457 8 9.5 7.10457 9.5 6C9.5 4.89543 8.60457 4 7.5 4C6.39543 4 5.5 4.89543 5.5 6C5.5 7.10457 6.39543 8 7.5 8Z" stroke="currentColor" strokeWidth="1.5"/>
                     <path d="M7.5 13.5C7.5 13.5 12.5 9.5 12.5 6C12.5 3.23858 10.2614 1 7.5 1C4.73858 1 2.5 3.23858 2.5 6C2.5 9.5 7.5 13.5 7.5 13.5Z" stroke="currentColor" strokeWidth="1.5"/>
@@ -725,7 +725,7 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
 
                 {/* Salary */}
                 {salary && (
-                  <div className="flex items-center gap-3 text-neutral-600">
+                  <div className="flex items-center gap-2 md:gap-3 text-sm md:text-base text-neutral-600">
                     <svg width="15" height="15" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-neutral-400 flex-shrink-0">
                       <path d="M7.5 1V14M10.5 3.5H6C4.61929 3.5 3.5 4.61929 3.5 6C3.5 7.38071 4.61929 8.5 6 8.5H9C10.3807 8.5 11.5 9.61929 11.5 11C11.5 12.3807 10.3807 13.5 9 13.5H4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
                     </svg>
@@ -755,8 +755,8 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
                 )}
               </div>
 
-              {/* Chips */}
-              <div className="flex flex-wrap gap-2 mb-6">
+              {/* Chips - hidden on mobile since icon list shows same info */}
+              <div className="hidden md:flex flex-wrap gap-2 mb-6">
                 {job.is_featured && (
                   <Link
                     href="/?featured=true"
@@ -811,7 +811,7 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
                   href={isSubscribed ? job.apply_url : undefined}
                   external={isSubscribed}
                   fullWidth
-                  size="md"
+                  size="sm"
                   onClick={() => {
                     if (!isSubscribed) {
                       router.push(`/membership?skip_url=${encodeURIComponent(window.location.href)}`)
@@ -830,7 +830,7 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
                 <button
                   onClick={handleSaveJob}
                   disabled={isSaving}
-                  className={`flex items-center justify-center gap-2 w-full px-6 py-3 rounded-lg font-medium border transition-all ${
+                  className={`flex items-center justify-center gap-2 w-full px-4 py-2 md:px-6 md:py-3 rounded-lg text-sm md:text-base font-medium border transition-all ${
                     isSaved
                       ? 'bg-white text-neutral-700 border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]'
                       : 'bg-white text-neutral-700 border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.05)] hover:translate-y-[1px]'
@@ -864,8 +864,8 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
 
       {/* Similar Jobs Section */}
       {similarJobs.length > 0 && (
-        <div className="max-w-6xl mx-auto px-8 py-12">
-          <h2 className="text-2xl font-medium text-neutral-900 mb-6">Similar Jobs</h2>
+        <div className="max-w-6xl mx-auto px-4 md:px-8 pt-0 pb-4 md:py-12">
+          <h2 className="text-xl md:text-2xl font-medium text-neutral-900 mb-4 md:mb-6">Similar Jobs</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {similarJobs.map((similarJob) => (
               <Link
@@ -929,23 +929,23 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
 
       {/* CTA Card Section - Hidden for subscribed users */}
       {!isSubscribed && (
-        <div className="max-w-6xl mx-auto px-8 pt-12 pb-4">
-          <div className="flex gap-4">
+        <div className="max-w-6xl mx-auto px-4 md:px-8 pt-6 md:pt-12 pb-4">
+          <div className="flex flex-col-reverse md:flex-row gap-3 md:gap-4">
             {/* Left Content Card */}
-            <div className="bg-white border border-neutral-200 rounded-2xl p-12 w-1/2 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]">
-              <h2 className="text-4xl font-medium text-neutral-900 text-left mb-10 font-dm-sans">
+            <div className="bg-white border border-neutral-200 rounded-2xl p-5 md:p-12 w-full md:w-1/2 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]">
+              <h2 className="text-2xl md:text-4xl font-medium text-neutral-900 text-left mb-4 md:mb-10 font-dm-sans">
                 Land Your Dream<br />Remote Design Job
               </h2>
 
-              <div className="space-y-5 mb-10">
+              <div className="space-y-3 md:space-y-5 mb-4 md:mb-10">
                 {ctaFeatures.map((feature, index) => (
-                  <div key={index} className="flex gap-4">
-                    <div className="w-10 h-10 rounded-lg bg-neutral-100 flex items-center justify-center flex-shrink-0 text-xl">
+                  <div key={index} className="flex gap-3 md:gap-4">
+                    <div className="w-9 h-9 md:w-10 md:h-10 rounded-lg bg-neutral-100 flex items-center justify-center flex-shrink-0 text-lg md:text-xl">
                       {feature.emoji}
                     </div>
                     <div>
-                      <h3 className="font-medium text-neutral-900 mb-1">{feature.title}</h3>
-                      <p className="text-neutral-500 text-sm">{feature.description}</p>
+                      <h3 className="font-medium text-neutral-900 mb-0.5 md:mb-1 text-sm md:text-base">{feature.title}</h3>
+                      <p className="text-neutral-500 text-xs md:text-sm">{feature.description}</p>
                     </div>
                   </div>
                 ))}
@@ -953,17 +953,17 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
 
               <div className="text-left">
                 <Link href="/membership">
-                  <RainbowButton fullWidth>
+                  <RainbowButton fullWidth size="sm">
                     Get Membership — Unlock Full Access
                   </RainbowButton>
                 </Link>
 
-                <SocialProof className="mt-10" />
+                <SocialProof className="mt-4 md:mt-10" />
               </div>
             </div>
 
             {/* Right Image Card */}
-            <div className="w-1/2 hidden lg:block rounded-2xl overflow-hidden">
+            <div className="w-full md:w-1/2 h-40 md:h-auto rounded-2xl overflow-hidden">
               <img
                 src="/hero-bg.png"
                 alt="Remote designers working"
@@ -976,10 +976,10 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
 
       {/* Testimonials Grid - Hidden for subscribed users */}
       {!isSubscribed && (
-        <div className="max-w-6xl mx-auto px-8 pt-8 pb-12">
-          <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-4">
+        <div className="max-w-6xl mx-auto px-4 md:px-8 pt-6 md:pt-8 pb-8 md:pb-12">
+          <div className="columns-1 md:columns-2 lg:columns-3 gap-4 space-y-3 md:space-y-4">
             {testimonials.map((testimonial, index) => (
-              <div key={index} className="break-inside-avoid bg-white border border-neutral-200 rounded-xl p-6 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]">
+              <div key={index} className="break-inside-avoid bg-white border border-neutral-200 rounded-xl p-4 md:p-6 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]">
                 <div className="flex items-center gap-3 mb-4">
                   <img
                     src={testimonial.avatar}
@@ -1008,9 +1008,9 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
 
       {/* FAQ Section - Hidden for subscribed users */}
       {!isSubscribed && (
-        <div className="max-w-6xl mx-auto px-8 py-12">
-          <h2 className="text-5xl font-normal text-neutral-900 mb-12">
-            Questions,<br />answered.
+        <div className="max-w-6xl mx-auto px-4 md:px-8 pt-8 md:pt-12 pb-4 md:pb-12">
+          <h2 className="text-xl md:text-2xl font-medium text-neutral-900 mb-4 md:mb-6">
+            Questions, answered.
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 items-start">

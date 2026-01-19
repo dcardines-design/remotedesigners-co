@@ -36,7 +36,7 @@ export function Footer() {
   return (
     <footer
       ref={footerRef}
-      className="text-neutral-400 py-16 rounded-xl mx-3 mb-[14px] shadow-[0px_6px_0px_0px_#000000]"
+      className="text-neutral-400 pt-8 pb-[18px] md:py-16 rounded-xl mx-3 mb-[14px] shadow-[0px_6px_0px_0px_#000000]"
       style={{
         backgroundSize: '300% 300%',
         backgroundImage: 'linear-gradient(135deg, #0a0a0a 0%, #0f0f0f 15%, #141414 30%, #171717 45%, #141414 60%, #0f0f0f 75%, #0a0a0a 90%, #0c0c0c 100%)'
@@ -44,7 +44,7 @@ export function Footer() {
     >
       <div className="max-w-6xl mx-auto px-8">
         {/* Main Footer Links Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-10 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-8 md:gap-y-10 mb-12">
           {/* By Specialty */}
           <div>
             <h3 className="text-white text-sm font-medium mb-4">By Specialty</h3>
@@ -126,7 +126,7 @@ export function Footer() {
         </div>
 
         {/* Bottom */}
-        <div className="border-t border-neutral-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="border-t border-neutral-800 pt-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="flex items-center gap-2">
             <Image
               src="/logo-white.png"

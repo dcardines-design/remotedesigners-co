@@ -113,7 +113,7 @@ function FAQSection({ faqs }: { faqs: FAQ[] }) {
 
   return (
     <div className="mb-8">
-      <h2 className="text-2xl font-medium text-neutral-900 mb-8">Frequently Asked Questions</h2>
+      <h2 className="text-xl md:text-2xl font-medium text-neutral-900 mb-6 md:mb-8">Frequently Asked Questions</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 items-start">
         {faqs.map((faq, index) => {
           const isOpen = openFaq === index
@@ -312,7 +312,7 @@ export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageT
     <div className="bg-neutral-50 min-h-screen relative">
       <HeroBackground />
 
-      <div className="max-w-6xl mx-auto px-8 pt-16 pb-8 relative z-10">
+      <div className="max-w-6xl mx-auto px-4 md:px-8 pt-16 pb-4 md:pb-8 relative z-10">
         {/* Breadcrumbs */}
         <nav aria-label="Breadcrumb" className="mb-6">
           <ol className="flex items-center gap-2 text-sm text-neutral-500">
@@ -350,7 +350,7 @@ export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageT
         {/* Hero Section */}
         <div className="mb-12">
           <div className="max-w-2xl">
-            <h1 className="text-4xl font-medium text-neutral-900 mb-4 tracking-tight">
+            <h1 className="text-2xl md:text-4xl font-medium text-neutral-900 mb-4 tracking-tight">
               {h1}
             </h1>
             <p className="text-lg text-neutral-600 mb-6">

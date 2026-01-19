@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     default: 'RemoteDesigners.co - Remote Design Jobs',
     template: '%s | RemoteDesigners.co',
   },
-  description: 'Browse thousands of remote design jobs from top companies worldwide. Find UI, UX, product design, and graphic design positions updated daily.',
+  description: 'Discover curated remote design jobs sourced directly from company career pages, YC startups, and top job boards. Find UI, UX, product design, and graphic design positions updated hourly.',
   keywords: [
     'remote design jobs',
     'remote designer jobs',
@@ -53,12 +53,12 @@ export const metadata: Metadata = {
     url: BASE_URL,
     siteName: 'RemoteDesigners.co',
     title: 'RemoteDesigners.co - Remote Design Jobs',
-    description: 'Browse thousands of remote design jobs from top companies worldwide. Find UI, UX, product design, and graphic design positions updated daily.',
+    description: 'Discover curated remote design jobs sourced directly from company career pages, YC startups, and top job boards. Find UI, UX, product design, and graphic design positions updated hourly.',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'RemoteDesigners.co - Remote Design Jobs',
-    description: 'Browse thousands of remote design jobs from top companies worldwide.',
+    description: 'Discover curated remote design jobs sourced from company career pages, YC startups, and top job boards.',
   },
   alternates: {
     canonical: BASE_URL,

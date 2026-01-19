@@ -3,7 +3,7 @@ import { syncJobs } from '@/lib/sync-jobs'
 import { NormalizedJob } from '@/lib/job-apis'
 
 export const runtime = 'nodejs'
-export const maxDuration = 30 // 30 seconds max - should complete in ~10s
+export const maxDuration = 60 // 60 seconds max for slow RapidAPI regions
 
 // Query types for each region
 const QUERY_TYPES = {
