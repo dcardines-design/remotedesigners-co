@@ -1094,19 +1094,20 @@ function HomeContent() {
             </div>
 
             <h1
-              className="text-7xl font-medium text-neutral-900 leading-tight mb-6 font-display tracking-tight opacity-0"
+              className="text-4xl sm:text-5xl md:text-7xl font-medium text-neutral-900 leading-tight mb-4 sm:mb-6 font-display tracking-tight opacity-0"
               style={{ animation: 'hero-fade-in 0.2s ease-out 0.05s forwards' }}
             >
               The{' '}
               <AnimatedGradientText><span className="font-ivy-display">Best</span></AnimatedGradientText>
               {' '}and{' '}
               <AnimatedGradientText><span className="font-ivy-display">Latest</span></AnimatedGradientText>
-              <br />
+              <br className="hidden sm:block" />
+              <span className="sm:hidden"> </span>
               Remote Design Jobs
             </h1>
 
             <p
-              className="text-lg text-neutral-600 mb-10 leading-relaxed opacity-0"
+              className="text-base sm:text-lg text-neutral-600 mb-8 sm:mb-10 leading-relaxed opacity-0"
               style={{ animation: 'hero-fade-in 0.2s ease-out 0.1s forwards' }}
             >
               Browse thousands of remote design jobs sourced directly from company career pages, YC startups, and top remote job boards. No middlemen, just verified opportunities updated every hour with the freshest opportunities in UI, UX, product design, graphic design, and more.

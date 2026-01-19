@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import type { User } from '@supabase/supabase-js'
 import { Button, RainbowButton, PersonalizedAlertsModal } from '@/components/ui'
-import { Bell, ArrowUpRight } from 'lucide-react'
+import { Bell, ArrowUpRight, Menu, X } from 'lucide-react'
 import { useSignupModal } from '@/context/signup-modal-context'
 import { isCompMember } from '@/lib/admin'
 
@@ -114,6 +114,7 @@ export function Navbar() {
   const [billingUrl, setBillingUrl] = useState<string | null>(null)
   const [alertsModalOpen, setAlertsModalOpen] = useState(false)
   const [existingAlertPreferences, setExistingAlertPreferences] = useState<{ jobTypes?: string[]; locations?: string[] } | undefined>(undefined)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
   const { openSignupModal, openLoginModal } = useSignupModal()
@@ -268,7 +269,8 @@ export function Navbar() {
             />
           </Link>
 
-          <div className="flex items-center gap-3">
+          {/* Desktop nav */}
+          <div className="hidden md:flex items-center gap-3">
             {!user && (
               <Button onClick={openLoginModal} variant="ghost" size="sm">
                 Log in
@@ -284,7 +286,7 @@ export function Navbar() {
               className="flex items-center gap-1.5"
             >
               <Bell className="w-4 h-4" />
-              <span className="hidden sm:inline">Job Alerts</span>
+              <span>Job Alerts</span>
             </Button>
             {user && (
               <UserDropdown
@@ -312,8 +314,88 @@ export function Navbar() {
               </Link>
             )}
           </div>
+
+          {/* Mobile hamburger */}
+          <button
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="md:hidden flex items-center justify-center w-10 h-10 rounded-lg border border-neutral-200 bg-white shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]"
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </button>
         </div>
       </div>
+
+      {/* Mobile menu dropdown */}
+      {mobileMenuOpen && (
+        <div className="md:hidden absolute top-full left-0 right-0 bg-white border-b border-neutral-200 shadow-lg">
+          <div className="px-4 py-4 space-y-3">
+            {!user && (
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false)
+                  openLoginModal()
+                }}
+                className="w-full text-left px-4 py-3 text-sm font-medium text-neutral-700 bg-neutral-50 rounded-lg"
+              >
+                Log in
+              </button>
+            )}
+            <Link
+              href="/post-job"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block w-full px-4 py-3 text-sm font-medium text-neutral-700 bg-neutral-50 rounded-lg"
+            >
+              Post a job
+            </Link>
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false)
+                setAlertsModalOpen(true)
+              }}
+              className="w-full text-left px-4 py-3 text-sm font-medium text-neutral-700 bg-neutral-50 rounded-lg flex items-center gap-2"
+            >
+              <Bell className="w-4 h-4" />
+              Job Alerts
+            </button>
+            {user && (
+              <>
+                <Link
+                  href="/saved-jobs"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block w-full px-4 py-3 text-sm font-medium text-neutral-700 bg-neutral-50 rounded-lg"
+                >
+                  Saved Jobs
+                </Link>
+                <Link
+                  href="/posted-jobs"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block w-full px-4 py-3 text-sm font-medium text-neutral-700 bg-neutral-50 rounded-lg"
+                >
+                  Jobs Posted
+                </Link>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false)
+                    handleSignOut()
+                  }}
+                  className="w-full text-left px-4 py-3 text-sm font-medium text-neutral-700 bg-neutral-50 rounded-lg"
+                >
+                  Logout
+                </button>
+              </>
+            )}
+            {authLoaded && hasSubscription === false && (
+              <Link
+                href="/membership"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block w-full px-4 py-3 text-sm font-medium text-white bg-pink-600 rounded-lg text-center"
+              >
+                Get Membership
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
 
       <PersonalizedAlertsModal
         isOpen={alertsModalOpen}
