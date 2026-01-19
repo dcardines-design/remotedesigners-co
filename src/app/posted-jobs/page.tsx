@@ -311,9 +311,20 @@ export default function PostedJobsPage() {
                           </span>
                         ))}
                         {job.skills && job.skills.length > 3 && (
-                          <span className="bg-white text-neutral-400 text-[11px] px-2 py-0.5 rounded border border-neutral-200">
-                            +{job.skills.length - 3}
-                          </span>
+                          <div className="relative group/chips">
+                            <span className="bg-white text-neutral-400 text-[11px] px-2 py-0.5 rounded border border-neutral-200 cursor-default group-hover/chips:border-neutral-300 group-hover/chips:text-neutral-500 transition-all">
+                              +{job.skills.length - 3}
+                            </span>
+                            <div className="absolute left-0 bottom-full mb-1.5 z-20 opacity-0 invisible group-hover/chips:opacity-100 group-hover/chips:visible transition-all duration-150">
+                              <div className="bg-neutral-100 border border-neutral-200 rounded-lg shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08)] p-2 flex flex-wrap gap-1.5 min-w-[200px] max-w-[300px]">
+                                {job.skills.slice(3).map(skill => (
+                                  <span key={skill} className="bg-white text-neutral-600 text-[11px] px-2 py-0.5 rounded border border-neutral-200">
+                                    {skill}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
                         )}
                       </div>
 
