@@ -212,6 +212,10 @@ function generateEmailHTML(jobs: Job[], unsubscribeToken: string, options: Email
   const timeframeText = jobTimeframe === '24h' ? 'last 24 hours' : 'last 7 days'
 
   let introText: string
+  const headerImage = isPaidUser
+    ? 'https://remotedesigners.co/email-header-daily.png'
+    : 'https://remotedesigners.co/email-header-weekly.png'
+  const headerAlt = isPaidUser ? 'Daily Job Alerts' : 'Weekly Job Alerts'
 
   if (isPaidUser && isPersonalized) {
     introText = `Stop doom-scrolling LinkedIn. We did the work for you – <strong>${jobs.length} design gigs</strong> matching your preferences, actually worth your time.`
@@ -253,8 +257,8 @@ function generateEmailHTML(jobs: Job[], unsubscribeToken: string, options: Email
             <table cellpadding="0" cellspacing="0" border="0" width="600" style="background-color: white; border-radius: 12px; overflow: hidden;">
               <!-- Header -->
               <tr>
-                <td style="padding: 0; background: #171717;">
-                  <img src="https://remotedesigners.co/email-header-daily.png" alt="Daily Job Alerts - RemoteDesigners.co" width="600" style="display: block; width: 100%; height: auto;" />
+                <td style="padding: 0;">
+                  <img src="${headerImage}" alt="${headerAlt} - RemoteDesigners.co" width="600" style="display: block; width: 100%; height: auto;" />
                 </td>
               </tr>
 
