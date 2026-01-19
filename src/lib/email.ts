@@ -1,16 +1,10 @@
-import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses'
+import { Resend } from 'resend'
 
-const sesClient = process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY
-  ? new SESClient({
-      region: process.env.AWS_REGION || 'us-east-1',
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      },
-    })
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
   : null
 
-const FROM_EMAIL = process.env.SES_FROM_EMAIL || 'hello@remotedesigners.co'
+const FROM_EMAIL = process.env.FROM_EMAIL || 'hello@remotedesigners.co'
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://remotedesigners.co'
 
 interface SendEmailParams {
@@ -21,23 +15,19 @@ interface SendEmailParams {
 }
 
 export async function sendEmail({ to, subject, html, text }: SendEmailParams): Promise<boolean> {
-  if (!sesClient) {
-    console.log('[Email] SES not configured, skipping email to:', to)
+  if (!resend) {
+    console.log('[Email] Resend not configured, skipping email to:', to)
     return false
   }
 
   try {
-    await sesClient.send(new SendEmailCommand({
-      Source: FROM_EMAIL,
-      Destination: { ToAddresses: [to] },
-      Message: {
-        Subject: { Data: subject },
-        Body: {
-          Html: { Data: html },
-          ...(text && { Text: { Data: text } }),
-        },
-      },
-    }))
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to,
+      subject,
+      html,
+      text,
+    })
     console.log('[Email] Sent to:', to)
     return true
   } catch (error) {
