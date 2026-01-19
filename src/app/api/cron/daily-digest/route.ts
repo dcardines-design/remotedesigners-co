@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import { Resend } from 'resend'
 import { generateJobSlug } from '@/lib/slug'
+import { LOCATION_KEYWORDS, JOB_TYPE_KEYWORDS } from '@/lib/location-keywords'
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -84,37 +85,7 @@ function shouldSendToSubscriber(subscriber: SubscriberWithTier, now: Date): bool
   return hoursSince >= 167
 }
 
-// Job type keyword mapping for filtering
-const JOB_TYPE_KEYWORDS: Record<string, string[]> = {
-  'product-design': ['product design', 'product designer'],
-  'ux-design': ['ux design', 'ux designer', 'user experience'],
-  'ui-design': ['ui design', 'ui designer', 'user interface'],
-  'visual-design': ['visual design', 'visual designer'],
-  'brand-design': ['brand design', 'brand designer', 'branding'],
-  'graphic-design': ['graphic design', 'graphic designer'],
-  'motion-design': ['motion design', 'motion designer', 'motion graphics', 'animator'],
-  'interaction-design': ['interaction design', 'interaction designer', 'ixd'],
-  'web-design': ['web design', 'web designer'],
-  'design-systems': ['design system', 'design ops'],
-  'design-lead': ['design lead', 'design director', 'head of design', 'design manager', 'vp design'],
-  'user-research': ['user research', 'ux research', 'researcher'],
-}
-
-// Location keyword mapping for filtering
-const LOCATION_KEYWORDS: Record<string, string[]> = {
-  'worldwide': ['remote', 'worldwide', 'anywhere', 'global'],
-  'usa': ['usa', 'united states', 'us', 'america', 'new york', 'san francisco', 'los angeles', 'seattle', 'austin', 'boston', 'chicago'],
-  'europe': ['europe', 'eu', 'european'],
-  'uk': ['uk', 'united kingdom', 'london', 'england', 'britain'],
-  'canada': ['canada', 'toronto', 'vancouver', 'montreal'],
-  'germany': ['germany', 'berlin', 'munich', 'german'],
-  'north-america': ['north america', 'usa', 'canada', 'us'],
-  'latin-america': ['latin america', 'latam', 'south america', 'brazil', 'mexico', 'argentina'],
-  'asia': ['asia', 'singapore', 'japan', 'india', 'china', 'hong kong', 'korea'],
-  'australia': ['australia', 'sydney', 'melbourne', 'oceania', 'new zealand'],
-  'middle-east': ['middle east', 'uae', 'dubai', 'israel', 'saudi'],
-  'africa': ['africa', 'south africa', 'nigeria', 'kenya'],
-}
+// JOB_TYPE_KEYWORDS and LOCATION_KEYWORDS imported from @/lib/location-keywords
 
 function jobMatchesPreferences(job: Job, preferences?: Subscriber['preferences']): boolean {
   // If no preferences, include all jobs

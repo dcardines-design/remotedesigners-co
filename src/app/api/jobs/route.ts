@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/lib/supabase'
+import { LOCATION_KEYWORDS } from '@/lib/location-keywords'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,7 +39,11 @@ export async function GET(request: NextRequest) {
     }
 
     if (location && location !== 'all') {
-      query = query.ilike('location', `%${location}%`)
+      // Support multiple locations and expand each to its keywords
+      const locations = location.split(',').map(l => l.trim())
+      const allKeywords = locations.flatMap(loc => LOCATION_KEYWORDS[loc] || [loc])
+      const orConditions = allKeywords.map(kw => `location.ilike.%${kw}%`).join(',')
+      query = query.or(orConditions)
     }
 
     if (jobType && jobType !== 'all') {
