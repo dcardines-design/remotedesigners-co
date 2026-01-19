@@ -100,24 +100,24 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Save to database
+    // Save to database - enforce field length limits
     console.log('Saving blog post to database...')
     const { data: savedPost, error: saveError } = await supabase
       .from('blog_posts')
       .insert({
-        slug: generatedContent.slug,
-        title: generatedContent.title,
+        slug: generatedContent.slug.substring(0, 255),
+        title: generatedContent.title.substring(0, 255),
         content: generatedContent.content,
-        excerpt: generatedContent.excerpt,
+        excerpt: generatedContent.excerpt?.substring(0, 500),
         category: generatedContent.category,
         tags: generatedContent.tags,
         featured_image: featuredImageUrl,
-        featured_image_alt: generatedContent.featured_image_alt,
+        featured_image_alt: generatedContent.featured_image_alt?.substring(0, 255),
         status: 'published',
         published_at: new Date().toISOString(),
-        meta_title: generatedContent.meta_title,
-        meta_description: generatedContent.meta_description,
-        focus_keyword: generatedContent.focus_keyword,
+        meta_title: generatedContent.meta_title?.substring(0, 70),
+        meta_description: generatedContent.meta_description?.substring(0, 160),
+        focus_keyword: generatedContent.focus_keyword?.substring(0, 100),
         secondary_keywords: generatedContent.secondary_keywords,
         canonical_url: `https://remotedesigners.co/blog/${generatedContent.slug}`,
         reading_time_minutes: generatedContent.reading_time_minutes,
@@ -137,19 +137,19 @@ export async function GET(request: NextRequest) {
         const { data: retryPost, error: retryError } = await supabase
           .from('blog_posts')
           .insert({
-            slug: newSlug,
-            title: generatedContent.title,
+            slug: newSlug.substring(0, 255),
+            title: generatedContent.title.substring(0, 255),
             content: generatedContent.content,
-            excerpt: generatedContent.excerpt,
+            excerpt: generatedContent.excerpt?.substring(0, 500),
             category: generatedContent.category,
             tags: generatedContent.tags,
             featured_image: featuredImageUrl,
-            featured_image_alt: generatedContent.featured_image_alt,
+            featured_image_alt: generatedContent.featured_image_alt?.substring(0, 255),
             status: 'published',
             published_at: new Date().toISOString(),
-            meta_title: generatedContent.meta_title,
-            meta_description: generatedContent.meta_description,
-            focus_keyword: generatedContent.focus_keyword,
+            meta_title: generatedContent.meta_title?.substring(0, 70),
+            meta_description: generatedContent.meta_description?.substring(0, 160),
+            focus_keyword: generatedContent.focus_keyword?.substring(0, 100),
             secondary_keywords: generatedContent.secondary_keywords,
             canonical_url: `https://remotedesigners.co/blog/${newSlug}`,
             reading_time_minutes: generatedContent.reading_time_minutes,
