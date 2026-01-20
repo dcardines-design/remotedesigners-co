@@ -143,7 +143,7 @@ export default async function BlogPage() {
                       {/* Category Chip */}
                       <Link
                         href={`/blog/category/${post.category}`}
-                        className={`${cardChipClass} inline-block mb-3 hover:bg-neutral-100 hover:border-neutral-300 transition-colors`}
+                        className={`${cardChipClass} inline-block mb-3 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all`}
                       >
                         {categoryInfo?.name || post.category}
                       </Link>
