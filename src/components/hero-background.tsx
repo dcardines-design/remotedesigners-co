@@ -5,6 +5,8 @@ interface HeroBackgroundProps {
   offsetTop?: string
   mobileMaxHeight?: string
   mobileOffsetTop?: string
+  fadeStart?: number // percentage where fade begins (0-100), default 70
+  mobileFadeStart?: number // percentage where fade begins on mobile, default 50
 }
 
 export function HeroBackground({
@@ -13,7 +15,9 @@ export function HeroBackground({
   maxHeight = '600px',
   offsetTop = '-200px',
   mobileMaxHeight = '350px',
-  mobileOffsetTop = '-160px'
+  mobileOffsetTop = '-160px',
+  fadeStart = 70,
+  mobileFadeStart = 50
 }: HeroBackgroundProps) {
   return (
     <>
@@ -30,7 +34,7 @@ export function HeroBackground({
       />
       <div
         className="absolute inset-0"
-        style={{ background: 'linear-gradient(to bottom, rgba(250,250,250,0) 0%, rgba(250,250,250,0) 50%, rgba(250,250,250,1) 100%)' }}
+        style={{ background: `linear-gradient(to bottom, rgba(250,250,250,0) 0%, rgba(250,250,250,0) ${mobileFadeStart}%, rgba(250,250,250,1) 100%)` }}
       />
     </div>
     {/* Desktop */}
@@ -47,7 +51,7 @@ export function HeroBackground({
       {/* Fade overlay */}
       <div
         className="absolute inset-0"
-        style={{ background: 'linear-gradient(to bottom, rgba(250,250,250,0) 0%, rgba(250,250,250,0) 70%, rgba(250,250,250,1) 100%)' }}
+        style={{ background: `linear-gradient(to bottom, rgba(250,250,250,0) 0%, rgba(250,250,250,0) ${fadeStart}%, rgba(250,250,250,1) 100%)` }}
       />
       {/* Bottom left corner fade */}
       <div

@@ -65,7 +65,13 @@ export default async function BlogPage() {
     <>
       <BlogListSEO />
       <div className="min-h-screen bg-neutral-50 relative">
-        <HeroBackground imageSrc="/blog-hero-bg.png" />
+        <HeroBackground
+          imageSrc="/blog-hero-bg.png"
+          maxHeight="400px"
+          mobileMaxHeight="250px"
+          fadeStart={40}
+          mobileFadeStart={30}
+        />
         <div className="max-w-6xl mx-auto px-4 md:px-8 py-10 md:py-16 relative z-10">
           {/* Header */}
           <h1 className="text-4xl md:text-5xl font-semibold text-neutral-900 mb-6">
