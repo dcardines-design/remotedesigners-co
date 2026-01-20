@@ -126,7 +126,7 @@ export function Navbar() {
   const isPremiumPage = pathname === '/membership'
   const isSuccessPage = pathname === '/post-job/success'
   const isUnsubscribePage = pathname === '/unsubscribe'
-  const isBlogPage = pathname === '/blog'
+  const isBlogPage = pathname === '/blog' || pathname?.startsWith('/blog/category/')
   const [isTransparentNavbarPage, setIsTransparentNavbarPage] = useState(false)
 
   useEffect(() => {
