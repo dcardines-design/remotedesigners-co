@@ -56,9 +56,9 @@ export default async function BlogPage() {
   const posts = await getBlogPosts()
   const categories = Object.entries(BLOG_CATEGORIES) as [BlogCategory, typeof BLOG_CATEGORIES[BlogCategory]][]
 
-  // Chip styles - big pill style like SEO pages
-  const chipActiveClass = "bg-neutral-900 text-white text-sm font-medium px-4 py-2 rounded-full border border-neutral-900 transition-all"
-  const chipInactiveClass = "bg-white text-neutral-700 text-sm font-medium px-4 py-2 rounded-full border border-neutral-200 hover:border-neutral-300 hover:shadow-sm transition-all"
+  // Chip styles - matching SEO pages
+  const chipActiveClass = "bg-neutral-900 text-white text-sm px-4 py-2 rounded-md border border-neutral-900 transition-all"
+  const chipInactiveClass = "bg-white text-neutral-600 text-sm px-4 py-2 rounded-md border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
   const cardChipClass = "bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200"
 
   return (
