@@ -58,6 +58,20 @@ async function getSubscribersWithTier(supabase: ReturnType<typeof createServerSu
     return []
   }
 
+  // Deduplicate by email - keep the most recent entry (highest id or latest preferences)
+  const emailMap = new Map<string, typeof subscribers[0]>()
+  for (const sub of subscribers) {
+    const emailLower = sub.email.toLowerCase()
+    if (!emailMap.has(emailLower)) {
+      emailMap.set(emailLower, sub)
+    }
+  }
+  const uniqueSubscribers = Array.from(emailMap.values())
+
+  if (uniqueSubscribers.length < subscribers.length) {
+    console.log(`Deduplicated ${subscribers.length} subscribers to ${uniqueSubscribers.length} unique emails`)
+  }
+
   // Get paid users' emails (users with active subscriptions)
   const { data: paidUsers } = await supabase
     .from('profiles')
@@ -66,7 +80,7 @@ async function getSubscribersWithTier(supabase: ReturnType<typeof createServerSu
 
   const paidEmails = new Set(paidUsers?.map(p => p.email.toLowerCase()) || [])
 
-  return subscribers.map(sub => ({
+  return uniqueSubscribers.map(sub => ({
     ...sub,
     isPaidUser: paidEmails.has(sub.email.toLowerCase())
   }))
