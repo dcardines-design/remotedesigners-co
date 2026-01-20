@@ -40,22 +40,22 @@ const TOPIC_SCENES: Record<BlogCategory, string[]> = {
   ],
 }
 
-// Different art style prompts for variety
+// Different Studio Ghibli + Solarpunk style variations for variety
 const ART_STYLE_PROMPTS = [
-  // Style 1: Soft watercolor solarpunk
-  (scene: string) => `soft watercolor illustration of a dreamy solarpunk landscape. ${scene}. delicate pastel color palette with golden yellows, sage greens, pale sky blues, coral pinks, and cream whites. rolling hills covered in wildflower meadows. glass geodesic domes and floating structures with trailing plants. wind turbines and solar panels nestled among vegetation. misty mountains in background. golden hour diffused lighting. textured paper quality with soft brushstrokes. peaceful, hopeful mood. absolutely no text or words in the image.`,
+  // Style 0: Ghibli solarpunk - golden hour meadows
+  (scene: string) => `studio ghibli inspired solarpunk illustration of ${scene}. lush green rolling hills with wildflower meadows. golden hour sunlight with warm orange and pink sky. glass geodesic domes and solar panels nestled among vegetation. wind turbines on distant hills. fluffy cumulus clouds. detailed hand-painted background style. soft edges and dreamy atmosphere. cozy and hopeful feeling. small details like butterflies, dandelion seeds floating. absolutely no text or words in the image.`,
 
-  // Style 2: Studio Ghibli inspired
-  (scene: string) => `studio ghibli inspired illustration of ${scene}. lush green landscapes with fluffy clouds. warm afternoon sunlight casting long shadows. detailed hand-painted background style. soft edges and dreamy atmosphere. vintage anime aesthetic from the 1990s. cozy and nostalgic feeling. vibrant but not oversaturated colors. small details like butterflies and floating seeds. absolutely no text or words in the image.`,
+  // Style 1: Ghibli solarpunk - misty morning forest
+  (scene: string) => `studio ghibli inspired solarpunk illustration of ${scene}. mystical forest setting with tall trees and dappled sunlight. soft morning mist between the trees. sustainable treehouses with solar roofs integrated into the canopy. moss-covered stones and ferns. gentle green and blue color palette. ethereal and peaceful atmosphere. hand-painted watercolor texture. tiny glowing particles in the air. absolutely no text or words in the image.`,
 
-  // Style 3: Isometric cozy
-  (scene: string) => `isometric 3D illustration of ${scene}. cute miniature diorama style. soft pastel colors with mint green, peachy pink, lavender, and warm cream. tiny detailed props and furniture. gentle ambient occlusion shadows. playful and whimsical mood. clean minimalist aesthetic. toy-like quality. warm natural lighting from above. absolutely no text or words in the image.`,
+  // Style 2: Ghibli solarpunk - coastal seaside
+  (scene: string) => `studio ghibli inspired solarpunk illustration of ${scene}. beautiful coastal seaside landscape. turquoise ocean waves and white sand beach. colorful wildflowers on grassy cliffs with wind turbines. floating solar platforms on the water. bright blue sky with dramatic white clouds. warm summer afternoon light. hand-painted anime background style. nostalgic and hopeful mood. absolutely no text or words in the image.`,
 
-  // Style 4: Retro futurism
-  (scene: string) => `retro futurism illustration of ${scene}. 1960s space age optimism meets sustainable future. warm oranges, teals, and cream whites. rounded organic shapes and curved architecture. vintage mid-century modern furniture. optimistic and bright atmosphere. subtle grain texture. atomic age meets eco-friendly design. absolutely no text or words in the image.`,
+  // Style 3: Ghibli solarpunk - cozy countryside
+  (scene: string) => `studio ghibli inspired solarpunk illustration of ${scene}. charming countryside with rolling farmland. quaint eco-cottages with green roofs and solar panels among fields. vertical gardens on buildings. winding paths with electric vehicles. fluffy clouds in blue sky. soft afternoon sunlight. hand-painted anime style with rich earthy colors. peaceful sustainable village atmosphere. absolutely no text or words in the image.`,
 
-  // Style 5: Paper cut collage
-  (scene: string) => `paper cut collage art style illustration of ${scene}. layered paper textures with subtle shadows between layers. earthy terracotta, sage green, dusty blue, and warm sand colors. geometric shapes with organic elements. handcrafted artisanal quality. depth created through overlapping cutouts. warm diffused lighting. modern craft aesthetic. absolutely no text or words in the image.`,
+  // Style 4: Ghibli solarpunk - sunset skyscape
+  (scene: string) => `studio ghibli inspired solarpunk illustration of ${scene}. dramatic sunset sky with layers of orange, pink, and purple clouds. silhouetted solarpunk cityscape below with green terraces. elegant wind turbines and floating structures. birds flying across the sky. magical golden light. hand-painted anime background with beautiful color gradients. emotional and inspiring atmosphere. tiny details like floating seeds and leaves. absolutely no text or words in the image.`,
 ]
 
 /**
