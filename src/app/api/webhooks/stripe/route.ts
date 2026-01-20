@@ -159,6 +159,18 @@ async function handleJobPaymentCompleted(
     poster_email: metadata.poster_email?.toLowerCase() || null,
   }
 
+  // Check if job already exists (idempotency check for webhook retries)
+  const { data: existingJob } = await supabase
+    .from('jobs')
+    .select('id')
+    .eq('external_id', jobData.external_id)
+    .single()
+
+  if (existingJob) {
+    console.log(`Job already exists for session ${session.id}, skipping duplicate`)
+    return
+  }
+
   // Insert job into database
   const { data: job, error } = await supabase
     .from('jobs')
@@ -167,6 +179,11 @@ async function handleJobPaymentCompleted(
     .single()
 
   if (error) {
+    // Handle race condition where job was inserted between check and insert
+    if (error.code === '23505') { // Unique constraint violation
+      console.log(`Job already exists (race condition) for session ${session.id}`)
+      return
+    }
     console.error('Failed to insert job:', error)
     throw error
   }

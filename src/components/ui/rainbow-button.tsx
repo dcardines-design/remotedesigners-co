@@ -7,7 +7,7 @@ interface RainbowButtonProps {
   disabled?: boolean
   onClick?: () => void
   fullWidth?: boolean
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'sm' | 'md' | 'lg' | 'sm-to-lg'
   className?: string
   external?: boolean // Opens in new tab
 }
@@ -16,12 +16,14 @@ const sizeClasses = {
   sm: 'px-5 py-2 text-sm rounded-[6px]',
   md: 'px-6 py-3 rounded-[6.5px]',
   lg: 'px-8 py-3.5 rounded-[6.5px]',
+  'sm-to-lg': 'px-5 py-2 text-sm rounded-[6px] md:px-8 md:py-3.5 md:text-base md:rounded-[6.5px]',
 }
 
 const wrapperSizeClasses = {
   sm: 'rounded-[7px] shadow-[0px_3px_0px_0px_rgba(0,0,0,0.3),0px_1px_2px_0px_rgba(0,0,0,0.1)] hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3),0px_1px_2px_0px_rgba(0,0,0,0.1)] active:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.3)]',
   md: 'rounded-[7.5px] shadow-[0px_4px_0px_0px_rgba(0,0,0,0.3),0px_1px_2px_0px_rgba(0,0,0,0.1)] hover:shadow-[0px_3px_0px_0px_rgba(0,0,0,0.3),0px_1px_2px_0px_rgba(0,0,0,0.1)] active:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3)]',
   lg: 'rounded-[7.5px] shadow-[0px_4px_0px_0px_rgba(0,0,0,0.3),0px_1px_2px_0px_rgba(0,0,0,0.1)] hover:shadow-[0px_3px_0px_0px_rgba(0,0,0,0.3),0px_1px_2px_0px_rgba(0,0,0,0.1)] active:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3)]',
+  'sm-to-lg': 'rounded-[7px] md:rounded-[7.5px] shadow-[0px_3px_0px_0px_rgba(0,0,0,0.3),0px_1px_2px_0px_rgba(0,0,0,0.1)] md:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.3),0px_1px_2px_0px_rgba(0,0,0,0.1)] hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3),0px_1px_2px_0px_rgba(0,0,0,0.1)] md:hover:shadow-[0px_3px_0px_0px_rgba(0,0,0,0.3),0px_1px_2px_0px_rgba(0,0,0,0.1)] active:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.3)] md:active:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.3)]',
 }
 
 export function RainbowButton({

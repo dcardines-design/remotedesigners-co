@@ -817,7 +817,7 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
                   href={isSubscribed ? job.apply_url : undefined}
                   external={isSubscribed}
                   fullWidth
-                  size="sm"
+                  size="sm-to-lg"
                   onClick={() => {
                     if (!isSubscribed) {
                       router.push(`/membership?skip_url=${encodeURIComponent(window.location.href)}`)
