@@ -2,6 +2,113 @@
 
 import ReactMarkdown from 'react-markdown'
 import Link from 'next/link'
+import { BLOG_CATEGORIES, BlogCategory } from '@/lib/blog/seo-helpers'
+
+/**
+ * Reusable Blog Breadcrumb component
+ */
+interface BlogBreadcrumbProps {
+  category: BlogCategory
+  postTitle?: string
+}
+
+export function BlogBreadcrumb({ category, postTitle }: BlogBreadcrumbProps) {
+  const categoryInfo = BLOG_CATEGORIES[category]
+
+  return (
+    <nav className="flex items-center gap-2 text-sm text-neutral-500 mb-8 overflow-x-auto hide-scrollbar">
+      <Link href="/" className="hover:text-neutral-700 transition-colors shrink-0">Home</Link>
+      <span className="shrink-0">/</span>
+      <Link href="/blog" className="hover:text-neutral-700 transition-colors shrink-0">Blog</Link>
+      <span className="shrink-0">/</span>
+      <Link
+        href={`/blog/category/${category}`}
+        className="hover:text-neutral-700 transition-colors shrink-0 whitespace-nowrap"
+      >
+        {categoryInfo?.name || category}
+      </Link>
+      {postTitle && (
+        <>
+          <span className="hidden md:inline shrink-0">/</span>
+          <span className="hidden md:inline text-neutral-400 truncate max-w-[200px]">{postTitle}</span>
+        </>
+      )}
+    </nav>
+  )
+}
+
+/**
+ * Reusable Blog Post Footer (Back button + Share)
+ */
+interface BlogPostFooterProps {
+  title: string
+  slug: string
+}
+
+export function BlogPostFooter({ title, slug }: BlogPostFooterProps) {
+  return (
+    <div className="mt-8 pt-6 border-t border-neutral-200 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <Link
+        href="/blog"
+        className="flex items-center justify-center gap-2 bg-white text-neutral-600 text-sm px-3 py-2 rounded-md border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all whitespace-nowrap"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        Back to Blog
+      </Link>
+      <ShareButtons
+        title={title}
+        url={`https://remotedesigners.co/blog/${slug}`}
+      />
+    </div>
+  )
+}
+
+/**
+ * Reusable Blog Post Header (category chip, date, reading time)
+ */
+interface BlogPostHeaderProps {
+  category: BlogCategory
+  publishedAt: string
+  readingTimeMinutes?: number | null
+  title: string
+  excerpt?: string | null
+}
+
+export function BlogPostHeader({ category, publishedAt, readingTimeMinutes, title, excerpt }: BlogPostHeaderProps) {
+  const categoryInfo = BLOG_CATEGORIES[category]
+  const publishedDate = new Date(publishedAt).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+
+  return (
+    <header className="mb-8">
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        <Link
+          href={`/blog/category/${category}`}
+          className="text-xs text-neutral-600 bg-white px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+        >
+          {categoryInfo?.emoji} {categoryInfo?.name || category}
+        </Link>
+        <span className="text-sm text-neutral-400">{publishedDate}</span>
+        {readingTimeMinutes && (
+          <span className="text-sm text-neutral-400">{readingTimeMinutes} min read</span>
+        )}
+      </div>
+      <h1 className="font-dm-sans text-4xl md:text-5xl font-medium text-neutral-900 mt-6 mb-6 leading-tight tracking-tight">
+        {title}
+      </h1>
+      {excerpt && (
+        <p className="text-base text-neutral-500 leading-relaxed">
+          {excerpt}
+        </p>
+      )}
+    </header>
+  )
+}
 
 interface BlogContentProps {
   content: string
@@ -293,44 +400,46 @@ export function ShareButtons({ title, url }: ShareButtonsProps) {
   const buttonClass = "flex items-center gap-2 bg-white text-neutral-600 text-sm px-3 py-2 rounded-md border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
       <span className="text-[10px] text-neutral-400 uppercase tracking-widest">Share</span>
-      <a
-        href={`https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={buttonClass}
-        aria-label="Share on Twitter"
-      >
-        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-        </svg>
-        <span>Twitter</span>
-      </a>
-      <a
-        href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={buttonClass}
-        aria-label="Share on LinkedIn"
-      >
-        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-        </svg>
-        <span>LinkedIn</span>
-      </a>
-      <button
-        onClick={() => {
-          navigator.clipboard.writeText(url)
-        }}
-        className={buttonClass}
-        aria-label="Copy link"
-      >
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-        </svg>
-        <span>Copy</span>
-      </button>
+      <div className="flex items-center gap-2 md:gap-3">
+        <a
+          href={`https://twitter.com/intent/tweet?text=${encodedTitle}&url=${encodedUrl}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={buttonClass}
+          aria-label="Share on Twitter"
+        >
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+          </svg>
+          <span>Twitter</span>
+        </a>
+        <a
+          href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={buttonClass}
+          aria-label="Share on LinkedIn"
+        >
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
+          </svg>
+          <span>LinkedIn</span>
+        </a>
+        <button
+          onClick={() => {
+            navigator.clipboard.writeText(url)
+          }}
+          className={buttonClass}
+          aria-label="Copy link"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+          </svg>
+          <span>Copy</span>
+        </button>
+      </div>
     </div>
   )
 }

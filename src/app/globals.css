@@ -274,3 +274,20 @@ body {
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+/* Breathing animation for rainbow gradient */
+@keyframes breathe {
+  0% {
+    opacity: 0.15;
+  }
+  25% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 0.15;
+  }
+}
+
+.animate-breathe {
+  animation: breathe 4s ease-in-out infinite;
+}

@@ -1,5 +1,6 @@
 /**
  * AI Image Generation for Blog Posts using DALL-E 3
+ * With GPT-4 Vision for style consistency
  */
 
 import OpenAI from 'openai'
@@ -13,6 +14,42 @@ function getOpenAIClient(): OpenAI | null {
     return null
   }
   return new OpenAI({ apiKey })
+}
+
+// Frieren-style anime prompts - four shot variations
+const BASE_STYLE = `STRICT STYLE - This IS the artwork, not a photo of artwork:
+- Style: Studio Ghibli background art, Frieren anime aesthetic, watercolor painting
+- The image itself is the watercolor painting - NOT a photo of a painting on a desk
+- Colors: Lush greens, soft pinks, warm oranges, cream and golden tones throughout the ENTIRE image
+- Linework: Thin delicate sepia outlines
+- Lighting: Golden hour, warm and dreamy, evenly lit across full frame
+- Mood: Peaceful solarpunk utopia with wind turbines and glass domes
+- Small figures in scene, environment is the focus
+- DO NOT: photo of artwork, artwork on paper/desk, art supplies visible, frame/border, photorealistic, 3D, dark edges, dark bars, vignette, letterboxing, solid color borders, black/blue/dark margins
+COMPOSITION: Wide 16:9 horizontal landscape. The scene MUST fill the ENTIRE canvas from edge to edge with no empty space, no solid color bars, no dark borders on any side. The artwork extends fully to all four edges. No text, no watermarks.`
+
+const SHOT_STYLES = [
+  {
+    name: 'Far/Landscape',
+    prompt: `Far landscape shot with environment as the main subject. Lush nature foreground with flowers and plants framing the scene. Small distant figures. Solarpunk architecture (glass domes, wind turbines, solar panels) in background. Scenic and atmospheric. ${BASE_STYLE}`
+  },
+  {
+    name: 'Wide',
+    prompt: `Wide shot showing full scene. Characters visible but environment equally important. Lush nature and solarpunk elements throughout. ${BASE_STYLE}`
+  },
+  {
+    name: 'Medium',
+    prompt: `Medium shot showing characters from waist up with environment visible behind them. Lush nature and solarpunk setting. ${BASE_STYLE}`
+  },
+  {
+    name: 'Close',
+    prompt: `Close shot focusing on character upper body and face. Soft blurred background with hints of nature and solarpunk elements. ${BASE_STYLE}`
+  }
+]
+
+// Randomly select shot style
+function getAnimeStyle(): { name: string; prompt: string } {
+  return SHOT_STYLES[Math.floor(Math.random() * SHOT_STYLES.length)]
 }
 
 // Scene descriptions for each topic category
@@ -60,48 +97,21 @@ const TOPIC_SCENES: Record<BlogCategory, string[]> = {
     'a product launch celebration in a creative garden courtyard',
   ],
   'graphic-design': [
-    'an artist painting vibrant colors on a large canvas outdoors',
-    'typography and letters floating in a whimsical design studio',
-    'a designer creating brand identity elements in a colorful workshop',
-    'illustration tools and brushes arranged in an artistic treehouse',
-    'a creative composing visual designs surrounded by color palettes',
+    'a village square with colorful banners and creative signage everywhere',
+    'floating typography and letters drifting through a flower garden',
+    'a peaceful meadow with glowing brand symbols hovering in the air',
+    'an artistic treehouse village with vibrant decorations and patterns',
+    'a serene landscape with colorful hot air balloons and creative patterns in the sky',
   ],
 }
 
-// Different Studio Ghibli + Solarpunk style variations for variety
-const ART_STYLE_PROMPTS = [
-  // Style 0: Ghibli solarpunk - golden hour meadows
-  (scene: string) => `studio ghibli inspired solarpunk illustration of ${scene}. lush green rolling hills with wildflower meadows. golden hour sunlight with warm orange and pink sky. glass geodesic domes and solar panels nestled among vegetation. wind turbines on distant hills. fluffy cumulus clouds. detailed hand-painted background style. soft edges and dreamy atmosphere. cozy and hopeful feeling. small details like butterflies, dandelion seeds floating. absolutely no text or words in the image.`,
-
-  // Style 1: Ghibli solarpunk - misty morning forest
-  (scene: string) => `studio ghibli inspired solarpunk illustration of ${scene}. mystical forest setting with tall trees and dappled sunlight. soft morning mist between the trees. sustainable treehouses with solar roofs integrated into the canopy. moss-covered stones and ferns. gentle green and blue color palette. ethereal and peaceful atmosphere. hand-painted watercolor texture. tiny glowing particles in the air. absolutely no text or words in the image.`,
-
-  // Style 2: Ghibli solarpunk - coastal seaside
-  (scene: string) => `studio ghibli inspired solarpunk illustration of ${scene}. beautiful coastal seaside landscape. turquoise ocean waves and white sand beach. colorful wildflowers on grassy cliffs with wind turbines. floating solar platforms on the water. bright blue sky with dramatic white clouds. warm summer afternoon light. hand-painted anime background style. nostalgic and hopeful mood. absolutely no text or words in the image.`,
-
-  // Style 3: Ghibli solarpunk - cozy countryside
-  (scene: string) => `studio ghibli inspired solarpunk illustration of ${scene}. charming countryside with rolling farmland. quaint eco-cottages with green roofs and solar panels among fields. vertical gardens on buildings. winding paths with electric vehicles. fluffy clouds in blue sky. soft afternoon sunlight. hand-painted anime style with rich earthy colors. peaceful sustainable village atmosphere. absolutely no text or words in the image.`,
-
-  // Style 4: Ghibli solarpunk - sunset skyscape
-  (scene: string) => `studio ghibli inspired solarpunk illustration of ${scene}. dramatic sunset sky with layers of orange, pink, and purple clouds. silhouetted solarpunk cityscape below with green terraces. elegant wind turbines and floating structures. birds flying across the sky. magical golden light. hand-painted anime background with beautiful color gradients. emotional and inspiring atmosphere. tiny details like floating seeds and leaves. absolutely no text or words in the image.`,
-
-  // Style 5: Ghibli soft watercolor abstract
-  (scene: string) => `studio ghibli inspired soft watercolor illustration representing ${scene}. abstract dreamy composition with flowing organic shapes and gentle color washes. pastel palette with soft pinks, lavenders, sage greens, and warm creams. delicate brush strokes and bleeding watercolor effects. ethereal light sources creating soft glows. minimalist abstract forms suggesting the theme without being literal. peaceful meditative atmosphere. hand-painted watercolor paper texture visible. soft bokeh-like dots and gentle gradients. absolutely no text, letters, numbers, or words anywhere in the image.`,
-]
-
 /**
  * Generate a featured image for a blog post using DALL-E 3
- * @param styleIndex - Optional index (0-4) to force a specific art style:
- *   0 = Soft watercolor solarpunk
- *   1 = Studio Ghibli inspired
- *   2 = Isometric cozy
- *   3 = Retro futurism
- *   4 = Paper cut collage
+ * Uses unified Ghibli watercolor style with topic-relevant scenes
  */
 export async function generateBlogImage(
   category: BlogCategory,
-  altText: string,
-  styleIndex?: number
+  altText: string
 ): Promise<{ url: string; storedUrl: string } | null> {
   const openai = getOpenAIClient()
   if (!openai) {
@@ -114,14 +124,12 @@ export async function generateBlogImage(
     const scenes = TOPIC_SCENES[category]
     const topicScene = scenes[Math.floor(Math.random() * scenes.length)]
 
-    // Use specified style or random
-    const styleIdx = styleIndex !== undefined && styleIndex >= 0 && styleIndex < ART_STYLE_PROMPTS.length
-      ? styleIndex
-      : Math.floor(Math.random() * ART_STYLE_PROMPTS.length)
-    const stylePrompt = ART_STYLE_PROMPTS[styleIdx]
-    const prompt = stylePrompt(topicScene)
-    console.log(`Using art style index: ${styleIdx}`)
+    // Build prompt: Frieren anime style + topic scene + random shot type
+    const shotStyle = getAnimeStyle()
+    const prompt = `${topicScene}. Solarpunk setting with wind turbines and glass domes visible. ${shotStyle.prompt}`
 
+    console.log('Scene:', topicScene)
+    console.log('Shot:', shotStyle.name)
     console.log('Generating image with DALL-E 3...')
 
     const response = await openai.images.generate({

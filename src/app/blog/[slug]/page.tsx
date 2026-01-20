@@ -1,11 +1,10 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import { BlogSEO } from '@/components/blog-seo'
-import { BlogContent, TableOfContents, ShareButtons } from '@/components/blog-content'
+import { BlogContent, TableOfContents, BlogBreadcrumb, BlogPostHeader, BlogPostFooter } from '@/components/blog-content'
 import { BlogCard } from '@/components/blog-card'
-import { BLOG_CATEGORIES, BlogCategory } from '@/lib/blog/seo-helpers'
+import { BlogCategory } from '@/lib/blog/seo-helpers'
 
 interface BlogPost {
   id: string
@@ -146,12 +145,6 @@ export default async function BlogPostPage({ params }: Props) {
   }
 
   const relatedPosts = await getRelatedPosts(post.category, post.slug)
-  const categoryInfo = BLOG_CATEGORIES[post.category]
-  const publishedDate = new Date(post.published_at).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
 
   return (
     <>
@@ -172,49 +165,19 @@ export default async function BlogPostPage({ params }: Props) {
       />
 
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-12">
-        {/* Breadcrumbs */}
-        <nav className="flex items-center gap-2 text-sm text-neutral-500 mb-8">
-          <Link href="/" className="hover:text-neutral-700 transition-colors">Home</Link>
-          <span>/</span>
-          <Link href="/blog" className="hover:text-neutral-700 transition-colors">Blog</Link>
-          <span>/</span>
-          <Link
-            href={`/blog/category/${post.category}`}
-            className="hover:text-neutral-700 transition-colors"
-          >
-            {categoryInfo?.name || post.category}
-          </Link>
-          <span>/</span>
-          <span className="text-neutral-400 truncate max-w-[200px]">{post.title}</span>
-        </nav>
+        <BlogBreadcrumb category={post.category} postTitle={post.title} />
 
         {/* Two Column Layout */}
         <div className="flex flex-col lg:flex-row gap-12">
           {/* Left Column - Main Content */}
           <article className="flex-1 min-w-0">
-            {/* Header */}
-            <header className="mb-8">
-              <div className="flex items-center gap-3 mb-4">
-                <Link
-                  href={`/blog/category/${post.category}`}
-                  className="text-xs text-neutral-600 bg-white px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
-                >
-                  {categoryInfo?.emoji} {categoryInfo?.name || post.category}
-                </Link>
-                <span className="text-sm text-neutral-400">{publishedDate}</span>
-                {post.reading_time_minutes && (
-                  <span className="text-sm text-neutral-400">{post.reading_time_minutes} min read</span>
-                )}
-              </div>
-              <h1 className="font-dm-sans text-4xl md:text-5xl font-medium text-neutral-900 mt-6 mb-6 leading-tight tracking-tight">
-                {post.title}
-              </h1>
-              {post.excerpt && (
-                <p className="text-base text-neutral-500 leading-relaxed">
-                  {post.excerpt}
-                </p>
-              )}
-            </header>
+            <BlogPostHeader
+              category={post.category}
+              publishedAt={post.published_at}
+              readingTimeMinutes={post.reading_time_minutes}
+              title={post.title}
+              excerpt={post.excerpt}
+            />
 
             {/* Featured Image */}
             {post.featured_image && (
@@ -235,22 +198,7 @@ export default async function BlogPostPage({ params }: Props) {
             {/* Content */}
             <BlogContent content={post.content} />
 
-            {/* Share */}
-            <div className="mt-8 pt-6 border-t border-neutral-200 flex items-center justify-between">
-              <Link
-                href="/blog"
-                className="flex items-center gap-2 bg-white text-neutral-600 text-sm px-3 py-2 rounded-md border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                Back to Blog
-              </Link>
-              <ShareButtons
-                title={post.title}
-                url={`https://remotedesigners.co/blog/${post.slug}`}
-              />
-            </div>
+            <BlogPostFooter title={post.title} slug={post.slug} />
           </article>
 
           {/* Right Column - Sticky TOC */}

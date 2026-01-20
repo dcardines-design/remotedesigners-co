@@ -92,31 +92,35 @@ export default async function CategoryPage({ params }: Props) {
     <div className="min-h-screen bg-neutral-50 relative">
       <HeroBackground
         imageSrc="/blog-hero-bg.png"
+        opacity={0.4}
         maxHeight="400px"
         mobileMaxHeight="250px"
         fadeStart={60}
         mobileFadeStart={50}
       />
-      <div className="max-w-6xl mx-auto px-4 md:px-8 py-10 md:py-16 relative z-10">
+      <div className="max-w-6xl mx-auto px-8 md:px-8 py-10 md:py-16 relative z-10">
         {/* Header */}
         <h1 className="font-dm-sans text-4xl md:text-5xl font-semibold text-neutral-900 mb-6">
           Blog
         </h1>
 
-        {/* Category Chips */}
-        <div className="flex flex-wrap items-center gap-2 mb-12">
-          <Link href="/blog" className={chipInactiveClass}>
-            All Posts
-          </Link>
-          {categories.map(([slug, cat]) => (
-            <Link
-              key={slug}
-              href={`/blog/category/${slug}`}
-              className={slug === category ? chipActiveClass : chipInactiveClass}
-            >
-              {cat.emoji} {cat.name}
+        {/* Category Chips - Sticky on Mobile */}
+        <div className="sticky top-[64px] z-20 -mx-8 md:mx-0 mb-8 md:mb-12 md:static">
+          <div className="absolute inset-0 bg-neutral-50/95 backdrop-blur-sm md:hidden" />
+          <div className="relative flex items-center gap-2 overflow-x-auto overflow-y-visible py-3 px-8 md:p-0 md:flex-wrap md:overflow-visible hide-scrollbar">
+            <Link href="/blog" className={`${chipInactiveClass} shrink-0 whitespace-nowrap md:shrink md:whitespace-normal`}>
+              All Posts
             </Link>
-          ))}
+            {categories.map(([slug, cat]) => (
+              <Link
+                key={slug}
+                href={`/blog/category/${slug}`}
+                className={`${slug === category ? chipActiveClass : chipInactiveClass} shrink-0 whitespace-nowrap md:shrink md:whitespace-normal`}
+              >
+                {cat.emoji} {cat.name}
+              </Link>
+            ))}
+          </div>
         </div>
 
         {posts.length === 0 ? (
@@ -142,7 +146,7 @@ export default async function CategoryPage({ params }: Props) {
         ) : (
           <>
             {/* Simple Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-8 md:gap-y-12">
               {posts.map((post) => {
                 const postCategoryInfo = BLOG_CATEGORIES[post.category]
 
@@ -150,7 +154,7 @@ export default async function CategoryPage({ params }: Props) {
                   <article key={post.id} className="group">
                     {/* Image */}
                     <Link href={`/blog/${post.slug}`} className="block mb-4">
-                      <div className="aspect-[16/9] rounded-lg overflow-hidden bg-neutral-200">
+                      <div className="aspect-[7/4] rounded-lg overflow-hidden bg-neutral-200">
                         {post.featured_image ? (
                           <img
                             src={post.featured_image}
@@ -181,24 +185,21 @@ export default async function CategoryPage({ params }: Props) {
                         {post.title}
                       </h2>
                     </Link>
+
+                    {/* Date */}
+                    <p className="text-sm text-neutral-400 mt-2">
+                      {new Date(post.published_at).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </p>
                   </article>
                 )
               })}
             </div>
 
-            {/* Footer */}
-            <div className="mt-16 pt-8 border-t border-neutral-200">
-              <div className="flex items-center justify-center gap-2 text-sm text-neutral-500">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1Z" />
-                </svg>
-                <span>Stay in the loop: subscribe to our</span>
-                <a href="/blog/feed.xml" className="font-medium text-neutral-900 hover:underline">
-                  RSS feed
-                </a>
-              </div>
-            </div>
-          </>
+                      </>
         )}
       </div>
     </div>

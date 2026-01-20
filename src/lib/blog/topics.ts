@@ -224,9 +224,85 @@ export function interpolateTitle(
 }
 
 /**
+ * Real-world examples and references by category
+ */
+const CATEGORY_EXAMPLES: Record<BlogCategory, string> = {
+  'job-market-insights': `
+REAL-WORLD REFERENCES TO USE:
+- Companies known for design hiring: Airbnb, Stripe, Figma, Spotify, Shopify, Notion, Linear, Canva, Square, Coinbase
+- Salary data sources: Glassdoor, Levels.fyi, Blind, LinkedIn Salary Insights
+- Industry reports: Dribbble's Global Design Survey, InVision's Design Leadership Report, Adobe's Creative Trends Report
+- Design job boards: Dribbble Jobs, Behance Jobs, We Work Remotely, RemoteOK
+- Remote-first companies: GitLab, Automattic, Zapier, Buffer, Doist, Basecamp
+- Design leaders to reference: Julie Zhuo (former FB VP Design), John Maeda, Katie Dill (Lyft), Jared Spool`,
+
+  'remote-work-tips': `
+REAL-WORLD REFERENCES TO USE:
+- Remote work tools: Figma, Miro, FigJam, Loom, Slack, Notion, Linear, Asana, ClickUp
+- Video conferencing: Zoom, Google Meet, Around, Gather, Tandem
+- Time tracking: Toggl, Clockify, RescueTime, Harvest
+- Focus apps: Forest, Freedom, Cold Turkey, Be Focused
+- Home office brands: Herman Miller, Steelcase, Autonomous, Fully, Uplift Desk
+- Studies: Buffer State of Remote Work, Owl Labs Remote Work Report, GitLab Remote Work Report
+- Remote-first company practices: GitLab's handbook, Basecamp's Shape Up, Automattic's distributed work culture`,
+
+  'career-advice': `
+REAL-WORLD REFERENCES TO USE:
+- Portfolio platforms: Behance, Dribbble, Framer Sites, Webflow, Cargo, Read.cv
+- Books: "Don't Make Me Think" (Krug), "The Design of Everyday Things" (Norman), "Refactoring UI", "Sprint" (Jake Knapp)
+- Design leaders: Julie Zhuo, John Maeda, Luke Wroblewski, Jared Spool, Dan Mall, Brad Frost
+- Companies known for design culture: Apple, Google, Airbnb, Stripe, Figma, Linear
+- Learning platforms: Designlab, Springboard, CareerFoundry, Google UX Certificate, Nielsen Norman Group
+- Interview prep: Whiteboard challenges, design critiques, portfolio presentations, case study walkthroughs
+- Networking: ADPList, Design Twitter/X, local AIGA chapters, Design Buddies Discord`,
+
+  'design-news': `
+REAL-WORLD REFERENCES TO USE:
+- Design tools: Figma (acquired by Adobe, then deal cancelled), Framer, Webflow, Spline, Rive, Jitter
+- AI design tools: Midjourney, DALL-E, Adobe Firefly, Galileo AI, Uizard, Relume
+- Recent acquisitions/news: Canva's growth, Figma's features, Adobe's AI initiatives
+- Design conferences: Config, Awwwards, AIGA events, Interaction Design Association
+- Company design blogs: Airbnb Design, Spotify Design, Uber Design, Dropbox Design
+- Design publications: It's Nice That, Creative Boom, Eye on Design, Design Observer
+- Industry trends: Design systems, AI in design, no-code tools, 3D design, motion design`,
+
+  'ux-design': `
+REAL-WORLD REFERENCES TO USE:
+- UX methods: Jobs-to-be-Done, Design Sprints, Double Diamond, Lean UX, Design Thinking (IDEO)
+- Research tools: UserTesting, Maze, Hotjar, FullStory, Dovetail, Optimal Workshop
+- Case studies: Airbnb's search redesign, Spotify's personalization, Duolingo's gamification
+- UX leaders: Don Norman, Jakob Nielsen, Steve Krug, Aarron Walter, Erika Hall
+- Design systems: Material Design (Google), Human Interface Guidelines (Apple), Lightning (Salesforce), Polaris (Shopify)
+- UX books: "100 Things Every Designer Needs to Know" (Weinschenk), "About Face" (Cooper)
+- Research methods: Usability testing, A/B testing, card sorting, tree testing, user interviews`,
+
+  'product-design': `
+REAL-WORLD REFERENCES TO USE:
+- Product design tools: Figma, Sketch, Framer, Principle, ProtoPie, Origami Studio
+- Design systems: Atlassian Design System, IBM Carbon, Uber Base, GitHub Primer, Radix UI
+- Product frameworks: Jobs-to-be-Done, Kano Model, RICE prioritization, Design Sprints
+- Companies with strong product design: Linear, Notion, Figma, Stripe, Vercel, Raycast
+- Product leaders: Marty Cagan, Teresa Torres, Shreyas Doshi, Lenny Rachitsky
+- Books: "Inspired" (Cagan), "Continuous Discovery Habits" (Torres), "Shape Up" (Basecamp)
+- Collaboration: Handoff tools, developer collaboration, design tokens, Storybook`,
+
+  'graphic-design': `
+REAL-WORLD REFERENCES TO USE:
+- Design tools: Adobe Creative Suite, Figma, Canva, Affinity Suite, Procreate
+- Typography resources: Google Fonts, Adobe Fonts, Fontshare, Klim Type Foundry, Colophon
+- Color tools: Coolors, Adobe Color, Realtime Colors, Colour Contrast Checker
+- Inspiration: Behance, Dribbble, Awwwards, Fonts In Use, Brand New (UnderConsideration)
+- Iconic designers: Paula Scher, Jessica Walsh, Stefan Sagmeister, Michael Bierut, Aaron Draplin
+- Design studios: Pentagram, IDEO, Landor, Collins, Instrument, Huge
+- Trends: Variable fonts, 3D typography, brutalist design, Y2K revival, motion graphics`,
+}
+
+/**
  * Get topic context with job insights for AI prompt
  */
 export function buildTopicContext(topic: BlogTopic, insights: JobInsights): string {
+  const categoryExamples = CATEGORY_EXAMPLES[topic.category] || ''
+
   return `
 ${topic.promptContext}
 
@@ -237,6 +313,7 @@ USE THESE REAL STATISTICS IN YOUR ARTICLE:
 - Top hiring companies: ${insights.topCompanies.slice(0, 5).map(c => c.company).join(', ')}
 - Popular locations: ${insights.topLocations.slice(0, 5).map(l => l.location).join(', ')}
 ${insights.salaryRanges.average ? `- Average salary range: $${Math.round(insights.salaryRanges.average.min / 1000)}k - $${Math.round(insights.salaryRanges.average.max / 1000)}k` : ''}
+${categoryExamples}
 
 INTERNAL LINKS TO INCLUDE (use markdown links):
 - [Browse Remote UX/UI Design Jobs](/remote-ui-ux-design-jobs)

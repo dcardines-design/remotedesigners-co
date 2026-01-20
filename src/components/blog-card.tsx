@@ -33,7 +33,7 @@ export function BlogCard({ post, variant = 'default' }: BlogCardProps) {
     return (
       <article className="group">
         <Link href={`/blog/${post.slug}`} className="block mb-4">
-          <div className="aspect-[16/9] rounded-lg overflow-hidden bg-neutral-200">
+          <div className="aspect-[7/4] rounded-lg overflow-hidden bg-neutral-200">
             {post.featured_image ? (
               <img
                 src={post.featured_image}
@@ -71,7 +71,7 @@ export function BlogCard({ post, variant = 'default' }: BlogCardProps) {
         className="group block bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08),0px_1px_2px_0px_rgba(0,0,0,0.05)] hover:border-neutral-300 transition-all"
       >
         {post.featured_image && (
-          <span className="block aspect-[16/9] overflow-hidden bg-neutral-100">
+          <span className="block aspect-[7/4] overflow-hidden bg-neutral-100">
             <img
               src={post.featured_image}
               alt={post.featured_image_alt || post.title}
@@ -142,7 +142,7 @@ export function BlogCardSkeleton({ variant = 'default' }: { variant?: 'default' 
   if (variant === 'featured') {
     return (
       <div className="bg-white border border-neutral-200 rounded-xl overflow-hidden animate-pulse">
-        <div className="aspect-[16/9] bg-neutral-200" />
+        <div className="aspect-[7/4] bg-neutral-200" />
         <div className="p-6">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-20 h-5 bg-neutral-200 rounded" />

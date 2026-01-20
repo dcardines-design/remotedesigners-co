@@ -64,13 +64,16 @@ SEO REQUIREMENTS:
    - Bold key phrases within paragraphs for scanability
    - Each section should have at least 2-3 paragraphs before any list
 
-3. Content:
-   - 1,200-1,800 words
+3. Content (CRITICAL - MUST BE 1,200+ WORDS):
+   - MINIMUM 1,200 words, ideally 1,500-1,800 words - THIS IS NON-NEGOTIABLE
+   - Each H2 section should be 200-300 words with 3-4 substantial paragraphs
+   - Include AT LEAST 5-6 H2 sections to ensure sufficient length
    - Actionable advice written in engaging prose
    - Include statistics and data woven naturally into paragraphs
    - Tell stories and use examples - don't just list tips
    - Each major point should be explained in 2-3 paragraphs, not just a bullet
    - End with clear CTA directing readers to browse jobs
+   - IF YOUR CONTENT IS UNDER 1,200 WORDS, ADD MORE DEPTH TO EACH SECTION
 
 4. REAL-WORLD EXAMPLES & REFERENCES (CRITICAL):
    - Include 3-5 specific, real company examples (e.g., "Airbnb's design system", "Stripe's checkout UX")
@@ -81,6 +84,31 @@ SEO REQUIREMENTS:
    - Reference real design systems (Material Design, Apple HIG, Shopify Polaris)
    - Include real job titles and company names from actual postings
    - DO NOT make up fake statistics or studies - use well-known facts or be vague ("studies show" if unsure)
+
+6. SOURCES SECTION (REQUIRED):
+   - End every article with a "## Sources" section
+   - Include 4-6 real sources with hyperlinks from this VERIFIED list:
+
+   VERIFIED SOURCE URLs (use these exact URLs):
+   - [Nielsen Norman Group - Remote UX Work](https://www.nngroup.com/articles/remote-ux/)
+   - [Nielsen Norman Group - Research Methods](https://www.nngroup.com/topic/research-methods/)
+   - [Nielsen Norman Group - UX Articles](https://www.nngroup.com/articles/)
+   - [Figma - Design Systems 101](https://www.figma.com/blog/design-systems-101-what-is-a-design-system/)
+   - [Figma - How to Build a Design System](https://www.figma.com/blog/design-systems-102-how-to-build-your-design-system/)
+   - [Figma Best Practices](https://www.figma.com/best-practices/)
+   - [Adobe 2025 Creative Trends](https://blog.adobe.com/en/publish/2024/12/03/escaping-surreal-familiar-adobe-2025-creative-trends-forecast)
+   - [Adobe 2026 Creative Trends](https://business.adobe.com/resources/creative-trends-report.html)
+   - [Glassdoor - UX Designer Salaries](https://www.glassdoor.com/Salaries/ux-designer-salary-SRCH_KO0,11.htm)
+   - [Glassdoor - Remote UX Designer Pay](https://www.glassdoor.com/Salaries/remote-ux-designer-salary-SRCH_IL.0,6_IS11047_KO7,18.htm)
+   - [LinkedIn Jobs on the Rise 2026](https://www.linkedin.com/pulse/linkedin-jobs-rise-2026-25-fastest-growing-roles-us-linkedin-news-dlb1c)
+   - [FlexJobs Remote Work Index](https://www.flexjobs.com/blog/post/flexjobs-remote-work-economy-index)
+   - [Robert Half - Remote Work Statistics](https://www.roberthalf.com/us/en/insights/research/remote-work-statistics-and-trends)
+   - [A List Apart](https://alistapart.com/)
+   - [Smashing Magazine](https://www.smashingmagazine.com/)
+   - [UX Collective](https://uxdesign.cc/)
+   - [Coursera - UX Designer Salary Guide](https://www.coursera.org/articles/ux-designer-salary-guide)
+
+   Pick 4-6 sources relevant to the article topic from this list.
 
 5. Internal linking:
    - Include 2-3 links to job listing pages using markdown format
@@ -124,10 +152,12 @@ CATEGORY: ${topic.category}
 CONTEXT AND DATA TO USE:
 ${context}
 
-Remember to:
+CRITICAL REQUIREMENTS:
 - Keep the title under 60 characters
-- Write 1,200-1,800 words
+- MUST BE AT LEAST 1,200 WORDS (aim for 1,500 words) - this is mandatory, not optional
+- Include 5-6 H2 sections, each with 3-4 substantial paragraphs (200-300 words per section)
 - Use the focus keyword "${topic.focusKeyword}" naturally (1-2% density)
+- Include 3-5 real company/tool examples with specific details
 - Include internal links to our job pages
 - Make it actionable and valuable for remote designers
 
@@ -142,7 +172,7 @@ Return ONLY the JSON object, no other text.`
       {
         model: 'anthropic/claude-3.5-sonnet',
         temperature: 0.7,
-        max_tokens: 4000,
+        max_tokens: 6000,
       }
     )
 
@@ -232,12 +262,30 @@ Return ONLY the JSON object, no other text.`
     const slug = generateSlug(parsed.title)
 
     // Calculate metrics
-    const wordCount = countWords(parsed.content)
-    const readingTime = calculateReadingTime(parsed.content)
+    let wordCount = countWords(parsed.content)
+    let finalContent = parsed.content
+
+    // If content is too short, expand it (up to 2 passes)
+    if (wordCount < 1100) {
+      console.log(`Content is ${wordCount} words, expanding (pass 1)...`)
+      finalContent = await expandContent(parsed.content, topic, insights)
+      wordCount = countWords(finalContent)
+      console.log(`After pass 1: ${wordCount} words`)
+
+      // Second pass if still too short
+      if (wordCount < 1200) {
+        console.log(`Still short, expanding (pass 2)...`)
+        finalContent = await expandContent(finalContent, topic, insights)
+        wordCount = countWords(finalContent)
+        console.log(`After pass 2: ${wordCount} words`)
+      }
+    }
+
+    const readingTime = calculateReadingTime(finalContent)
 
     // Ensure meta description is under 160 chars
     const metaDescription = parsed.meta_description.length > 160
-      ? generateMetaDescription(parsed.content, parsed.focus_keyword)
+      ? generateMetaDescription(finalContent, parsed.focus_keyword)
       : parsed.meta_description
 
     return {
@@ -248,7 +296,7 @@ Return ONLY the JSON object, no other text.`
       focus_keyword: parsed.focus_keyword || topic.focusKeyword,
       secondary_keywords: parsed.secondary_keywords || topic.secondaryKeywords,
       excerpt: parsed.excerpt.substring(0, 500),
-      content: parsed.content,
+      content: finalContent,
       tags: [...new Set([...parsed.tags, ...topic.tags])],
       featured_image_alt: parsed.featured_image_alt.substring(0, 255),
       word_count: wordCount,
@@ -259,6 +307,69 @@ Return ONLY the JSON object, no other text.`
     console.error('Content generation error:', error)
     throw error
   }
+}
+
+/**
+ * Expand content that's too short
+ */
+async function expandContent(
+  content: string,
+  topic: BlogTopic,
+  insights: JobInsights
+): Promise<string> {
+  const currentWordCount = countWords(content)
+
+  const expandPrompt = `TASK: You must EXPAND this blog post from ${currentWordCount} words to AT LEAST 1,400 words.
+
+CRITICAL: Do NOT summarize or shorten. You must ADD content, not remove it. The output MUST be longer than the input.
+
+ORIGINAL CONTENT (${currentWordCount} words):
+---
+${content}
+---
+
+EXPANSION INSTRUCTIONS:
+1. Keep ALL existing content - do not remove anything
+2. For EACH existing H2 section, add 2-3 NEW paragraphs with:
+   - More specific examples (Airbnb, Stripe, Figma, Google, Apple, Spotify)
+   - Real statistics or studies
+   - Actionable tips
+   - Industry leader quotes or references
+3. Add 1-2 NEW H2 sections if needed to reach word count
+4. Keep the same punchy, witty tone throughout
+5. Keep all existing internal links
+
+CONTEXT TO USE:
+- There are ${insights.totalJobs} active remote design jobs
+- Top hiring companies: ${insights.topCompanies.slice(0, 5).map(c => c.company).join(', ')}
+
+OUTPUT: Return ONLY the full expanded markdown content. No JSON, no explanations.
+The content MUST be at least 1,400 words. Count carefully.`
+
+  const response = await chatCompletion(
+    [{ role: 'user', content: expandPrompt }],
+    {
+      model: 'anthropic/claude-3.5-sonnet',
+      temperature: 0.8,
+      max_tokens: 8000,
+    }
+  )
+
+  // Clean the response
+  let expanded = response.trim()
+  // Remove any markdown code blocks if present
+  if (expanded.startsWith('```')) {
+    expanded = expanded.replace(/^```(?:markdown)?\n?/, '').replace(/\n?```$/, '')
+  }
+
+  // If expansion failed (shorter or equal), return original
+  const expandedWordCount = countWords(expanded)
+  if (expandedWordCount <= currentWordCount) {
+    console.log(`Expansion failed (${expandedWordCount} <= ${currentWordCount}), keeping original`)
+    return content
+  }
+
+  return expanded
 }
 
 /**

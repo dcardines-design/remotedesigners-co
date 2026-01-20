@@ -36,13 +36,13 @@ export function Footer() {
   return (
     <footer
       ref={footerRef}
-      className="text-neutral-400 pt-8 pb-[18px] md:py-16 rounded-xl mx-3 mb-[14px] shadow-[0px_6px_0px_0px_#000000]"
+      className="relative text-neutral-400 pt-8 pb-[18px] md:py-16 rounded-xl mx-3 mb-[14px] overflow-hidden"
       style={{
         backgroundSize: '300% 300%',
         backgroundImage: 'linear-gradient(135deg, #0a0a0a 0%, #0f0f0f 15%, #141414 30%, #171717 45%, #141414 60%, #0f0f0f 75%, #0a0a0a 90%, #0c0c0c 100%)'
       }}
     >
-      <div className="max-w-6xl mx-auto px-8">
+      <div className="max-w-6xl mx-auto px-8 relative z-10">
         {/* Main Footer Links Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-8 md:gap-y-10 mb-12">
           {/* By Specialty */}
@@ -118,6 +118,7 @@ export function Footer() {
             <h3 className="text-white text-sm font-medium mb-4">Company</h3>
             <ul className="space-y-2 text-sm">
               <li><Link href="/post-job" className="hover:text-white transition-colors">Post a Job</Link></li>
+              <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
               <li><button onClick={() => setIsLoginModalOpen(true)} className="hover:text-white transition-colors">Log In</button></li>
               <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
               <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
@@ -136,11 +137,20 @@ export function Footer() {
               className="h-10 w-auto"
             />
           </div>
-          <p className="text-sm">
+          <p className="text-xs text-neutral-500">
             © {new Date().getFullYear()} RemoteDesigners.co. All rights reserved.
           </p>
         </div>
       </div>
+
+      {/* Rainbow gradient glow at very bottom */}
+      <div
+        className="absolute -bottom-4 left-0 right-0 h-20 pointer-events-none blur-3xl rounded-full animate-breathe"
+        style={{
+          background: 'linear-gradient(135deg, #0D9488 0%, #0891B2 15%, #2563EB 30%, #7C3AED 45%, #EC4899 60%, #F97316 75%, #EAB308 90%, #10B981 100%)',
+          zIndex: 1,
+        }}
+      />
 
       <LoginModal
         isOpen={isLoginModalOpen}
