@@ -1,27 +1,28 @@
 import { NextResponse } from 'next/server'
-import {
-  fetchGlintsJobs,
-  fetchMyCareersFutureSGJobs,
-  // fetchTokyoDevJobs,  // Disabled: Returns 406 - blocked
-  // fetchNodeFlairJobs, // Disabled: Returns 403 - blocked
-  // fetchJoobleJobs,    // Disabled: Returns 403 - blocked
-} from '@/lib/job-apis'
-import { syncJobs } from '@/lib/sync-jobs'
+// import {
+//   fetchGlintsJobs,           // Disabled: Cloudflare blocked
+//   fetchMyCareersFutureSGJobs, // Disabled: No direct apply links
+//   fetchTokyoDevJobs,         // Disabled: Returns 406 - blocked
+//   fetchNodeFlairJobs,        // Disabled: Returns 403 - blocked
+//   fetchJoobleJobs,           // Disabled: Returns 403 - blocked
+// } from '@/lib/job-apis'
+// import { syncJobs } from '@/lib/sync-jobs'
 
-// Asia Part 1: Southeast Asia + Singapore
-// Note: TokyoDev, NodeFlair, and Jooble APIs are blocked as of Jan 2026
+// Asia Part 1: ALL SOURCES DISABLED as of Jan 2026
+// - Glints: Cloudflare blocked
+// - MyCareersFuture: No direct apply links (links to MCF page)
+// - TokyoDev: 406 blocked
+// - NodeFlair: 403 blocked
+// - Jooble: 403 blocked
 async function handleSync() {
-  try {
-    const results = []
+  // No working Asia sources with direct apply links
+  const results: { sourceName: string; message: string }[] = []
 
-    const sources = [
-      { name: 'glints', fn: fetchGlintsJobs },
-      { name: 'mycareersfuture', fn: fetchMyCareersFutureSGJobs }, // Singapore Gov job portal
-      // Disabled sources - APIs blocked/changed:
-      // { name: 'tokyodev', fn: fetchTokyoDevJobs },
-      // { name: 'nodeflairsg', fn: fetchNodeFlairJobs },
-      // { name: 'jooble', fn: fetchJoobleJobs },
-    ]
+  // All sources disabled - see comments above
+  const sources: { name: string; fn: () => Promise<unknown[]> }[] = [
+    // { name: 'glints', fn: fetchGlintsJobs },
+    // { name: 'mycareersfuture', fn: fetchMyCareersFutureSGJobs },
+  ]
 
     for (const source of sources) {
       try {

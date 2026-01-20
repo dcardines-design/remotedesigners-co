@@ -40,6 +40,24 @@ const TOPIC_SCENES: Record<BlogCategory, string[]> = {
   ],
 }
 
+// Different art style prompts for variety
+const ART_STYLE_PROMPTS = [
+  // Style 1: Soft watercolor solarpunk
+  (scene: string) => `soft watercolor illustration of a dreamy solarpunk landscape. ${scene}. delicate pastel color palette with golden yellows, sage greens, pale sky blues, coral pinks, and cream whites. rolling hills covered in wildflower meadows. glass geodesic domes and floating structures with trailing plants. wind turbines and solar panels nestled among vegetation. misty mountains in background. golden hour diffused lighting. textured paper quality with soft brushstrokes. peaceful, hopeful mood. absolutely no text or words in the image.`,
+
+  // Style 2: Studio Ghibli inspired
+  (scene: string) => `studio ghibli inspired illustration of ${scene}. lush green landscapes with fluffy clouds. warm afternoon sunlight casting long shadows. detailed hand-painted background style. soft edges and dreamy atmosphere. vintage anime aesthetic from the 1990s. cozy and nostalgic feeling. vibrant but not oversaturated colors. small details like butterflies and floating seeds. absolutely no text or words in the image.`,
+
+  // Style 3: Isometric cozy
+  (scene: string) => `isometric 3D illustration of ${scene}. cute miniature diorama style. soft pastel colors with mint green, peachy pink, lavender, and warm cream. tiny detailed props and furniture. gentle ambient occlusion shadows. playful and whimsical mood. clean minimalist aesthetic. toy-like quality. warm natural lighting from above. absolutely no text or words in the image.`,
+
+  // Style 4: Retro futurism
+  (scene: string) => `retro futurism illustration of ${scene}. 1960s space age optimism meets sustainable future. warm oranges, teals, and cream whites. rounded organic shapes and curved architecture. vintage mid-century modern furniture. optimistic and bright atmosphere. subtle grain texture. atomic age meets eco-friendly design. absolutely no text or words in the image.`,
+
+  // Style 5: Paper cut collage
+  (scene: string) => `paper cut collage art style illustration of ${scene}. layered paper textures with subtle shadows between layers. earthy terracotta, sage green, dusty blue, and warm sand colors. geometric shapes with organic elements. handcrafted artisanal quality. depth created through overlapping cutouts. warm diffused lighting. modern craft aesthetic. absolutely no text or words in the image.`,
+]
+
 /**
  * Generate a featured image for a blog post using DALL-E 3
  */
@@ -58,8 +76,9 @@ export async function generateBlogImage(
     const scenes = TOPIC_SCENES[category]
     const topicScene = scenes[Math.floor(Math.random() * scenes.length)]
 
-    // Build the prompt - soft illustrated solarpunk style
-    const prompt = `soft watercolor illustration of a dreamy solarpunk landscape. ${topicScene}. delicate pastel color palette with golden yellows, sage greens, pale sky blues, coral pinks, and cream whites. rolling hills covered in wildflower meadows with pink, yellow, and coral flowers in the foreground. glass geodesic domes and floating structures with trailing plants integrated into nature. wind turbines and solar panels nestled among lush vegetation. misty mountains in the distant background. golden hour diffused lighting creating a warm, hazy, optimistic atmosphere. green leaves and branches gently framing the top of the composition. textured paper quality with soft brushstrokes. children's book illustration meets utopian concept art. peaceful, hopeful, serene mood. highly detailed but gentle and soft. absolutely no text, words, letters, or writing anywhere in the image.`
+    // Select a random art style for variety
+    const stylePrompt = ART_STYLE_PROMPTS[Math.floor(Math.random() * ART_STYLE_PROMPTS.length)]
+    const prompt = stylePrompt(topicScene)
 
     console.log('Generating image with DALL-E 3...')
 
