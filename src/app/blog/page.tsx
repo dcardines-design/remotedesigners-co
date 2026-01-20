@@ -122,13 +122,9 @@ export default async function BlogPage() {
                   const categoryInfo = BLOG_CATEGORIES[post.category]
 
                   return (
-                    <Link
-                      key={post.id}
-                      href={`/blog/${post.slug}`}
-                      className="group block"
-                    >
+                    <article key={post.id} className="group">
                       {/* Image */}
-                      <span className="block aspect-[16/10] rounded-lg overflow-hidden bg-neutral-200 mb-4">
+                      <Link href={`/blog/${post.slug}`} className="block aspect-[16/10] rounded-lg overflow-hidden bg-neutral-200 mb-4">
                         {post.featured_image ? (
                           <img
                             src={post.featured_image}
@@ -142,18 +138,23 @@ export default async function BlogPage() {
                             </svg>
                           </span>
                         )}
-                      </span>
+                      </Link>
 
                       {/* Category Chip */}
-                      <span className={`${cardChipClass} inline-block mb-3`}>
+                      <Link
+                        href={`/blog/category/${post.category}`}
+                        className={`${cardChipClass} inline-block mb-3 hover:bg-neutral-100 hover:border-neutral-300 transition-colors`}
+                      >
                         {categoryInfo?.name || post.category}
-                      </span>
+                      </Link>
 
                       {/* Title */}
-                      <h2 className="text-base font-medium text-neutral-900 group-hover:text-neutral-600 transition-colors line-clamp-2">
-                        {post.title}
-                      </h2>
-                    </Link>
+                      <Link href={`/blog/${post.slug}`}>
+                        <h2 className="text-base font-medium text-neutral-900 group-hover:text-neutral-600 transition-colors line-clamp-2">
+                          {post.title}
+                        </h2>
+                      </Link>
+                    </article>
                   )
                 })}
               </div>
