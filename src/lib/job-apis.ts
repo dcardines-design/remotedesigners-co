@@ -84,7 +84,7 @@ Rules:
 
 export interface NormalizedJob {
   id: string
-  source: 'remotive' | 'remoteok' | 'arbeitnow' | 'jsearch' | 'himalayas' | 'jobicy' | 'greenhouse' | 'lever' | 'ashby' | 'adzuna' | 'authenticjobs' | 'workingnomads' | 'themuse' | 'glints' | 'tokyodev' | 'nodeflairsg' | 'jooble' | 'jobstreet' | 'kalibrr' | 'instahyre' | 'wantedly' | 'linkedin' | 'indeed' | 'ycombinator' | 'nodesk' | 'remoteco' | 'justremote'
+  source: 'remotive' | 'remoteok' | 'arbeitnow' | 'jsearch' | 'himalayas' | 'jobicy' | 'greenhouse' | 'lever' | 'ashby' | 'adzuna' | 'authenticjobs' | 'workingnomads' | 'themuse' | 'glints' | 'tokyodev' | 'nodeflairsg' | 'jooble' | 'jobstreet' | 'kalibrr' | 'instahyre' | 'wantedly' | 'linkedin' | 'indeed' | 'ycombinator' | 'nodesk' | 'remoteco' | 'justremote' | 'weworkremotely' | 'mycareersfuture' | 'dribbble' | 'coroflot'
   title: string
   company: string
   company_logo?: string
@@ -3251,4 +3251,365 @@ export async function fetchLinkedInJobs(): Promise<NormalizedJob[]> {
 
   console.log(`LinkedIn: Fetched ${jobs.length} jobs`)
   return jobs
+}
+
+// ============ WEWORKREMOTELY ============
+// Global remote design jobs RSS feed
+
+export async function fetchWeWorkRemotelyJobs(): Promise<NormalizedJob[]> {
+  console.log('Fetching jobs from WeWorkRemotely...')
+  const jobs: NormalizedJob[] = []
+
+  try {
+    const response = await fetch('https://weworkremotely.com/categories/remote-design-jobs.rss', {
+      headers: {
+        'Accept': 'application/rss+xml, application/xml, text/xml, */*',
+        'User-Agent': 'RemoteDesigners.co Job Aggregator'
+      }
+    })
+
+    if (!response.ok) {
+      console.error('WeWorkRemotely RSS error:', response.status)
+      return []
+    }
+
+    const xml = await response.text()
+    const itemRegex = /<item>([\s\S]*?)<\/item>/g
+    let match
+
+    while ((match = itemRegex.exec(xml)) !== null) {
+      const itemXml = match[1]
+
+      const getTag = (tag: string): string => {
+        const tagMatch = itemXml.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`))
+        return tagMatch ? tagMatch[1].replace(/<!\[CDATA\[(.*?)\]\]>/gs, '$1').trim() : ''
+      }
+
+      const title = getTag('title')
+      const link = getTag('link') || getTag('guid')
+      const description = getTag('description')
+      const pubDate = getTag('pubDate')
+      const company = getTag('company') || title.split(':')[0]?.trim() || 'Unknown'
+
+      // Filter for design jobs
+      if (!isDesignJob(title)) continue
+
+      // Parse company from title format "Company: Job Title"
+      const titleParts = title.split(':')
+      const companyName = titleParts.length > 1 ? titleParts[0].trim() : company
+      const jobTitle = titleParts.length > 1 ? titleParts.slice(1).join(':').trim() : title
+
+      // Clean description
+      const cleanDesc = description
+        .replace(/<[^>]*>/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+
+      jobs.push({
+        id: `wwr-${Buffer.from(link).toString('base64').slice(0, 20)}`,
+        source: 'weworkremotely' as NormalizedJob['source'],
+        title: jobTitle,
+        company: companyName,
+        company_logo: `https://logo.clearbit.com/${companyName.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+        location: 'Remote, Worldwide',
+        description: cleanDesc,
+        job_type: 'full-time',
+        experience_level: parseExperienceLevel(jobTitle),
+        skills: extractSkills(cleanDesc),
+        apply_url: link,
+        posted_at: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString(),
+        is_featured: false,
+      })
+    }
+
+    console.log(`WeWorkRemotely: Fetched ${jobs.length} jobs`)
+    return jobs
+  } catch (error) {
+    console.error('WeWorkRemotely error:', error)
+    return []
+  }
+}
+
+// ============ MYCAREERSFUTURE SINGAPORE ============
+// Singapore Government job portal API
+
+interface MCFJob {
+  uuid: string
+  title: string
+  postedCompany?: { name: string; logoUrl?: string }
+  address?: { location?: string }
+  employmentTypes?: string[]
+  minimumYearsExperience?: number
+  description?: string
+  salary?: { minimum?: number; maximum?: number; type?: { salaryType?: string } }
+  metadata?: { jobPostUrl?: string; createdAt?: string }
+}
+
+export async function fetchMyCareersFutureSGJobs(): Promise<NormalizedJob[]> {
+  console.log('Fetching jobs from MyCareersFuture Singapore...')
+  const jobs: NormalizedJob[] = []
+
+  const searchQueries = ['designer', 'ux', 'ui', 'graphic design', 'product design']
+
+  for (const query of searchQueries) {
+    try {
+      const response = await fetch(
+        `https://api.mycareersfuture.gov.sg/v2/jobs?search=${encodeURIComponent(query)}&limit=20&page=0&sortBy=new_posting_date`,
+        {
+          headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'RemoteDesigners.co Job Aggregator'
+          }
+        }
+      )
+
+      if (!response.ok) {
+        console.error(`MCF API error for ${query}:`, response.status)
+        continue
+      }
+
+      const data = await response.json()
+      const results: MCFJob[] = data.results || []
+
+      for (const job of results) {
+        if (!isDesignJob(job.title)) continue
+
+        const companyName = job.postedCompany?.name || 'Unknown'
+        const location = job.address?.location || 'Singapore'
+
+        // Parse salary
+        const salaryMin = job.salary?.minimum
+        const salaryMax = job.salary?.maximum
+        const salaryType = job.salary?.type?.salaryType || 'yearly'
+        const salaryText = salaryMin && salaryMax
+          ? `S$${salaryMin.toLocaleString()} - S$${salaryMax.toLocaleString()} ${salaryType}`
+          : undefined
+
+        // Parse job type
+        const empType = job.employmentTypes?.[0]?.toLowerCase() || ''
+        const jobType = empType.includes('contract') ? 'contract'
+          : empType.includes('part') ? 'part-time'
+          : empType.includes('intern') ? 'internship'
+          : 'full-time'
+
+        // Parse experience level
+        const expYears = job.minimumYearsExperience || 0
+        const expLevel = expYears >= 5 ? 'senior' : expYears >= 2 ? 'mid' : 'entry'
+
+        jobs.push({
+          id: `mcf-${job.uuid}`,
+          source: 'mycareersfuture' as NormalizedJob['source'],
+          title: job.title,
+          company: companyName,
+          company_logo: job.postedCompany?.logoUrl || `https://logo.clearbit.com/${companyName.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+          location: `${location}, Singapore`,
+          salary_min: salaryMin,
+          salary_max: salaryMax,
+          salary_text: salaryText,
+          description: job.description || '',
+          job_type: jobType,
+          experience_level: expLevel,
+          skills: extractSkills(job.description || ''),
+          apply_url: job.metadata?.jobPostUrl || `https://www.mycareersfuture.gov.sg/job/${job.uuid}`,
+          posted_at: job.metadata?.createdAt || new Date().toISOString(),
+          is_featured: false,
+        })
+      }
+
+      // Small delay between queries
+      await new Promise(resolve => setTimeout(resolve, 200))
+    } catch (error) {
+      console.error(`MCF ${query} error:`, error)
+    }
+  }
+
+  console.log(`MyCareersFuture SG: Fetched ${jobs.length} jobs`)
+  return jobs
+}
+
+// ============ DRIBBBLE JOBS RSS ============
+// Dribbble's job board RSS feed - high quality design jobs
+// Docs: https://dribbble.com/jobs.rss
+
+export async function fetchDribbbleJobs(): Promise<NormalizedJob[]> {
+  try {
+    const response = await fetch('https://dribbble.com/jobs.rss', {
+      headers: {
+        'User-Agent': 'RemoteDesigners.co Job Aggregator',
+      },
+    })
+
+    if (!response.ok) {
+      console.error('Dribbble RSS error:', response.status)
+      return []
+    }
+
+    const text = await response.text()
+    const jobs: NormalizedJob[] = []
+
+    // Parse RSS items
+    const itemRegex = /<item>([\s\S]*?)<\/item>/g
+    let match
+
+    while ((match = itemRegex.exec(text)) !== null) {
+      const item = match[1]
+
+      // Extract fields from RSS item
+      const titleMatch = item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) || item.match(/<title>(.*?)<\/title>/)
+      const linkMatch = item.match(/<link>(.*?)<\/link>/)
+      const descMatch = item.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/) || item.match(/<description>([\s\S]*?)<\/description>/)
+      const pubDateMatch = item.match(/<pubDate>(.*?)<\/pubDate>/)
+      const guidMatch = item.match(/<guid.*?>(.*?)<\/guid>/)
+
+      if (!titleMatch || !linkMatch) continue
+
+      const fullTitle = titleMatch[1].trim()
+      const link = linkMatch[1].trim()
+      const description = descMatch ? descMatch[1].trim() : ''
+      const pubDate = pubDateMatch ? pubDateMatch[1] : new Date().toISOString()
+      const guid = guidMatch ? guidMatch[1] : link
+
+      // Parse title format: "Job Title at Company (Location)" or "Job Title at Company"
+      const titleParts = fullTitle.match(/^(.+?)\s+at\s+(.+?)(?:\s+\((.+?)\))?$/)
+
+      let title = fullTitle
+      let company = 'Unknown Company'
+      let location = 'Remote'
+
+      if (titleParts) {
+        title = titleParts[1].trim()
+        company = titleParts[2].trim()
+        if (titleParts[3]) {
+          location = titleParts[3].trim()
+        }
+      }
+
+      // Only include design jobs
+      if (!isDesignJob(title)) continue
+
+      // Generate unique ID from guid or link
+      const jobId = guid.split('/').pop() || guid.replace(/[^a-zA-Z0-9]/g, '').slice(-20)
+
+      jobs.push({
+        id: `dribbble-${jobId}`,
+        source: 'dribbble' as NormalizedJob['source'],
+        title,
+        company,
+        company_logo: `https://logo.clearbit.com/${company.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+        location,
+        description: description.replace(/<[^>]*>/g, ''), // Strip HTML
+        job_type: 'full-time',
+        experience_level: parseExperienceLevel(title),
+        skills: extractSkills(description),
+        apply_url: link,
+        posted_at: new Date(pubDate).toISOString(),
+        is_featured: false,
+      })
+    }
+
+    console.log(`Dribbble: Fetched ${jobs.length} jobs`)
+    return jobs
+  } catch (error) {
+    console.error('Dribbble fetch error:', error)
+    return []
+  }
+}
+
+// ============ COROFLOT JOBS RSS ============
+// Coroflot's design job board RSS feed
+// Docs: https://www.coroflot.com/jobs/rss
+
+export async function fetchCoroflotJobs(): Promise<NormalizedJob[]> {
+  try {
+    const response = await fetch('https://www.coroflot.com/jobs/rss', {
+      headers: {
+        'User-Agent': 'RemoteDesigners.co Job Aggregator',
+      },
+    })
+
+    if (!response.ok) {
+      console.error('Coroflot RSS error:', response.status)
+      return []
+    }
+
+    const text = await response.text()
+    const jobs: NormalizedJob[] = []
+
+    // Parse RSS items
+    const itemRegex = /<item>([\s\S]*?)<\/item>/g
+    let match
+
+    while ((match = itemRegex.exec(text)) !== null) {
+      const item = match[1]
+
+      // Extract fields from RSS item
+      const titleMatch = item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) || item.match(/<title>(.*?)<\/title>/)
+      const linkMatch = item.match(/<link>(.*?)<\/link>/)
+      const descMatch = item.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/) || item.match(/<description>([\s\S]*?)<\/description>/)
+      const pubDateMatch = item.match(/<pubDate>(.*?)<\/pubDate>/)
+      const guidMatch = item.match(/<guid.*?>(.*?)<\/guid>/)
+
+      if (!titleMatch || !linkMatch) continue
+
+      const fullTitle = titleMatch[1].trim()
+      const link = linkMatch[1].trim()
+      const description = descMatch ? descMatch[1].trim() : ''
+      const pubDate = pubDateMatch ? pubDateMatch[1] : new Date().toISOString()
+      const guid = guidMatch ? guidMatch[1] : link
+
+      // Coroflot format: "Job Title - Company - Location" or similar
+      // Try to parse company from title or description
+      let title = fullTitle
+      let company = 'Unknown Company'
+      let location = 'Remote'
+
+      // Try parsing "Title - Company - Location" format
+      const dashParts = fullTitle.split(' - ')
+      if (dashParts.length >= 2) {
+        title = dashParts[0].trim()
+        company = dashParts[1].trim()
+        if (dashParts.length >= 3) {
+          location = dashParts[2].trim()
+        }
+      }
+
+      // Try parsing "Title at Company" format
+      const atMatch = fullTitle.match(/^(.+?)\s+at\s+(.+?)(?:\s+[-–]\s+(.+?))?$/)
+      if (atMatch) {
+        title = atMatch[1].trim()
+        company = atMatch[2].trim()
+        if (atMatch[3]) {
+          location = atMatch[3].trim()
+        }
+      }
+
+      // Only include design jobs
+      if (!isDesignJob(title)) continue
+
+      // Generate unique ID from guid or link
+      const jobId = guid.split('/').pop() || guid.replace(/[^a-zA-Z0-9]/g, '').slice(-20)
+
+      jobs.push({
+        id: `coroflot-${jobId}`,
+        source: 'coroflot' as NormalizedJob['source'],
+        title,
+        company,
+        company_logo: `https://logo.clearbit.com/${company.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+        location,
+        description: description.replace(/<[^>]*>/g, ''), // Strip HTML
+        job_type: 'full-time',
+        experience_level: parseExperienceLevel(title),
+        skills: extractSkills(description),
+        apply_url: link,
+        posted_at: new Date(pubDate).toISOString(),
+        is_featured: false,
+      })
+    }
+
+    console.log(`Coroflot: Fetched ${jobs.length} jobs`)
+    return jobs
+  } catch (error) {
+    console.error('Coroflot fetch error:', error)
+    return []
+  }
 }

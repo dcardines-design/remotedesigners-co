@@ -204,7 +204,7 @@ export default async function BlogPostPage({ params }: Props) {
                   <span className="text-sm text-neutral-400">{post.reading_time_minutes} min read</span>
                 )}
               </div>
-              <h1 className="text-4xl font-bold text-neutral-900 mb-4 leading-tight">
+              <h1 className="font-dm-sans text-4xl font-bold text-neutral-900 mb-4 leading-tight">
                 {post.title}
               </h1>
               {post.excerpt && (

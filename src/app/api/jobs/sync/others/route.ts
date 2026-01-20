@@ -8,6 +8,9 @@ import {
   fetchWorkingNomadsJobs,
   fetchMuseJobs,
   fetchAdzunaJobs,
+  fetchWeWorkRemotelyJobs,
+  fetchDribbbleJobs,
+  fetchCoroflotJobs,
 } from '@/lib/job-apis'
 import { syncJobs } from '@/lib/sync-jobs'
 
@@ -29,6 +32,9 @@ async function handleSync() {
       { name: 'workingnomads', fn: fetchWorkingNomadsJobs },
       { name: 'muse', fn: fetchMuseJobs },
       { name: 'adzuna', fn: fetchAdzunaJobs },
+      { name: 'weworkremotely', fn: fetchWeWorkRemotelyJobs },
+      { name: 'dribbble', fn: fetchDribbbleJobs },
+      { name: 'coroflot', fn: fetchCoroflotJobs },
     ]
 
     for (const source of sources) {

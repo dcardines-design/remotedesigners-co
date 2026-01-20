@@ -5,25 +5,32 @@ import { NormalizedJob } from '@/lib/job-apis'
 export const runtime = 'nodejs'
 export const maxDuration = 60 // 60 seconds max for slow RapidAPI regions
 
-// Query types for each region - includes various remote work keywords
-const QUERY_TYPES = {
-  // Core design roles with "remote" keyword
-  ui: 'remote UI designer',
-  ux: 'remote UX designer',
-  product: 'remote product designer',
-  graphic: 'remote graphic designer',
-  visual: 'remote visual designer',
-  brand: 'remote brand designer',
-  // Work from home variations
-  'wfh-ui': 'work from home UI designer',
-  'wfh-ux': 'work from home UX designer',
-  'wfh-product': 'work from home product designer',
-  'wfh-graphic': 'work from home graphic designer',
-  // Generic remote design searches
-  'remote-design': 'remote designer',
-  'wfh-design': 'work from home designer',
-  'freelance-design': 'freelance designer remote',
-} as const
+// Query types - each type searches multiple keyword variations to catch more remote jobs
+const QUERY_TYPES: Record<string, string[]> = {
+  ui: [
+    'remote UI designer',
+    'work from home UI designer',
+    'UI designer remote',
+    'UI/UX designer remote',
+  ],
+  ux: [
+    'remote UX designer',
+    'work from home UX designer',
+    'UX designer remote',
+    'user experience designer remote',
+  ],
+  product: [
+    'remote product designer',
+    'work from home product designer',
+    'product designer remote',
+  ],
+  graphic: [
+    'remote graphic designer',
+    'work from home graphic designer',
+    'graphic designer remote',
+    'visual designer remote',
+  ],
+}
 
 // Valid regions with their Indeed locality codes and display names
 const REGIONS: Record<string, { locality: string; name: string }> = {
@@ -124,7 +131,7 @@ async function fetchIndeedQuery(region: Region, queryType: QueryType): Promise<N
   }
 
   const { locality, name: regionName } = REGIONS[region]
-  const query = QUERY_TYPES[queryType]
+  const queries = QUERY_TYPES[queryType] // Array of query variations
   const jobs: NormalizedJob[] = []
   const seenIds = new Set<string>()
 
@@ -152,98 +159,102 @@ async function fetchIndeedQuery(region: Region, queryType: QueryType): Promise<N
     }
   }
 
-  try {
-    // Single search query with 25s timeout
-    const searchController = new AbortController()
-    const searchTimeout = setTimeout(() => searchController.abort(), 25000)
+  // Search each query variation to maximize job discovery
+  for (const query of queries) {
+    try {
+      const searchController = new AbortController()
+      const searchTimeout = setTimeout(() => searchController.abort(), 15000)
 
-    // Note: Removed location=remote to preserve actual country/city in job locations
-    // The query already contains "remote" (e.g., "remote UI designer")
-    const response = await fetch(
-      `https://indeed12.p.rapidapi.com/jobs/search?query=${encodeURIComponent(query)}&page_id=1&locality=${locality}&fromage=7&sort=date`,
-      {
-        headers: {
-          'X-RapidAPI-Key': apiKey,
-          'X-RapidAPI-Host': 'indeed12.p.rapidapi.com'
-        },
-        signal: searchController.signal
+      // Note: No location=remote filter to preserve actual country/city in job locations
+      const response = await fetch(
+        `https://indeed12.p.rapidapi.com/jobs/search?query=${encodeURIComponent(query)}&page_id=1&locality=${locality}&fromage=7&sort=date`,
+        {
+          headers: {
+            'X-RapidAPI-Key': apiKey,
+            'X-RapidAPI-Host': 'indeed12.p.rapidapi.com'
+          },
+          signal: searchController.signal
+        }
+      )
+      clearTimeout(searchTimeout)
+
+      if (!response.ok) {
+        console.error(`Indeed API error for ${region}/${queryType} query "${query}":`, response.status)
+        continue // Try next query variation
       }
-    )
-    clearTimeout(searchTimeout)
 
-    if (!response.ok) {
-      console.error(`Indeed API error for ${region}/${queryType}:`, response.status)
-      return []
+      const data = await response.json()
+      const results: IndeedSearchResult[] = data.hits || data.jobs || []
+      console.log(`Indeed ${region}/${queryType} "${query}": Found ${results.length} results`)
+
+      // Fetch details for top jobs from this query (limit to avoid timeouts)
+      for (const result of results.slice(0, 3)) {
+        if (seenIds.has(result.id)) continue
+        seenIds.add(result.id)
+
+        if (!isDesignJob(result.title)) continue
+
+        const details = await fetchDetails(result.id)
+        if (!details) continue
+
+        // Parse salary
+        const salary = details.salary || result.salary || {}
+        const salaryMin = typeof salary.min === 'number' && salary.min > 0 ? salary.min : undefined
+        const salaryMax = typeof salary.max === 'number' && salary.max > 0 ? salary.max : undefined
+        const salaryType = salary.type || ''
+        const salaryText = salaryMin && salaryMax
+          ? `$${salaryMin.toLocaleString()} - $${salaryMax.toLocaleString()} ${salaryType.toLowerCase()}`
+          : undefined
+
+        // Strip HTML from description
+        const description = (details.description || '')
+          .replace(/<[^>]*>/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim()
+
+        // Company logo from Clearbit
+        const companyName = details.company?.name || result.company_name
+        const companyDomain = companyName.toLowerCase().replace(/[^a-z0-9]/g, '').concat('.com')
+
+        // Normalize location - append country if it's a generic remote location
+        const rawLocation = details.location || result.location || 'Remote'
+        const normalizedLocation = normalizeLocation(rawLocation, regionName)
+
+        jobs.push({
+          id: `indeed-${result.id}`,
+          source: 'indeed' as const,
+          title: details.job_title || result.title,
+          company: companyName,
+          company_logo: details.company?.logo_url || `https://logo.clearbit.com/${companyDomain}`,
+          location: normalizedLocation,
+          salary_min: salaryMin,
+          salary_max: salaryMax,
+          salary_text: salaryText,
+          description,
+          job_type: parseJobType(details.job_type || result.title),
+          experience_level: parseExperienceLevel(details.job_title || result.title),
+          skills: extractSkills(description),
+          apply_url: details.apply_url || details.indeed_final_url || `https://www.indeed.com/viewjob?jk=${result.id}`,
+          posted_at: result.pub_date_ts_milli
+            ? new Date(result.pub_date_ts_milli).toISOString()
+            : new Date().toISOString(),
+          is_featured: false,
+        })
+
+        // Small delay between detail requests
+        await new Promise(resolve => setTimeout(resolve, 100))
+      }
+
+      // Small delay between query variations
+      await new Promise(resolve => setTimeout(resolve, 200))
+    } catch (error) {
+      console.error(`Indeed ${region}/${queryType} "${query}" error:`, error)
+      // Continue to next query variation
     }
-
-    const data = await response.json()
-    const results: IndeedSearchResult[] = data.hits || data.jobs || []
-    console.log(`Indeed ${region}/${queryType}: Found ${results.length} results`)
-
-    // Fetch details for up to 2 jobs to stay within timeouts
-    // Slow regions (PH, IN, ID) can take 15+ seconds per request
-    for (const result of results.slice(0, 2)) {
-      if (seenIds.has(result.id)) continue
-      seenIds.add(result.id)
-
-      if (!isDesignJob(result.title)) continue
-
-      const details = await fetchDetails(result.id)
-      if (!details) continue
-
-      // Parse salary
-      const salary = details.salary || result.salary || {}
-      const salaryMin = typeof salary.min === 'number' && salary.min > 0 ? salary.min : undefined
-      const salaryMax = typeof salary.max === 'number' && salary.max > 0 ? salary.max : undefined
-      const salaryType = salary.type || ''
-      const salaryText = salaryMin && salaryMax
-        ? `$${salaryMin.toLocaleString()} - $${salaryMax.toLocaleString()} ${salaryType.toLowerCase()}`
-        : undefined
-
-      // Strip HTML from description
-      const description = (details.description || '')
-        .replace(/<[^>]*>/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim()
-
-      // Company logo from Clearbit
-      const companyName = details.company?.name || result.company_name
-      const companyDomain = companyName.toLowerCase().replace(/[^a-z0-9]/g, '').concat('.com')
-
-      // Normalize location - append country if it's a generic remote location
-      const rawLocation = details.location || result.location || 'Remote'
-      const normalizedLocation = normalizeLocation(rawLocation, regionName)
-
-      jobs.push({
-        id: `indeed-${result.id}`,
-        source: 'indeed' as const,
-        title: details.job_title || result.title,
-        company: companyName,
-        company_logo: details.company?.logo_url || `https://logo.clearbit.com/${companyDomain}`,
-        location: normalizedLocation,
-        salary_min: salaryMin,
-        salary_max: salaryMax,
-        salary_text: salaryText,
-        description,
-        job_type: parseJobType(details.job_type || result.title),
-        experience_level: parseExperienceLevel(details.job_title || result.title),
-        skills: extractSkills(description),
-        apply_url: details.apply_url || details.indeed_final_url || `https://www.indeed.com/viewjob?jk=${result.id}`,
-        posted_at: result.pub_date_ts_milli
-          ? new Date(result.pub_date_ts_milli).toISOString()
-          : new Date().toISOString(),
-        is_featured: false,
-      })
-
-      // Minimal delay between detail requests
-      await new Promise(resolve => setTimeout(resolve, 50))
-    }
-
-    return jobs
-  } catch (error) {
-    console.error(`Indeed ${region}/${queryType} error:`, error)
-    return []
   }
+
+  console.log(`Indeed ${region}/${queryType}: Total ${jobs.length} jobs collected from ${queries.length} queries`)
+  return jobs
 }
 
 export async function GET(request: NextRequest) {

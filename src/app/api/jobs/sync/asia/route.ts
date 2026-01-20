@@ -1,22 +1,26 @@
 import { NextResponse } from 'next/server'
 import {
   fetchGlintsJobs,
-  fetchTokyoDevJobs,
-  fetchNodeFlairJobs,
-  fetchJoobleJobs,
+  fetchMyCareersFutureSGJobs,
+  // fetchTokyoDevJobs,  // Disabled: Returns 406 - blocked
+  // fetchNodeFlairJobs, // Disabled: Returns 403 - blocked
+  // fetchJoobleJobs,    // Disabled: Returns 403 - blocked
 } from '@/lib/job-apis'
 import { syncJobs } from '@/lib/sync-jobs'
 
-// Asia Part 1: Southeast Asia + Japan
+// Asia Part 1: Southeast Asia + Singapore
+// Note: TokyoDev, NodeFlair, and Jooble APIs are blocked as of Jan 2026
 async function handleSync() {
   try {
     const results = []
 
     const sources = [
       { name: 'glints', fn: fetchGlintsJobs },
-      { name: 'tokyodev', fn: fetchTokyoDevJobs },
-      { name: 'nodeflairsg', fn: fetchNodeFlairJobs },
-      { name: 'jooble', fn: fetchJoobleJobs },
+      { name: 'mycareersfuture', fn: fetchMyCareersFutureSGJobs }, // Singapore Gov job portal
+      // Disabled sources - APIs blocked/changed:
+      // { name: 'tokyodev', fn: fetchTokyoDevJobs },
+      // { name: 'nodeflairsg', fn: fetchNodeFlairJobs },
+      // { name: 'jooble', fn: fetchJoobleJobs },
     ]
 
     for (const source of sources) {

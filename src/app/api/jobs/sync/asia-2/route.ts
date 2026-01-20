@@ -1,21 +1,24 @@
 import { NextResponse } from 'next/server'
 import {
-  fetchJobStreetJobs,
+  // fetchJobStreetJobs, // Disabled: Returns 404 - API changed
   fetchKalibrrJobs,
-  fetchInstahyreJobs,
+  // fetchInstahyreJobs, // Disabled: Returns 404 - API changed
   fetchWantedlyJobs,
 } from '@/lib/job-apis'
 import { syncJobs } from '@/lib/sync-jobs'
 
-// Asia Part 2: JobStreet, Kalibrr, Instahyre, Wantedly
+// Asia Part 2: Kalibrr (Philippines), Wantedly (Japan)
+// Note: JobStreet and Instahyre APIs changed/broken as of Jan 2026
 async function handleSync() {
   try {
     const results = []
 
     const sources = [
-      { name: 'jobstreet', fn: fetchJobStreetJobs },
+      // Disabled sources - APIs changed/broken:
+      // { name: 'jobstreet', fn: fetchJobStreetJobs },
+      // { name: 'instahyre', fn: fetchInstahyreJobs },
+      // Working sources:
       { name: 'kalibrr', fn: fetchKalibrrJobs },
-      { name: 'instahyre', fn: fetchInstahyreJobs },
       { name: 'wantedly', fn: fetchWantedlyJobs },
     ]
 
