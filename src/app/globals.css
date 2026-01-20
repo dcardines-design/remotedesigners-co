@@ -264,3 +264,13 @@ body {
 .animate-get-pro-shine {
   animation: get-pro-shine 5s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
+
+/* Hide scrollbar but keep scroll functionality */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
