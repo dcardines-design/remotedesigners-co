@@ -147,17 +147,17 @@ export function TableOfContents({ content }: TableOfContentsProps) {
   if (headings.length < 3) return null
 
   return (
-    <nav className="bg-neutral-50 border border-neutral-200 rounded-lg p-5 mb-8">
-      <h4 className="text-sm font-semibold text-neutral-900 mb-3">Table of Contents</h4>
-      <ul className="space-y-2">
+    <nav className="lg:border-l lg:border-neutral-200 lg:pl-6 mb-8 lg:mb-0">
+      <h4 className="text-xs font-semibold text-neutral-400 uppercase tracking-wider mb-4">On this page</h4>
+      <ul className="space-y-2.5">
         {headings.map((heading, index) => (
           <li
             key={index}
-            className={heading.level === 3 ? 'ml-4' : ''}
+            className={heading.level === 3 ? 'ml-3' : ''}
           >
             <a
               href={`#${heading.id}`}
-              className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
+              className="text-sm text-neutral-500 hover:text-neutral-900 transition-colors block leading-snug"
             >
               {heading.text}
             </a>

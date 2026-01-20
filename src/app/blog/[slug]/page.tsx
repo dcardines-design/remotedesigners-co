@@ -171,7 +171,7 @@ export default async function BlogPostPage({ params }: Props) {
         }}
       />
 
-      <article className="max-w-3xl mx-auto px-4 py-12">
+      <div className="max-w-6xl mx-auto px-4 py-12">
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-sm text-neutral-500 mb-8">
           <Link href="/" className="hover:text-neutral-700 transition-colors">Home</Link>
@@ -186,79 +186,94 @@ export default async function BlogPostPage({ params }: Props) {
           </Link>
         </nav>
 
-        {/* Header */}
-        <header className="mb-8">
-          <div className="flex items-center gap-3 mb-4">
-            <Link
-              href={`/blog/category/${post.category}`}
-              className="text-sm font-medium text-neutral-600 bg-neutral-100 px-3 py-1 rounded-full hover:bg-neutral-200 transition-colors"
-            >
-              {categoryInfo?.name || post.category}
-            </Link>
-            <span className="text-sm text-neutral-400">{publishedDate}</span>
-            {post.reading_time_minutes && (
-              <span className="text-sm text-neutral-400">{post.reading_time_minutes} min read</span>
-            )}
-          </div>
-          <h1 className="text-4xl font-bold text-neutral-900 mb-4 leading-tight">
-            {post.title}
-          </h1>
-          {post.excerpt && (
-            <p className="text-xl text-neutral-600 leading-relaxed">
-              {post.excerpt}
-            </p>
-          )}
-        </header>
-
-        {/* Featured Image */}
-        {post.featured_image && (
-          <figure className="mb-10 -mx-4 md:mx-0">
-            <img
-              src={post.featured_image}
-              alt={post.featured_image_alt || post.title}
-              className="w-full rounded-lg shadow-md"
-            />
-          </figure>
-        )}
-
-        {/* Table of Contents */}
-        <TableOfContents content={post.content} />
-
-        {/* Content */}
-        <BlogContent content={post.content} />
-
-        {/* Tags */}
-        {post.tags && post.tags.length > 0 && (
-          <div className="mt-10 pt-6 border-t border-neutral-200">
-            <div className="flex flex-wrap gap-2">
-              {post.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="text-sm text-neutral-500 bg-neutral-100 px-3 py-1 rounded-full"
+        {/* Two Column Layout */}
+        <div className="flex flex-col lg:flex-row gap-12">
+          {/* Left Column - Main Content */}
+          <article className="flex-1 min-w-0 max-w-3xl">
+            {/* Header */}
+            <header className="mb-8">
+              <div className="flex items-center gap-3 mb-4">
+                <Link
+                  href={`/blog/category/${post.category}`}
+                  className="text-sm font-medium text-neutral-600 bg-neutral-100 px-3 py-1 rounded-full hover:bg-neutral-200 transition-colors"
                 >
-                  #{tag}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
+                  {categoryInfo?.name || post.category}
+                </Link>
+                <span className="text-sm text-neutral-400">{publishedDate}</span>
+                {post.reading_time_minutes && (
+                  <span className="text-sm text-neutral-400">{post.reading_time_minutes} min read</span>
+                )}
+              </div>
+              <h1 className="text-4xl font-bold text-neutral-900 mb-4 leading-tight">
+                {post.title}
+              </h1>
+              {post.excerpt && (
+                <p className="text-xl text-neutral-600 leading-relaxed">
+                  {post.excerpt}
+                </p>
+              )}
+            </header>
 
-        {/* Share */}
-        <div className="mt-8 pt-6 border-t border-neutral-200 flex items-center justify-between">
-          <ShareButtons
-            title={post.title}
-            url={`https://remotedesigners.co/blog/${post.slug}`}
-          />
-          <Link
-            href="/blog"
-            className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
-          >
-            &larr; Back to Blog
-          </Link>
+            {/* Featured Image */}
+            {post.featured_image && (
+              <figure className="mb-10">
+                <img
+                  src={post.featured_image}
+                  alt={post.featured_image_alt || post.title}
+                  className="w-full rounded-lg shadow-md"
+                />
+              </figure>
+            )}
+
+            {/* Mobile Table of Contents */}
+            <div className="lg:hidden">
+              <TableOfContents content={post.content} />
+            </div>
+
+            {/* Content */}
+            <BlogContent content={post.content} />
+
+            {/* Tags */}
+            {post.tags && post.tags.length > 0 && (
+              <div className="mt-10 pt-6 border-t border-neutral-200">
+                <div className="flex flex-wrap gap-2">
+                  {post.tags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-sm text-neutral-500 bg-neutral-100 px-3 py-1 rounded-full"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Share */}
+            <div className="mt-8 pt-6 border-t border-neutral-200 flex items-center justify-between">
+              <ShareButtons
+                title={post.title}
+                url={`https://remotedesigners.co/blog/${post.slug}`}
+              />
+              <Link
+                href="/blog"
+                className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
+              >
+                &larr; Back to Blog
+              </Link>
+            </div>
+          </article>
+
+          {/* Right Column - Sticky TOC */}
+          <aside className="hidden lg:block w-64 flex-shrink-0">
+            <div className="sticky top-24">
+              <TableOfContents content={post.content} />
+            </div>
+          </aside>
         </div>
 
-        {/* CTA */}
-        <div className="mt-12 bg-gradient-to-r from-neutral-900 to-neutral-800 rounded-xl p-8 text-center">
+        {/* CTA - Full Width */}
+        <div className="mt-12 bg-gradient-to-r from-neutral-900 to-neutral-800 rounded-xl p-8 text-center max-w-3xl">
           <h3 className="text-xl font-semibold text-white mb-2">
             Ready to Find Your Next Remote Design Role?
           </h3>
@@ -266,7 +281,7 @@ export default async function BlogPostPage({ params }: Props) {
             Browse thousands of remote design jobs from top companies.
           </p>
           <Link
-            href="/jobs"
+            href="/"
             className="inline-flex items-center gap-2 px-6 py-3 bg-white text-neutral-900 font-medium rounded-lg hover:bg-neutral-100 transition-colors"
           >
             Browse Jobs
@@ -278,7 +293,7 @@ export default async function BlogPostPage({ params }: Props) {
 
         {/* Related Posts */}
         {relatedPosts.length > 0 && (
-          <div className="mt-16">
+          <div className="mt-16 max-w-3xl">
             <h2 className="text-2xl font-bold text-neutral-900 mb-6">Related Articles</h2>
             <div className="space-y-4">
               {relatedPosts.map((relatedPost) => (
@@ -301,7 +316,7 @@ export default async function BlogPostPage({ params }: Props) {
             </div>
           </div>
         )}
-      </article>
+      </div>
     </>
   )
 }
