@@ -5,6 +5,10 @@ import { NormalizedJob } from '@/lib/job-apis'
 export const runtime = 'nodejs'
 export const maxDuration = 60 // 60 seconds max for slow RapidAPI regions
 
+// DISABLED: Indeed API quota reached (100% of PRO plan used)
+// Re-enable when quota resets or plan is upgraded
+const INDEED_API_DISABLED = true
+
 // Query types - each type searches multiple keyword variations to catch more remote jobs
 const QUERY_TYPES: Record<string, string[]> = {
   ui: [
@@ -262,6 +266,15 @@ export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
   if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // Check if Indeed API is disabled (quota reached)
+  if (INDEED_API_DISABLED) {
+    return NextResponse.json({
+      success: false,
+      message: 'Indeed API disabled - quota reached. Waiting for reset or plan upgrade.',
+      disabled: true,
+    })
   }
 
   // Get parameters

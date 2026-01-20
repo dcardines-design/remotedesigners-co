@@ -42,6 +42,7 @@ TONE & VOICE (Think Morning Brew meets design Twitter):
 - Subheadings should be interesting, not boring ("Why This Matters" > "Introduction")
 - Sprinkle in personality: "spoiler alert:", "plot twist:", "the bottom line:"
 - No corporate speak. If your CEO would put it in a memo, rewrite it.
+- ADD AN EMOJI at the start of the title (e.g. "🚀 Top Remote Design Jobs" or "💰 Salary Guide for Designers"). Pick relevant emojis like 🎨 💼 🚀 💰 📈 🎯 💡 ✨ 🔥 📊
 
 SEO REQUIREMENTS:
 1. Include the focus keyword in:
@@ -71,6 +72,8 @@ SEO REQUIREMENTS:
 
 4. Internal linking:
    - Include 2-3 links to job listing pages using markdown format
+
+IMPORTANT: Do NOT include the title as an H1 heading at the start of the content. The title is displayed separately in the page header. Start the content directly with the first paragraph or H2 section.
 
 OUTPUT FORMAT (JSON only, no markdown code blocks):
 {

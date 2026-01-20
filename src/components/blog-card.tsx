@@ -18,7 +18,7 @@ export interface BlogPost {
 
 interface BlogCardProps {
   post: BlogPost
-  variant?: 'default' | 'featured'
+  variant?: 'default' | 'featured' | 'compact'
 }
 
 export function BlogCard({ post, variant = 'default' }: BlogCardProps) {
@@ -28,6 +28,41 @@ export function BlogCard({ post, variant = 'default' }: BlogCardProps) {
     month: 'short',
     day: 'numeric',
   })
+
+  if (variant === 'compact') {
+    return (
+      <article className="group">
+        <Link href={`/blog/${post.slug}`} className="block mb-4">
+          <div className="aspect-[16/9] rounded-lg overflow-hidden bg-neutral-200">
+            {post.featured_image ? (
+              <img
+                src={post.featured_image}
+                alt={post.featured_image_alt || post.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-neutral-100 to-neutral-200">
+                <svg className="w-10 h-10 text-neutral-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                </svg>
+              </div>
+            )}
+          </div>
+        </Link>
+        <Link
+          href={`/blog/category/${post.category}`}
+          className="text-xs text-neutral-600 bg-white px-2.5 py-1 rounded border border-neutral-200 inline-block mb-3 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+        >
+          {categoryInfo?.name || post.category}
+        </Link>
+        <Link href={`/blog/${post.slug}`}>
+          <h3 className="font-dm-sans text-lg font-medium text-neutral-900 group-hover:text-neutral-600 transition-colors line-clamp-2">
+            {post.title}
+          </h3>
+        </Link>
+      </article>
+    )
+  }
 
   if (variant === 'featured') {
     return (

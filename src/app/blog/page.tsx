@@ -74,7 +74,7 @@ export default async function BlogPage() {
         />
         <div className="max-w-6xl mx-auto px-4 md:px-8 py-10 md:py-16 relative z-10">
           {/* Header */}
-          <h1 className="text-4xl md:text-5xl font-semibold text-neutral-900 mb-6">
+          <h1 className="font-dm-sans text-4xl md:text-5xl font-semibold text-neutral-900 mb-6">
             Blog
           </h1>
 
@@ -152,7 +152,7 @@ export default async function BlogPage() {
 
                       {/* Title */}
                       <Link href={`/blog/${post.slug}`}>
-                        <h2 className="text-base font-medium text-neutral-900 group-hover:text-neutral-600 transition-colors line-clamp-2">
+                        <h2 className="font-dm-sans text-xl font-medium text-neutral-900 group-hover:text-neutral-600 transition-colors line-clamp-2">
                           {post.title}
                         </h2>
                       </Link>

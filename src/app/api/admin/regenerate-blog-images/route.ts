@@ -40,6 +40,8 @@ export async function POST(request: NextRequest) {
   }
 
   const slug = request.nextUrl.searchParams.get('slug')
+  const styleParam = request.nextUrl.searchParams.get('style')
+  const styleIndex = styleParam !== null ? parseInt(styleParam, 10) : undefined
 
   if (!slug) {
     return NextResponse.json({ error: 'slug parameter required' }, { status: 400 })
@@ -63,7 +65,8 @@ export async function POST(request: NextRequest) {
   try {
     const imageResult = await generateBlogImage(
       post.category as BlogCategory,
-      post.featured_image_alt || post.title
+      post.featured_image_alt || post.title,
+      styleIndex
     )
 
     if (imageResult) {

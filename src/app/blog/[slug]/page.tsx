@@ -72,7 +72,7 @@ async function getRelatedPosts(category: string, currentSlug: string): Promise<R
     .eq('category', category)
     .neq('slug', currentSlug)
     .order('published_at', { ascending: false })
-    .limit(3)
+    .limit(6)
 
   if (error) {
     return []
@@ -171,7 +171,7 @@ export default async function BlogPostPage({ params }: Props) {
         }}
       />
 
-      <div className="max-w-6xl mx-auto px-4 py-12">
+      <div className="max-w-7xl mx-auto px-6 md:px-12 py-12">
         {/* Breadcrumbs */}
         <nav className="flex items-center gap-2 text-sm text-neutral-500 mb-8">
           <Link href="/" className="hover:text-neutral-700 transition-colors">Home</Link>
@@ -184,18 +184,20 @@ export default async function BlogPostPage({ params }: Props) {
           >
             {categoryInfo?.name || post.category}
           </Link>
+          <span>/</span>
+          <span className="text-neutral-400 truncate max-w-[200px]">{post.title}</span>
         </nav>
 
         {/* Two Column Layout */}
         <div className="flex flex-col lg:flex-row gap-12">
           {/* Left Column - Main Content */}
-          <article className="flex-1 min-w-0 max-w-3xl">
+          <article className="flex-1 min-w-0">
             {/* Header */}
             <header className="mb-8">
               <div className="flex items-center gap-3 mb-4">
                 <Link
                   href={`/blog/category/${post.category}`}
-                  className="text-sm font-medium text-neutral-600 bg-neutral-100 px-3 py-1 rounded-full hover:bg-neutral-200 transition-colors"
+                  className="text-xs text-neutral-600 bg-white px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
                 >
                   {categoryInfo?.name || post.category}
                 </Link>
@@ -204,11 +206,11 @@ export default async function BlogPostPage({ params }: Props) {
                   <span className="text-sm text-neutral-400">{post.reading_time_minutes} min read</span>
                 )}
               </div>
-              <h1 className="font-dm-sans text-4xl font-bold text-neutral-900 mb-4 leading-tight">
+              <h1 className="font-dm-sans text-4xl md:text-5xl font-medium text-neutral-900 mt-6 mb-6 leading-tight tracking-tight">
                 {post.title}
               </h1>
               {post.excerpt && (
-                <p className="text-xl text-neutral-600 leading-relaxed">
+                <p className="text-base text-neutral-500 leading-relaxed">
                   {post.excerpt}
                 </p>
               )}
@@ -233,83 +235,50 @@ export default async function BlogPostPage({ params }: Props) {
             {/* Content */}
             <BlogContent content={post.content} />
 
-            {/* Tags */}
-            {post.tags && post.tags.length > 0 && (
-              <div className="mt-10 pt-6 border-t border-neutral-200">
-                <div className="flex flex-wrap gap-2">
-                  {post.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="text-sm text-neutral-500 bg-neutral-100 px-3 py-1 rounded-full"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
             {/* Share */}
             <div className="mt-8 pt-6 border-t border-neutral-200 flex items-center justify-between">
+              <Link
+                href="/blog"
+                className="flex items-center gap-2 bg-white text-neutral-600 text-sm px-3 py-2 rounded-md border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back to Blog
+              </Link>
               <ShareButtons
                 title={post.title}
                 url={`https://remotedesigners.co/blog/${post.slug}`}
               />
-              <Link
-                href="/blog"
-                className="text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
-              >
-                &larr; Back to Blog
-              </Link>
             </div>
           </article>
 
           {/* Right Column - Sticky TOC */}
-          <aside className="hidden lg:block w-64 flex-shrink-0">
-            <div className="sticky top-24">
+          <aside className="hidden lg:block flex-1 max-w-xs">
+            <div className="sticky top-24 h-[calc(100vh-120px)]">
               <TableOfContents content={post.content} />
             </div>
           </aside>
         </div>
 
-        {/* CTA - Full Width */}
-        <div className="mt-12 bg-gradient-to-r from-neutral-900 to-neutral-800 rounded-xl p-8 text-center max-w-3xl">
-          <h3 className="text-xl font-semibold text-white mb-2">
-            Ready to Find Your Next Remote Design Role?
-          </h3>
-          <p className="text-neutral-300 mb-6">
-            Browse thousands of remote design jobs from top companies.
-          </p>
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-white text-neutral-900 font-medium rounded-lg hover:bg-neutral-100 transition-colors"
-          >
-            Browse Jobs
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-            </svg>
-          </Link>
-        </div>
-
+        
         {/* Related Posts */}
         {relatedPosts.length > 0 && (
-          <div className="mt-16 max-w-3xl">
-            <h2 className="text-2xl font-bold text-neutral-900 mb-6">Related Articles</h2>
-            <div className="space-y-4">
+          <div className="mt-16">
+            <h2 className="text-xl md:text-2xl font-medium text-neutral-900 mb-4 md:mb-6">Related Articles</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-10">
               {relatedPosts.map((relatedPost) => (
                 <BlogCard
                   key={relatedPost.id}
+                  variant="compact"
                   post={{
                     id: relatedPost.id,
                     slug: relatedPost.slug,
                     title: relatedPost.title,
-                    excerpt: relatedPost.excerpt || undefined,
                     category: relatedPost.category,
-                    tags: relatedPost.tags || undefined,
                     featured_image: relatedPost.featured_image || undefined,
                     featured_image_alt: relatedPost.featured_image_alt || undefined,
                     published_at: relatedPost.published_at,
-                    reading_time_minutes: relatedPost.reading_time_minutes || undefined,
                   }}
                 />
               ))}

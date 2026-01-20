@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server'
 import { syncJobs } from '@/lib/sync-jobs'
 import { NormalizedJob } from '@/lib/job-apis'
 
+// DISABLED: Indeed API quota reached (100% of PRO plan used)
+const INDEED_API_DISABLED = true
+
 interface IndeedJob {
   id: string
   title: string
@@ -197,6 +200,15 @@ async function fetchIndeedAsiaJobs(): Promise<NormalizedJob[]> {
 }
 
 async function handleSync() {
+  // Check if Indeed API is disabled
+  if (INDEED_API_DISABLED) {
+    return NextResponse.json({
+      success: false,
+      message: 'Indeed API disabled - quota reached. Waiting for reset or plan upgrade.',
+      disabled: true,
+    })
+  }
+
   try {
     const jobs = await fetchIndeedAsiaJobs()
     const result = await syncJobs(jobs, 'indeed-asia')

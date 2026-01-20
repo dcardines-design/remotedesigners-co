@@ -60,10 +60,17 @@ const ART_STYLE_PROMPTS = [
 
 /**
  * Generate a featured image for a blog post using DALL-E 3
+ * @param styleIndex - Optional index (0-4) to force a specific art style:
+ *   0 = Soft watercolor solarpunk
+ *   1 = Studio Ghibli inspired
+ *   2 = Isometric cozy
+ *   3 = Retro futurism
+ *   4 = Paper cut collage
  */
 export async function generateBlogImage(
   category: BlogCategory,
-  altText: string
+  altText: string,
+  styleIndex?: number
 ): Promise<{ url: string; storedUrl: string } | null> {
   const openai = getOpenAIClient()
   if (!openai) {
@@ -76,9 +83,13 @@ export async function generateBlogImage(
     const scenes = TOPIC_SCENES[category]
     const topicScene = scenes[Math.floor(Math.random() * scenes.length)]
 
-    // Select a random art style for variety
-    const stylePrompt = ART_STYLE_PROMPTS[Math.floor(Math.random() * ART_STYLE_PROMPTS.length)]
+    // Use specified style or random
+    const styleIdx = styleIndex !== undefined && styleIndex >= 0 && styleIndex < ART_STYLE_PROMPTS.length
+      ? styleIndex
+      : Math.floor(Math.random() * ART_STYLE_PROMPTS.length)
+    const stylePrompt = ART_STYLE_PROMPTS[styleIdx]
     const prompt = stylePrompt(topicScene)
+    console.log(`Using art style index: ${styleIdx}`)
 
     console.log('Generating image with DALL-E 3...')
 

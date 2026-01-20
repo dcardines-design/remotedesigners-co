@@ -5,11 +5,23 @@ import { syncJobs } from '@/lib/sync-jobs'
 export const runtime = 'nodejs'
 export const maxDuration = 60 // 1 minute max per region (much faster)
 
+// DISABLED: Indeed API quota reached (100% of PRO plan used)
+const INDEED_API_DISABLED = true
+
 export async function GET(request: NextRequest) {
   // Verify cron secret in production
   const authHeader = request.headers.get('authorization')
   if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // Check if Indeed API is disabled
+  if (INDEED_API_DISABLED) {
+    return NextResponse.json({
+      success: false,
+      message: 'Indeed API disabled - quota reached. Waiting for reset or plan upgrade.',
+      disabled: true,
+    })
   }
 
   // Get region from query parameter
