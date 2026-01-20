@@ -9,9 +9,10 @@ export function generateSlug(title: string): string {
   return title
     .toLowerCase()
     .trim()
-    .replace(/[^\w\s-]/g, '') // Remove special characters
+    .replace(/[^\w\s-]/g, '') // Remove special characters (including emojis)
     .replace(/\s+/g, '-')     // Replace spaces with hyphens
     .replace(/-+/g, '-')      // Replace multiple hyphens with single
+    .replace(/^-+|-+$/g, '')  // Remove leading/trailing hyphens
     .substring(0, 80)         // Limit length
 }
 
@@ -178,15 +179,38 @@ export function validateSEO(post: {
 export const BLOG_CATEGORIES = {
   'job-market-insights': {
     name: 'Job Market Insights',
+    emoji: '📊',
     description: 'Data-driven analysis of remote design job trends',
   },
   'remote-work-tips': {
     name: 'Remote Work Tips',
+    emoji: '🏠',
     description: 'Productivity and lifestyle tips for remote designers',
   },
   'career-advice': {
     name: 'Career Advice',
+    emoji: '🚀',
     description: 'Professional growth and career development for designers',
+  },
+  'design-news': {
+    name: 'Design News',
+    emoji: '📰',
+    description: 'Latest updates, trends, and news in the design industry',
+  },
+  'ux-design': {
+    name: 'UX Design',
+    emoji: '🎯',
+    description: 'User experience design insights, methods, and best practices',
+  },
+  'product-design': {
+    name: 'Product Design',
+    emoji: '✨',
+    description: 'Product design strategies, processes, and case studies',
+  },
+  'graphic-design': {
+    name: 'Graphic Design',
+    emoji: '🎨',
+    description: 'Visual design, branding, and creative techniques',
   },
 } as const
 

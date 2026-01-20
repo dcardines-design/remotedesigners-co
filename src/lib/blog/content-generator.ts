@@ -12,6 +12,8 @@ import {
   generateMetaDescription,
   BlogCategory,
 } from './seo-helpers'
+// Image search disabled - using DALL-E featured images only
+// import { replaceImagePlaceholders } from './image-search'
 
 export interface GeneratedContent {
   title: string
@@ -70,7 +72,17 @@ SEO REQUIREMENTS:
    - Each major point should be explained in 2-3 paragraphs, not just a bullet
    - End with clear CTA directing readers to browse jobs
 
-4. Internal linking:
+4. REAL-WORLD EXAMPLES & REFERENCES (CRITICAL):
+   - Include 3-5 specific, real company examples (e.g., "Airbnb's design system", "Stripe's checkout UX")
+   - Reference actual tools by name (Figma, Framer, Linear, Notion, etc.)
+   - Cite real studies or reports when discussing trends (e.g., "According to Dribbble's 2024 Design Report...")
+   - Mention real designers or design leaders when relevant (e.g., "As Julie Zhuo wrote in The Making of a Manager...")
+   - Use specific numbers and dates when possible
+   - Reference real design systems (Material Design, Apple HIG, Shopify Polaris)
+   - Include real job titles and company names from actual postings
+   - DO NOT make up fake statistics or studies - use well-known facts or be vague ("studies show" if unsure)
+
+5. Internal linking:
    - Include 2-3 links to job listing pages using markdown format
 
 IMPORTANT: Do NOT include the title as an H1 heading at the start of the content. The title is displayed separately in the page header. Start the content directly with the first paragraph or H2 section.
@@ -148,15 +160,71 @@ Return ONLY the JSON object, no other text.`
     }
 
     try {
-      // Clean up response - remove any markdown code blocks
-      const cleanedResponse = response
+      // Clean up response - remove any markdown code blocks and extract JSON
+      let cleanedResponse = response
         .replace(/```json\n?/g, '')
         .replace(/```\n?/g, '')
         .trim()
 
+      // Try to extract JSON object if there's extra content
+      const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        cleanedResponse = jsonMatch[0]
+      }
+
+      // Fix common JSON issues from AI responses
+      cleanedResponse = cleanedResponse
+        .replace(/[\u2018\u2019]/g, "'")  // Smart single quotes
+        .replace(/[\u201C\u201D]/g, '"')  // Smart double quotes
+        .replace(/\u2013/g, '-')          // En dash
+        .replace(/\u2014/g, '--')         // Em dash
+
+      // Fix unescaped control characters in the content field
+      // Extract content value manually since it spans multiple lines
+      const contentStartMatch = cleanedResponse.match(/"content"\s*:\s*"/)
+      if (contentStartMatch) {
+        const startIdx = cleanedResponse.indexOf(contentStartMatch[0]) + contentStartMatch[0].length
+        // Find the end - look for pattern "}\n or "},\n  "tags" or similar
+        // The content ends when we find ", followed by a JSON field name or }
+        const endPatterns = [
+          /"\s*,\s*"tags"\s*:/,
+          /"\s*,\s*"featured_image_alt"\s*:/,
+          /"\s*\}/,
+        ]
+
+        let endIdx = -1
+        for (const pattern of endPatterns) {
+          const afterStart = cleanedResponse.slice(startIdx)
+          const match = afterStart.match(pattern)
+          if (match && match.index !== undefined) {
+            const potentialEnd = startIdx + match.index
+            if (endIdx === -1 || potentialEnd < endIdx) {
+              endIdx = potentialEnd
+            }
+          }
+        }
+
+        if (endIdx > startIdx) {
+          const rawContent = cleanedResponse.slice(startIdx, endIdx)
+          // Properly escape control characters
+          const escapedContent = rawContent
+            .split('\n')
+            .join('\\n')
+            .split('\r')
+            .join('\\r')
+            .split('\t')
+            .join('\\t')
+          cleanedResponse =
+            cleanedResponse.slice(0, startIdx) +
+            escapedContent +
+            cleanedResponse.slice(endIdx)
+        }
+      }
+
       parsed = JSON.parse(cleanedResponse)
     } catch (parseError) {
       console.error('Failed to parse AI response:', response)
+      console.error('Parse error:', parseError)
       throw new Error('Failed to parse AI-generated content as JSON')
     }
 

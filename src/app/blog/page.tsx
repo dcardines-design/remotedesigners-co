@@ -89,7 +89,7 @@ export default async function BlogPage() {
                 href={`/blog/category/${slug}`}
                 className={chipInactiveClass}
               >
-                {category.name}
+                {category.emoji} {category.name}
               </Link>
             ))}
           </div>
@@ -147,7 +147,7 @@ export default async function BlogPage() {
                         href={`/blog/category/${post.category}`}
                         className={`${cardChipClass} inline-block mb-3 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all`}
                       >
-                        {categoryInfo?.name || post.category}
+                        {categoryInfo?.emoji} {categoryInfo?.name || post.category}
                       </Link>
 
                       {/* Title */}
@@ -156,6 +156,15 @@ export default async function BlogPage() {
                           {post.title}
                         </h2>
                       </Link>
+
+                      {/* Date */}
+                      <p className="text-sm text-neutral-400 mt-2">
+                        {new Date(post.published_at).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })}
+                      </p>
                     </article>
                   )
                 })}

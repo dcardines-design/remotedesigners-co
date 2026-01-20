@@ -38,6 +38,34 @@ const TOPIC_SCENES: Record<BlogCategory, string[]> = {
     'a person standing at a crossroads with signposts in a beautiful meadow',
     'a designer building a bridge to new opportunities in a nature setting',
   ],
+  'design-news': [
+    'a busy creative newsroom with designers reading holographic news feeds',
+    'a town square with floating design news bulletins and excited readers',
+    'a designer discovering something exciting on a magical newspaper',
+    'a messenger bird delivering design news scrolls to a creative village',
+    'a community gathering around a glowing announcement board in a garden',
+  ],
+  'ux-design': [
+    'a designer crafting user journey maps on a large magical canvas',
+    'wireframes and prototypes floating in an enchanted design studio',
+    'a person conducting user research in a cozy cafe setting',
+    'designers collaborating on interface designs in a glass workshop',
+    'a creative workspace with user personas displayed on wooden boards',
+  ],
+  'product-design': [
+    'a designer sculpting a 3D product prototype in a magical workshop',
+    'a team whiteboarding product ideas in a sunlit collaborative space',
+    'design systems and components floating in an organized studio',
+    'a designer iterating on product mockups with magical tools',
+    'a product launch celebration in a creative garden courtyard',
+  ],
+  'graphic-design': [
+    'an artist painting vibrant colors on a large canvas outdoors',
+    'typography and letters floating in a whimsical design studio',
+    'a designer creating brand identity elements in a colorful workshop',
+    'illustration tools and brushes arranged in an artistic treehouse',
+    'a creative composing visual designs surrounded by color palettes',
+  ],
 }
 
 // Different Studio Ghibli + Solarpunk style variations for variety
@@ -56,6 +84,9 @@ const ART_STYLE_PROMPTS = [
 
   // Style 4: Ghibli solarpunk - sunset skyscape
   (scene: string) => `studio ghibli inspired solarpunk illustration of ${scene}. dramatic sunset sky with layers of orange, pink, and purple clouds. silhouetted solarpunk cityscape below with green terraces. elegant wind turbines and floating structures. birds flying across the sky. magical golden light. hand-painted anime background with beautiful color gradients. emotional and inspiring atmosphere. tiny details like floating seeds and leaves. absolutely no text or words in the image.`,
+
+  // Style 5: Ghibli soft watercolor abstract
+  (scene: string) => `studio ghibli inspired soft watercolor illustration representing ${scene}. abstract dreamy composition with flowing organic shapes and gentle color washes. pastel palette with soft pinks, lavenders, sage greens, and warm creams. delicate brush strokes and bleeding watercolor effects. ethereal light sources creating soft glows. minimalist abstract forms suggesting the theme without being literal. peaceful meditative atmosphere. hand-painted watercolor paper texture visible. soft bokeh-like dots and gentle gradients. absolutely no text, letters, numbers, or words anywhere in the image.`,
 ]
 
 /**
@@ -199,6 +230,10 @@ export function getFallbackImage(category: BlogCategory): string {
     'job-market-insights': '/blog/fallback-market-insights.jpg',
     'remote-work-tips': '/blog/fallback-remote-work.jpg',
     'career-advice': '/blog/fallback-career-advice.jpg',
+    'design-news': '/blog/fallback-design-news.jpg',
+    'ux-design': '/blog/fallback-ux-design.jpg',
+    'product-design': '/blog/fallback-product-design.jpg',
+    'graphic-design': '/blog/fallback-graphic-design.jpg',
   }
 
   return fallbacks[category] || '/blog/fallback-default.jpg'

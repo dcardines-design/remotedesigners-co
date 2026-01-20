@@ -4,6 +4,8 @@
 
 import { BlogCategory } from './seo-helpers'
 import { JobInsights } from './job-insights'
+import { chatCompletion } from '@/lib/openrouter'
+import { createServerSupabaseClient } from '@/lib/supabase'
 
 export interface BlogTopic {
   title: string
@@ -17,7 +19,7 @@ export interface BlogTopic {
 /**
  * Topic templates organized by category
  */
-export const TOPIC_TEMPLATES: Record<BlogCategory, BlogTopic[]> = {
+export const TOPIC_TEMPLATES: Partial<Record<BlogCategory, BlogTopic[]>> = {
   'job-market-insights': [
     {
       title: 'Remote Design Jobs: {month} {year} Market Report',
@@ -153,25 +155,26 @@ export function selectNextTopic(
   usedSlugs: string[],
   insights: JobInsights
 ): BlogTopic {
-  // Rotate through categories
+  // Get all categories and shuffle them randomly
   const categories = Object.keys(TOPIC_TEMPLATES) as BlogCategory[]
+  const shuffledCategories = categories.sort(() => Math.random() - 0.5)
 
   // Find a category with unused topics
-  for (const category of categories) {
-    const topics = TOPIC_TEMPLATES[category]
+  for (const category of shuffledCategories) {
+    const topics = TOPIC_TEMPLATES[category] || []
     const unusedTopics = topics.filter(topic => {
       const slug = generateTopicSlug(topic)
       return !usedSlugs.some(used => used.includes(slug.split('-').slice(0, 3).join('-')))
     })
 
     if (unusedTopics.length > 0) {
-      // Return a random unused topic
+      // Return a random unused topic from this category
       return unusedTopics[Math.floor(Math.random() * unusedTopics.length)]
     }
   }
 
-  // If all topics used, pick random
-  const allTopics = categories.flatMap(cat => TOPIC_TEMPLATES[cat])
+  // If all topics used, pick completely random from all categories
+  const allTopics = categories.flatMap(cat => TOPIC_TEMPLATES[cat] || [])
   return allTopics[Math.floor(Math.random() * allTopics.length)]
 }
 
@@ -236,8 +239,129 @@ USE THESE REAL STATISTICS IN YOUR ARTICLE:
 ${insights.salaryRanges.average ? `- Average salary range: $${Math.round(insights.salaryRanges.average.min / 1000)}k - $${Math.round(insights.salaryRanges.average.max / 1000)}k` : ''}
 
 INTERNAL LINKS TO INCLUDE (use markdown links):
-- [Browse Remote UX Designer Jobs](/remote-ux-design-jobs)
+- [Browse Remote UX/UI Design Jobs](/remote-ui-ux-design-jobs)
 - [Find Product Design Opportunities](/remote-product-design-jobs)
-- [See All Remote Design Jobs](/jobs)
+- [See All Remote Design Jobs](/remote-design-jobs-worldwide)
 `.trim()
+}
+
+/**
+ * Category descriptions for AI topic generation
+ */
+const CATEGORY_PROMPTS: Record<BlogCategory, string> = {
+  'job-market-insights': 'remote design job market trends, hiring statistics, salary data, industry analysis, employment outlook',
+  'remote-work-tips': 'productivity tips for remote designers, work from home strategies, tools, workspace optimization, time management',
+  'career-advice': 'career growth for designers, portfolio tips, interview prep, job search strategies, professional development',
+  'design-news': 'latest design industry news, tool updates, company announcements, design trends, industry events',
+  'ux-design': 'UX design methods, user research, usability testing, interaction design, design thinking, UX best practices',
+  'product-design': 'product design process, design systems, prototyping, product strategy, cross-functional collaboration',
+  'graphic-design': 'visual design, branding, typography, color theory, illustration, creative techniques, design inspiration',
+}
+
+/**
+ * Fetch existing blog post titles from the database
+ */
+async function getExistingBlogTitles(): Promise<string[]> {
+  try {
+    const supabase = createServerSupabaseClient()
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('title')
+
+    if (error) {
+      console.error('Error fetching existing titles:', error)
+      return []
+    }
+
+    return data?.map(p => p.title) || []
+  } catch (error) {
+    console.error('Error fetching existing titles:', error)
+    return []
+  }
+}
+
+/**
+ * Generate a unique blog topic using AI
+ */
+export async function generateUniqueTopic(
+  preferredCategory?: BlogCategory
+): Promise<BlogTopic> {
+  // Get existing titles to avoid duplicates
+  const existingTitles = await getExistingBlogTitles()
+
+  // Pick a category (random if not specified)
+  const categories = Object.keys(CATEGORY_PROMPTS) as BlogCategory[]
+  const category = preferredCategory || categories[Math.floor(Math.random() * categories.length)]
+  const categoryPrompt = CATEGORY_PROMPTS[category]
+
+  const currentYear = new Date().getFullYear()
+
+  const prompt = `Generate a unique blog post topic for a remote design job board website.
+
+CATEGORY: ${category}
+CATEGORY FOCUS: ${categoryPrompt}
+CURRENT YEAR: ${currentYear}
+
+EXISTING BLOG TITLES (DO NOT DUPLICATE THESE):
+${existingTitles.map(t => `- ${t}`).join('\n') || '- None yet'}
+
+Generate a NEW, UNIQUE blog topic that:
+1. Is different from all existing titles above
+2. Is relevant to remote designers and the ${category} category
+3. Has strong SEO potential with searchable keywords
+4. Would be interesting and valuable to remote design professionals
+5. Include the year ${currentYear} in the title if it makes sense
+
+Return ONLY valid JSON with this exact structure (no markdown code blocks):
+{
+  "title": "Catchy SEO-optimized title under 60 characters",
+  "focusKeyword": "main keyword phrase",
+  "secondaryKeywords": ["keyword2", "keyword3", "keyword4"],
+  "promptContext": "Brief description of what the article should cover",
+  "tags": ["tag1", "tag2", "tag3"]
+}`
+
+  try {
+    const response = await chatCompletion(
+      [{ role: 'user', content: prompt }],
+      {
+        model: 'anthropic/claude-3.5-sonnet',
+        temperature: 0.8,
+        max_tokens: 500,
+      }
+    )
+
+    // Parse the JSON response
+    const cleanedResponse = response
+      .replace(/```json\n?/g, '')
+      .replace(/```\n?/g, '')
+      .trim()
+
+    const parsed = JSON.parse(cleanedResponse)
+
+    return {
+      title: parsed.title,
+      focusKeyword: parsed.focusKeyword,
+      secondaryKeywords: parsed.secondaryKeywords || [],
+      category,
+      promptContext: parsed.promptContext,
+      tags: parsed.tags || [],
+    }
+  } catch (error) {
+    console.error('Error generating unique topic:', error)
+    // Fall back to a template topic
+    const templates = TOPIC_TEMPLATES[category] || TOPIC_TEMPLATES['job-market-insights'] || []
+    if (templates.length === 0) {
+      // Ultimate fallback
+      return {
+        title: `Remote Design Trends in ${new Date().getFullYear()}`,
+        focusKeyword: 'remote design jobs',
+        secondaryKeywords: ['design careers', 'remote work'],
+        category: 'job-market-insights',
+        promptContext: 'Write about current trends in remote design work.',
+        tags: ['trends', 'remote-work'],
+      }
+    }
+    return templates[Math.floor(Math.random() * templates.length)]
+  }
 }

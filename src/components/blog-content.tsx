@@ -71,12 +71,34 @@ export function BlogContent({ content }: BlogContentProps) {
               </h4>
             )
           },
-          // Paragraphs
-          p: ({ children, ...props }) => (
-            <p className="text-lg text-neutral-500 leading-relaxed mb-4" {...props}>
-              {children}
-            </p>
-          ),
+          // Paragraphs - with special handling for image source attribution
+          p: ({ children, ...props }) => {
+            // Check if this is a source attribution (italic text starting with "Source:")
+            const childArray = Array.isArray(children) ? children : [children]
+            const firstChild = childArray[0]
+            const isSourceAttribution =
+              typeof firstChild === 'object' &&
+              firstChild !== null &&
+              'props' in firstChild &&
+              firstChild.props?.children?.toString?.()?.startsWith?.('Source:')
+
+            if (isSourceAttribution) {
+              return (
+                <p
+                  className="text-sm text-neutral-400 text-center -mt-6 mb-8"
+                  {...props}
+                >
+                  {children}
+                </p>
+              )
+            }
+
+            return (
+              <p className="text-lg text-neutral-500 leading-relaxed mb-4" {...props}>
+                {children}
+              </p>
+            )
+          },
           // Lists
           ul: ({ children, ...props }) => (
             <ul className="list-disc pl-6 space-y-2 mb-6 text-lg text-neutral-500" {...props}>
@@ -160,8 +182,10 @@ export function BlogContent({ content }: BlogContentProps) {
 }
 
 /**
- * Table of Contents component
+ * Table of Contents component with scroll tracking
  */
+import { useState, useEffect } from 'react'
+
 interface TOCItem {
   id: string
   text: string
@@ -173,43 +197,82 @@ interface TableOfContentsProps {
 }
 
 export function TableOfContents({ content }: TableOfContentsProps) {
-  // Extract headings from markdown
-  const headingRegex = /^(#{2,3})\s+(.+)$/gm
+  const [activeId, setActiveId] = useState<string>('')
+
+  // Extract only h2 headings from markdown
+  const headingRegex = /^##\s+(.+)$/gm
   const headings: TOCItem[] = []
   let match
 
   while ((match = headingRegex.exec(content)) !== null) {
-    const level = match[1].length
-    const text = match[2].trim()
+    const text = match[1].trim()
     const id = text
       .toLowerCase()
       .replace(/[^\w\s-]/g, '')
       .replace(/\s+/g, '-')
 
-    headings.push({ id, text, level })
+    headings.push({ id, text, level: 2 })
   }
+
+  // Track scroll position to highlight active section
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveId(entry.target.id)
+          }
+        })
+      },
+      {
+        rootMargin: '-80px 0px -80% 0px',
+        threshold: 0,
+      }
+    )
+
+    // Observe all heading elements
+    headings.forEach((heading) => {
+      const element = document.getElementById(heading.id)
+      if (element) observer.observe(element)
+    })
+
+    return () => observer.disconnect()
+  }, [headings])
 
   if (headings.length < 3) return null
 
   return (
-    <nav className="bg-white border border-neutral-200 rounded-xl p-5 shadow-sm mb-8 lg:mb-0 h-full flex flex-col">
+    <nav className="mb-8 lg:mb-0 h-full flex flex-col">
       <h4 className="text-[10px] text-neutral-400 uppercase tracking-widest mb-4">On this page</h4>
       <div className="flex-1 overflow-y-auto">
-      <ul className="space-y-1">
-        {headings.map((heading, index) => (
-          <li
-            key={index}
-            className={heading.level === 3 ? 'ml-4' : ''}
-          >
-            <a
-              href={`#${heading.id}`}
-              className={`${heading.level === 3 ? 'text-xs text-neutral-400' : 'text-sm text-neutral-500 font-medium'} hover:text-pink-600 active:text-pink-600 transition-colors block leading-snug py-1`}
-            >
-              {heading.text}
-            </a>
-          </li>
-        ))}
-      </ul>
+        <ul className="space-y-1">
+          {headings.map((heading, index) => {
+            const isActive = activeId === heading.id
+            return (
+              <li key={index}>
+                <a
+                  href={`#${heading.id}`}
+                  onClick={(e) => {
+                    e.preventDefault()
+                    const element = document.getElementById(heading.id)
+                    if (element) {
+                      const offset = 100 // Account for sticky header
+                      const top = element.getBoundingClientRect().top + window.scrollY - offset
+                      window.scrollTo({ top, behavior: 'smooth' })
+                    }
+                  }}
+                  className={`text-sm border-l-2 pl-3 transition-colors block leading-snug py-1.5 ${
+                    isActive
+                      ? 'border-pink-600 text-pink-600'
+                      : 'border-neutral-200 text-neutral-500 hover:border-pink-600 hover:text-pink-600'
+                  }`}
+                >
+                  {heading.text}
+                </a>
+              </li>
+            )
+          })}
+        </ul>
       </div>
     </nav>
   )

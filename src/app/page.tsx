@@ -1132,18 +1132,6 @@ function HomeContent() {
               <SocialProof className="mt-10 justify-center" />
             </div>
 
-            {/* Product Hunt Badge */}
-            <div className="opacity-0 mt-6 flex justify-center" style={{ animation: 'hero-fade-in 0.2s ease-out 0.25s forwards' }}>
-              <a href="https://www.producthunt.com/products/remotedesigners-co?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-remotedesigners-co" target="_blank" rel="noopener noreferrer">
-                <img
-                  src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1065345&theme=light&t=1768887941459"
-                  alt="RemoteDesigners.co - Find real remote design jobs. No noise, no scraping junk. | Product Hunt"
-                  width="250"
-                  height="54"
-                />
-              </a>
-            </div>
-
           </div>
         </div>
 

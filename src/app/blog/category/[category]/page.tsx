@@ -114,7 +114,7 @@ export default async function CategoryPage({ params }: Props) {
               href={`/blog/category/${slug}`}
               className={slug === category ? chipActiveClass : chipInactiveClass}
             >
-              {cat.name}
+              {cat.emoji} {cat.name}
             </Link>
           ))}
         </div>
@@ -172,7 +172,7 @@ export default async function CategoryPage({ params }: Props) {
                       href={`/blog/category/${post.category}`}
                       className={`${cardChipClass} inline-block mb-3 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all`}
                     >
-                      {postCategoryInfo?.name || post.category}
+                      {postCategoryInfo?.emoji} {postCategoryInfo?.name || post.category}
                     </Link>
 
                     {/* Title */}

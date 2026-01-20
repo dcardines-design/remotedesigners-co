@@ -53,7 +53,7 @@ export function BlogCard({ post, variant = 'default' }: BlogCardProps) {
           href={`/blog/category/${post.category}`}
           className="text-xs text-neutral-600 bg-white px-2.5 py-1 rounded border border-neutral-200 inline-block mb-3 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
         >
-          {categoryInfo?.name || post.category}
+          {categoryInfo?.emoji} {categoryInfo?.name || post.category}
         </Link>
         <Link href={`/blog/${post.slug}`}>
           <h3 className="font-dm-sans text-lg font-medium text-neutral-900 group-hover:text-neutral-600 transition-colors line-clamp-2">
@@ -82,7 +82,7 @@ export function BlogCard({ post, variant = 'default' }: BlogCardProps) {
         <span className="block p-6">
           <span className="flex items-center gap-3 mb-3">
             <span className="text-xs font-medium text-neutral-600 bg-neutral-100 px-2.5 py-1 rounded">
-              {categoryInfo?.name || post.category}
+              {categoryInfo?.emoji} {categoryInfo?.name || post.category}
             </span>
             <span className="text-xs text-neutral-400">{publishedDate}</span>
             {post.reading_time_minutes && (
@@ -117,7 +117,7 @@ export function BlogCard({ post, variant = 'default' }: BlogCardProps) {
       <span className="flex-1 min-w-0 flex flex-col">
         <span className="flex items-center gap-2 mb-2">
           <span className="text-xs font-medium text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded">
-            {categoryInfo?.name || post.category}
+            {categoryInfo?.emoji} {categoryInfo?.name || post.category}
           </span>
           <span className="text-xs text-neutral-400">{publishedDate}</span>
         </span>

@@ -199,7 +199,7 @@ export default async function BlogPostPage({ params }: Props) {
                   href={`/blog/category/${post.category}`}
                   className="text-xs text-neutral-600 bg-white px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
                 >
-                  {categoryInfo?.name || post.category}
+                  {categoryInfo?.emoji} {categoryInfo?.name || post.category}
                 </Link>
                 <span className="text-sm text-neutral-400">{publishedDate}</span>
                 {post.reading_time_minutes && (
