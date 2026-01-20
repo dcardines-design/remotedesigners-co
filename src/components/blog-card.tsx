@@ -36,35 +36,31 @@ export function BlogCard({ post, variant = 'default' }: BlogCardProps) {
         className="group block bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08),0px_1px_2px_0px_rgba(0,0,0,0.05)] hover:border-neutral-300 transition-all"
       >
         {post.featured_image && (
-          <div className="aspect-[16/9] overflow-hidden bg-neutral-100">
+          <span className="block aspect-[16/9] overflow-hidden bg-neutral-100">
             <img
               src={post.featured_image}
               alt={post.featured_image_alt || post.title}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             />
-          </div>
+          </span>
         )}
-        <div className="p-6">
-          <div className="flex items-center gap-3 mb-3">
-            <Link
-              href={`/blog/category/${post.category}`}
-              onClick={(e) => e.stopPropagation()}
-              className="text-xs font-medium text-neutral-600 bg-neutral-100 px-2.5 py-1 rounded hover:bg-neutral-200 transition-colors"
-            >
+        <span className="block p-6">
+          <span className="flex items-center gap-3 mb-3">
+            <span className="text-xs font-medium text-neutral-600 bg-neutral-100 px-2.5 py-1 rounded">
               {categoryInfo?.name || post.category}
-            </Link>
+            </span>
             <span className="text-xs text-neutral-400">{publishedDate}</span>
             {post.reading_time_minutes && (
               <span className="text-xs text-neutral-400">{post.reading_time_minutes} min read</span>
             )}
-          </div>
-          <h2 className="text-xl font-semibold text-neutral-900 mb-2 group-hover:text-neutral-700 transition-colors">
+          </span>
+          <span className="block text-xl font-semibold text-neutral-900 mb-2 group-hover:text-neutral-700 transition-colors">
             {post.title}
-          </h2>
+          </span>
           {post.excerpt && (
-            <p className="text-neutral-600 text-sm line-clamp-2">{post.excerpt}</p>
+            <span className="block text-neutral-600 text-sm line-clamp-2">{post.excerpt}</span>
           )}
-        </div>
+        </span>
       </Link>
     )
   }
@@ -75,35 +71,31 @@ export function BlogCard({ post, variant = 'default' }: BlogCardProps) {
       className="group flex gap-4 bg-white border border-neutral-200 rounded-xl p-4 hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08),0px_1px_2px_0px_rgba(0,0,0,0.05)] hover:border-neutral-300 transition-all"
     >
       {post.featured_image && (
-        <div className="w-24 h-24 md:w-32 md:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-neutral-100">
+        <span className="w-24 h-24 md:w-32 md:h-32 flex-shrink-0 rounded-lg overflow-hidden bg-neutral-100 block">
           <img
             src={post.featured_image}
             alt={post.featured_image_alt || post.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
-        </div>
+        </span>
       )}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-2">
-          <Link
-            href={`/blog/category/${post.category}`}
-            onClick={(e) => e.stopPropagation()}
-            className="text-xs font-medium text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded hover:bg-neutral-200 transition-colors"
-          >
+      <span className="flex-1 min-w-0 flex flex-col">
+        <span className="flex items-center gap-2 mb-2">
+          <span className="text-xs font-medium text-neutral-600 bg-neutral-100 px-2 py-0.5 rounded">
             {categoryInfo?.name || post.category}
-          </Link>
+          </span>
           <span className="text-xs text-neutral-400">{publishedDate}</span>
-        </div>
-        <h3 className="text-lg font-medium text-neutral-900 mb-1 group-hover:text-neutral-700 transition-colors line-clamp-2">
+        </span>
+        <span className="text-lg font-medium text-neutral-900 mb-1 group-hover:text-neutral-700 transition-colors line-clamp-2">
           {post.title}
-        </h3>
+        </span>
         {post.excerpt && (
-          <p className="text-neutral-500 text-sm line-clamp-2 hidden md:block">{post.excerpt}</p>
+          <span className="text-neutral-500 text-sm line-clamp-2 hidden md:block">{post.excerpt}</span>
         )}
         {post.reading_time_minutes && (
           <span className="text-xs text-neutral-400 mt-2 block">{post.reading_time_minutes} min read</span>
         )}
-      </div>
+      </span>
     </Link>
   )
 }

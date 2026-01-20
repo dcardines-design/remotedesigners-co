@@ -5,28 +5,58 @@ import { NormalizedJob } from '@/lib/job-apis'
 export const runtime = 'nodejs'
 export const maxDuration = 60 // 60 seconds max for slow RapidAPI regions
 
-// Query types for each region
+// Query types for each region - includes various remote work keywords
 const QUERY_TYPES = {
+  // Core design roles with "remote" keyword
   ui: 'remote UI designer',
   ux: 'remote UX designer',
   product: 'remote product designer',
   graphic: 'remote graphic designer',
+  visual: 'remote visual designer',
+  brand: 'remote brand designer',
+  // Work from home variations
+  'wfh-ui': 'work from home UI designer',
+  'wfh-ux': 'work from home UX designer',
+  'wfh-product': 'work from home product designer',
+  'wfh-graphic': 'work from home graphic designer',
+  // Generic remote design searches
+  'remote-design': 'remote designer',
+  'wfh-design': 'work from home designer',
+  'freelance-design': 'freelance designer remote',
 } as const
 
-// Valid regions with their Indeed locality codes
-const REGIONS = {
-  us: 'us',
-  ph: 'ph',
-  ca: 'ca',
-  gb: 'gb',
-  au: 'au',
-  in: 'in',
-  sg: 'my', // Singapore uses Malaysia locality
-  id: 'id',
+// Valid regions with their Indeed locality codes and display names
+const REGIONS: Record<string, { locality: string; name: string }> = {
+  us: { locality: 'us', name: 'United States' },
+  ph: { locality: 'ph', name: 'Philippines' },
+  ca: { locality: 'ca', name: 'Canada' },
+  gb: { locality: 'gb', name: 'United Kingdom' },
+  au: { locality: 'au', name: 'Australia' },
+  in: { locality: 'in', name: 'India' },
+  sg: { locality: 'my', name: 'Singapore' }, // Singapore uses Malaysia locality
+  id: { locality: 'id', name: 'Indonesia' },
 } as const
+
+// Generic location strings that need country appended
+const GENERIC_LOCATIONS = [
+  'remote', 'work from home', 'home office', 'wfh', 'telecommute',
+  'virtual', 'anywhere', 'worldwide', 'home-based', 'home based'
+]
 
 type QueryType = keyof typeof QUERY_TYPES
 type Region = keyof typeof REGIONS
+
+// Helper to normalize location - append country if generic
+function normalizeLocation(location: string, regionName: string): string {
+  const lowerLoc = location.toLowerCase().trim()
+  const isGeneric = GENERIC_LOCATIONS.some(g => lowerLoc === g || lowerLoc.includes(g))
+
+  // If it's a generic remote location without country info, append the country
+  if (isGeneric && !location.toLowerCase().includes(regionName.toLowerCase())) {
+    return `${location}, ${regionName}`
+  }
+  return location
+}
 
 // Design job filter
 const DESIGN_KEYWORDS = [
@@ -93,7 +123,7 @@ async function fetchIndeedQuery(region: Region, queryType: QueryType): Promise<N
     return []
   }
 
-  const locality = REGIONS[region]
+  const { locality, name: regionName } = REGIONS[region]
   const query = QUERY_TYPES[queryType]
   const jobs: NormalizedJob[] = []
   const seenIds = new Set<string>()
@@ -127,8 +157,10 @@ async function fetchIndeedQuery(region: Region, queryType: QueryType): Promise<N
     const searchController = new AbortController()
     const searchTimeout = setTimeout(() => searchController.abort(), 25000)
 
+    // Note: Removed location=remote to preserve actual country/city in job locations
+    // The query already contains "remote" (e.g., "remote UI designer")
     const response = await fetch(
-      `https://indeed12.p.rapidapi.com/jobs/search?query=${encodeURIComponent(query)}&location=remote&page_id=1&locality=${locality}&fromage=7&sort=date`,
+      `https://indeed12.p.rapidapi.com/jobs/search?query=${encodeURIComponent(query)}&page_id=1&locality=${locality}&fromage=7&sort=date`,
       {
         headers: {
           'X-RapidAPI-Key': apiKey,
@@ -178,13 +210,17 @@ async function fetchIndeedQuery(region: Region, queryType: QueryType): Promise<N
       const companyName = details.company?.name || result.company_name
       const companyDomain = companyName.toLowerCase().replace(/[^a-z0-9]/g, '').concat('.com')
 
+      // Normalize location - append country if it's a generic remote location
+      const rawLocation = details.location || result.location || 'Remote'
+      const normalizedLocation = normalizeLocation(rawLocation, regionName)
+
       jobs.push({
         id: `indeed-${result.id}`,
         source: 'indeed' as const,
         title: details.job_title || result.title,
         company: companyName,
         company_logo: details.company?.logo_url || `https://logo.clearbit.com/${companyDomain}`,
-        location: details.location || result.location || 'Remote',
+        location: normalizedLocation,
         salary_min: salaryMin,
         salary_max: salaryMax,
         salary_text: salaryText,

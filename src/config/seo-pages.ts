@@ -1,4 +1,5 @@
 // SEO Landing Pages Configuration
+import { LOCATION_KEYWORDS } from '@/lib/location-keywords'
 
 export interface FAQ {
   question: string
@@ -160,7 +161,7 @@ export const regionalPages: Record<string, RegionalPage> = {
     metaDescription: 'Find remote design jobs from US-based companies. Browse UI/UX, product, and graphic design positions at American startups and enterprises.',
     h1: 'Remote Design Jobs in USA',
     intro: 'Work remotely for US-based companies offering competitive salaries and benefits. These positions are open to designers across America and often worldwide.',
-    locationKeywords: ['usa', 'united states', 'us', 'america', 'american'],
+    locationKeywords: LOCATION_KEYWORDS['usa'],
     faqs: [
       { question: 'Do US companies hire international remote designers?', answer: 'Many US companies hire globally, though some positions may require US work authorization or specific timezone overlap for collaboration.' },
       { question: 'What are typical salaries for remote design jobs in the US?', answer: 'US remote design salaries range from $80,000-$180,000+ depending on role, experience, and company. San Francisco and NYC-based companies often pay the highest rates.' },
@@ -173,7 +174,7 @@ export const regionalPages: Record<string, RegionalPage> = {
     metaDescription: 'Browse remote design jobs from European companies. Find UI/UX and product design positions at companies across the EU and UK.',
     h1: 'Remote Design Jobs in Europe',
     intro: 'Join European companies embracing remote work. These design positions offer opportunities across the EU, with many open to global candidates.',
-    locationKeywords: ['europe', 'eu', 'european', 'germany', 'france', 'netherlands', 'spain', 'italy', 'sweden', 'denmark', 'portugal', 'ireland', 'austria', 'belgium'],
+    locationKeywords: LOCATION_KEYWORDS['europe'],
     faqs: [
       { question: 'What are design salaries like in Europe?', answer: 'European design salaries vary by country, typically ranging from €45,000-€120,000. Western European countries and the UK generally offer higher compensation.' },
       { question: 'Do European companies hire outside the EU?', answer: 'Some do, though many prefer EU-based candidates due to easier employment arrangements. Some companies use Employer of Record services to hire globally.' },
@@ -186,7 +187,7 @@ export const regionalPages: Record<string, RegionalPage> = {
     metaDescription: 'Discover remote design jobs from Asian companies. Find positions at tech companies in Singapore, Japan, India, and across the Asia-Pacific region.',
     h1: 'Remote Design Jobs in Asia',
     intro: 'Connect with innovative companies across Asia-Pacific. These remote design roles offer exciting opportunities in fast-growing markets.',
-    locationKeywords: ['asia', 'singapore', 'japan', 'india', 'china', 'korea', 'hong kong', 'taiwan', 'vietnam', 'indonesia', 'malaysia', 'philippines', 'thailand', 'apac'],
+    locationKeywords: LOCATION_KEYWORDS['asia'],
     faqs: [
       { question: 'Which Asian countries have the most remote design jobs?', answer: 'Singapore, Japan, and India lead in remote design opportunities. The startup ecosystems in these countries actively embrace remote work.' },
       { question: 'What are typical design salaries in Asia?', answer: 'Salaries vary widely: Singapore offers $60,000-$120,000 USD, while India and Southeast Asia range from $20,000-$60,000 USD for similar roles.' },
@@ -199,7 +200,7 @@ export const regionalPages: Record<string, RegionalPage> = {
     metaDescription: 'Find remote design jobs from UK companies. Browse positions at London startups, agencies, and enterprises hiring designers remotely.',
     h1: 'Remote Design Jobs in UK',
     intro: 'Work with innovative British companies from anywhere. These UK-based remote design roles offer competitive packages and flexible working.',
-    locationKeywords: ['uk', 'united kingdom', 'london', 'manchester', 'birmingham', 'edinburgh', 'britain', 'british', 'england', 'scotland', 'wales'],
+    locationKeywords: LOCATION_KEYWORDS['uk'],
     breadcrumbName: 'United Kingdom',
     faqs: [
       { question: 'What are design salaries like in the UK?', answer: 'UK design salaries typically range from £40,000-£90,000, with London roles often paying 20-30% more than other regions.' },
@@ -213,7 +214,7 @@ export const regionalPages: Record<string, RegionalPage> = {
     metaDescription: 'Browse remote design jobs from Canadian companies. Find UI/UX and product design positions at Toronto, Vancouver, and Montreal-based startups.',
     h1: 'Remote Design Jobs in Canada',
     intro: 'Join Canadian companies building world-class products. These remote design positions offer great work-life balance and competitive compensation.',
-    locationKeywords: ['canada', 'canadian', 'toronto', 'vancouver', 'montreal', 'ottawa', 'calgary'],
+    locationKeywords: LOCATION_KEYWORDS['canada'],
     faqs: [
       { question: 'What are design salaries in Canada?', answer: 'Canadian design salaries range from CAD $70,000-$140,000, with Toronto and Vancouver typically offering the highest compensation.' },
       { question: 'Do Canadian companies hire US-based designers?', answer: 'Many Canadian companies hire from the US due to timezone alignment. Some also hire globally and use EOR services for international contractors.' },
@@ -226,7 +227,7 @@ export const regionalPages: Record<string, RegionalPage> = {
     metaDescription: 'Find remote design jobs for Latin American designers. Browse positions at companies hiring from Brazil, Mexico, Argentina, and across LATAM.',
     h1: 'Remote Design Jobs in Latin America',
     intro: 'Connect with companies actively hiring designers from Latin America. These remote positions often offer timezone-friendly schedules for LATAM-based talent.',
-    locationKeywords: ['latin america', 'latam', 'brazil', 'mexico', 'argentina', 'colombia', 'chile', 'peru', 'south america', 'central america'],
+    locationKeywords: LOCATION_KEYWORDS['latam'],
     faqs: [
       { question: 'Why do US companies hire designers from Latin America?', answer: 'LATAM designers offer timezone alignment with US companies, strong design skills, and often more competitive rates, making it a popular hiring region.' },
       { question: 'What are typical salaries for LATAM-based remote designers?', answer: 'LATAM designers working for US companies typically earn $40,000-$100,000 USD, significantly higher than local market rates.' },
@@ -239,7 +240,7 @@ export const regionalPages: Record<string, RegionalPage> = {
     metaDescription: 'Discover remote design jobs from Australian companies. Find positions at Sydney, Melbourne, and Brisbane-based startups and agencies.',
     h1: 'Remote Design Jobs in Australia',
     intro: 'Work with Australian companies embracing remote-first culture. These design positions offer great opportunities in the APAC region.',
-    locationKeywords: ['australia', 'australian', 'sydney', 'melbourne', 'brisbane', 'perth', 'adelaide', 'anz', 'oceania'],
+    locationKeywords: LOCATION_KEYWORDS['australia'],
     faqs: [
       { question: 'What are design salaries in Australia?', answer: 'Australian design salaries range from AUD $80,000-$160,000, with Sydney and Melbourne offering the highest compensation.' },
       { question: 'Do Australian companies hire international designers?', answer: 'Many Australian companies hire internationally, especially from nearby Asian countries and those with compatible timezones.' },
@@ -252,7 +253,7 @@ export const regionalPages: Record<string, RegionalPage> = {
     metaDescription: 'Browse remote design jobs from Middle Eastern companies. Find positions at Dubai, UAE, and regional tech companies hiring designers.',
     h1: 'Remote Design Jobs in Middle East',
     intro: 'Join the growing tech ecosystem in the Middle East. These remote design positions offer opportunities at innovative regional companies.',
-    locationKeywords: ['middle east', 'dubai', 'uae', 'saudi arabia', 'qatar', 'israel', 'bahrain', 'kuwait', 'mena'],
+    locationKeywords: LOCATION_KEYWORDS['middle-east'],
     faqs: [
       { question: 'Which Middle Eastern countries have the most design jobs?', answer: 'UAE (Dubai), Israel, and Saudi Arabia lead in design opportunities, with growing tech ecosystems and international companies.' },
       { question: 'Are Middle Eastern design salaries competitive?', answer: 'Dubai and UAE offer tax-free salaries often comparable to Western markets. Israeli tech companies offer competitive, equity-heavy packages.' },
@@ -265,7 +266,7 @@ export const regionalPages: Record<string, RegionalPage> = {
     metaDescription: 'Find remote design jobs from African companies and those hiring in Africa. Browse positions at South African, Nigerian, and pan-African tech startups.',
     h1: 'Remote Design Jobs in Africa',
     intro: 'Be part of the African tech renaissance. These remote design positions connect you with companies building for the continent and beyond.',
-    locationKeywords: ['africa', 'african', 'south africa', 'nigeria', 'kenya', 'egypt', 'ghana', 'rwanda', 'morocco'],
+    locationKeywords: LOCATION_KEYWORDS['africa'],
     faqs: [
       { question: 'Which African countries have the strongest design job markets?', answer: 'South Africa, Nigeria, Kenya, and Egypt have the most developed tech and design scenes, with growing startup ecosystems.' },
       { question: 'Do international companies hire designers based in Africa?', answer: 'Yes, many international companies hire African designers for timezone compatibility with Europe and competitive rates with strong talent.' },
@@ -278,7 +279,7 @@ export const regionalPages: Record<string, RegionalPage> = {
     metaDescription: 'Browse fully remote design jobs open to candidates worldwide. Find global positions with no location restrictions at distributed companies.',
     h1: 'Worldwide Remote Design Jobs',
     intro: 'Work from anywhere in the world. These fully distributed companies hire designers regardless of location, offering true location independence.',
-    locationKeywords: ['worldwide', 'anywhere', 'global', 'remote', 'international', 'distributed', 'location independent'],
+    locationKeywords: LOCATION_KEYWORDS['worldwide'],
     faqs: [
       { question: 'What does "worldwide" mean for remote jobs?', answer: 'Worldwide positions have no location restrictions—you can work from any country. These are often at fully distributed companies with async cultures.' },
       { question: 'How are worldwide remote designers paid?', answer: 'Payment methods vary: some companies pay in USD regardless of location, others adjust for local cost of living, and many use platforms like Deel or Remote.' },

@@ -58,8 +58,8 @@ export async function generateBlogImage(
     const scenes = TOPIC_SCENES[category]
     const topicScene = scenes[Math.floor(Math.random() * scenes.length)]
 
-    // Build the prompt
-    const prompt = `dreamy solarpunk illustration in a soft anime watercolor style. ${topicScene} is the main focus of the image, gently integrated into a lush, nature-first environment filled with dense greenery, flowering plants, and winding vines. subtle futuristic eco elements like solar panels, wind turbines, floating structures, or green architecture blend naturally into the background. painterly textures, no hard edges, gentle diffused lighting, pastel greens with accents of orange and pink. calm, optimistic, and airy mood, wide depth of field, minimal clutter, high detail but soft and serene. landscape composition, watercolor anime aesthetic, 4k quality. no text or words in the image.`
+    // Build the prompt - soft illustrated solarpunk style
+    const prompt = `soft watercolor illustration of a dreamy solarpunk landscape. ${topicScene}. delicate pastel color palette with golden yellows, sage greens, pale sky blues, coral pinks, and cream whites. rolling hills covered in wildflower meadows with pink, yellow, and coral flowers in the foreground. glass geodesic domes and floating structures with trailing plants integrated into nature. wind turbines and solar panels nestled among lush vegetation. misty mountains in the distant background. golden hour diffused lighting creating a warm, hazy, optimistic atmosphere. green leaves and branches gently framing the top of the composition. textured paper quality with soft brushstrokes. children's book illustration meets utopian concept art. peaceful, hopeful, serene mood. highly detailed but gentle and soft. absolutely no text, words, letters, or writing anywhere in the image.`
 
     console.log('Generating image with DALL-E 3...')
 
