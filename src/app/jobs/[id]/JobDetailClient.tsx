@@ -962,7 +962,7 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
 
               <div className="text-left">
                 <Link href="/membership">
-                  <RainbowButton fullWidth size="sm">
+                  <RainbowButton fullWidth size="sm-to-lg">
                     Get Membership — Unlock Full Access
                   </RainbowButton>
                 </Link>

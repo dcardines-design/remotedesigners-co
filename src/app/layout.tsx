@@ -55,11 +55,20 @@ export const metadata: Metadata = {
     siteName: 'RemoteDesigners.co',
     title: 'RemoteDesigners.co - Remote Design Jobs',
     description: 'Discover curated remote design jobs sourced directly from company career pages, YC startups, and top job boards. Find UI, UX, product design, and graphic design positions updated hourly.',
+    images: [
+      {
+        url: `${BASE_URL}/og-image.png`,
+        width: 1200,
+        height: 630,
+        alt: 'RemoteDesigners.co - Land Your Dream Remote Design Job',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'RemoteDesigners.co - Remote Design Jobs',
     description: 'Discover curated remote design jobs sourced from company career pages, YC startups, and top job boards.',
+    images: [`${BASE_URL}/og-image.png`],
   },
   alternates: {
     canonical: BASE_URL,
