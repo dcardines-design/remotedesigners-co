@@ -4,6 +4,7 @@ import { createServerSupabaseClient } from '@/lib/supabase'
 import { BlogListSEO } from '@/components/blog-seo'
 import { BLOG_CATEGORIES, BlogCategory } from '@/lib/blog/seo-helpers'
 import { Button } from '@/components/ui'
+import { HeroBackground } from '@/components/hero-background'
 
 export const metadata: Metadata = {
   title: 'Blog - Remote Design Insights & Career Tips',
@@ -51,59 +52,42 @@ async function getBlogPosts(): Promise<BlogPost[]> {
   return data || []
 }
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
-}
-
 export default async function BlogPage() {
   const posts = await getBlogPosts()
   const categories = Object.entries(BLOG_CATEGORIES) as [BlogCategory, typeof BLOG_CATEGORIES[BlogCategory]][]
 
-  // Chip style matching job cards
-  const chipClass = "bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200"
-  const tabActiveClass = "bg-neutral-900 text-white text-xs font-medium px-3 py-1.5 rounded border border-neutral-900 transition-all"
-  const tabInactiveClass = "bg-white text-neutral-600 text-xs font-medium px-3 py-1.5 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all whitespace-nowrap"
+  // Chip styles - big pill style like SEO pages
+  const chipActiveClass = "bg-neutral-900 text-white text-sm font-medium px-4 py-2 rounded-full border border-neutral-900 transition-all"
+  const chipInactiveClass = "bg-white text-neutral-700 text-sm font-medium px-4 py-2 rounded-full border border-neutral-200 hover:border-neutral-300 hover:shadow-sm transition-all"
+  const cardChipClass = "bg-white text-neutral-600 text-xs px-2.5 py-1 rounded border border-neutral-200"
 
   return (
     <>
       <BlogListSEO />
-      <div className="min-h-screen bg-neutral-50">
-        {/* Category Tabs - matching job filter chips */}
-        <div className="border-b border-neutral-200 bg-white sticky top-16 z-10">
-          <div className="max-w-5xl mx-auto px-4 md:px-8">
-            <div className="flex items-center justify-between py-3">
-              <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar">
-                <Link href="/blog" className={tabActiveClass}>
-                  All Posts
-                </Link>
-                {categories.map(([slug, category]) => (
-                  <Link
-                    key={slug}
-                    href={`/blog/category/${slug}`}
-                    className={tabInactiveClass}
-                  >
-                    {category.name}
-                  </Link>
-                ))}
-              </div>
-              <a
-                href="/blog/feed.xml"
-                className="hidden md:flex items-center gap-1.5 text-xs text-neutral-500 hover:text-neutral-700 transition-colors ml-4"
-              >
-                <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1Z" />
-                </svg>
-                RSS
-              </a>
-            </div>
-          </div>
-        </div>
+      <div className="min-h-screen bg-neutral-50 relative">
+        <HeroBackground />
+        <div className="max-w-6xl mx-auto px-4 md:px-8 py-10 md:py-16 relative z-10">
+          {/* Header */}
+          <h1 className="text-4xl md:text-5xl font-semibold text-neutral-900 mb-6">
+            Blog
+          </h1>
 
-        <div className="max-w-5xl mx-auto px-4 md:px-8 py-6 md:py-10">
+          {/* Category Chips */}
+          <div className="flex flex-wrap items-center gap-2 mb-12">
+            <Link href="/blog" className={chipActiveClass}>
+              All Posts
+            </Link>
+            {categories.map(([slug, category]) => (
+              <Link
+                key={slug}
+                href={`/blog/category/${slug}`}
+                className={chipInactiveClass}
+              >
+                {category.name}
+              </Link>
+            ))}
+          </div>
+
           {posts.length === 0 ? (
             /* Empty State */
             <div className="bg-white border border-dashed border-neutral-300 rounded-xl px-12 py-20">
@@ -126,8 +110,8 @@ export default async function BlogPage() {
             </div>
           ) : (
             <>
-              {/* Card Grid - job card style */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Simple Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-12">
                 {posts.map((post) => {
                   const categoryInfo = BLOG_CATEGORIES[post.category]
 
@@ -135,10 +119,10 @@ export default async function BlogPage() {
                     <Link
                       key={post.id}
                       href={`/blog/${post.slug}`}
-                      className="group block bg-white border border-neutral-200 rounded-xl overflow-hidden hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08),0px_1px_2px_0px_rgba(0,0,0,0.05)] hover:border-neutral-300 transition-all"
+                      className="group block"
                     >
-                      {/* Featured Image */}
-                      <span className="block aspect-[16/10] overflow-hidden bg-neutral-100">
+                      {/* Image */}
+                      <span className="block aspect-[16/10] rounded-lg overflow-hidden bg-neutral-200 mb-4">
                         {post.featured_image ? (
                           <img
                             src={post.featured_image}
@@ -154,44 +138,22 @@ export default async function BlogPage() {
                         )}
                       </span>
 
-                      {/* Content */}
-                      <span className="block p-4">
-                        {/* Chips row */}
-                        <span className="flex items-center gap-2 mb-3">
-                          <span className={chipClass}>
-                            {categoryInfo?.name || post.category}
-                          </span>
-                          {post.reading_time_minutes && (
-                            <span className="text-xs text-neutral-400">
-                              {post.reading_time_minutes} min read
-                            </span>
-                          )}
-                        </span>
-
-                        {/* Title */}
-                        <span className="block text-base font-medium text-neutral-900 mb-2 group-hover:text-neutral-600 transition-colors line-clamp-2">
-                          {post.title}
-                        </span>
-
-                        {/* Excerpt */}
-                        {post.excerpt && (
-                          <span className="block text-sm text-neutral-500 line-clamp-2 mb-3">
-                            {post.excerpt}
-                          </span>
-                        )}
-
-                        {/* Date */}
-                        <span className="block text-xs text-neutral-400">
-                          {formatDate(post.published_at)}
-                        </span>
+                      {/* Category Chip */}
+                      <span className={`${cardChipClass} inline-block mb-3`}>
+                        {categoryInfo?.name || post.category}
                       </span>
+
+                      {/* Title */}
+                      <h2 className="text-base font-medium text-neutral-900 group-hover:text-neutral-600 transition-colors line-clamp-2">
+                        {post.title}
+                      </h2>
                     </Link>
                   )
                 })}
               </div>
 
               {/* Footer */}
-              <div className="mt-12 pt-6 border-t border-neutral-200">
+              <div className="mt-16 pt-8 border-t border-neutral-200">
                 <div className="flex items-center justify-center gap-2 text-sm text-neutral-500">
                   <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                     <path d="M6.18 15.64a2.18 2.18 0 0 1 2.18 2.18C8.36 19 7.38 20 6.18 20C5 20 4 19 4 17.82a2.18 2.18 0 0 1 2.18-2.18M4 4.44A15.56 15.56 0 0 1 19.56 20h-2.83A12.73 12.73 0 0 0 4 7.27V4.44m0 5.66a9.9 9.9 0 0 1 9.9 9.9h-2.83A7.07 7.07 0 0 0 4 12.93V10.1Z" />

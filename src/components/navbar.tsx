@@ -126,6 +126,7 @@ export function Navbar() {
   const isPremiumPage = pathname === '/membership'
   const isSuccessPage = pathname === '/post-job/success'
   const isUnsubscribePage = pathname === '/unsubscribe'
+  const isBlogPage = pathname === '/blog'
   const [isTransparentNavbarPage, setIsTransparentNavbarPage] = useState(false)
 
   useEffect(() => {
@@ -264,7 +265,7 @@ export function Navbar() {
     router.push('/')
   }
 
-  const isTransparent = (isHomePage || isSEOPage || isPremiumPage || isSuccessPage || isUnsubscribePage || isTransparentNavbarPage) && !scrolled && !mobileMenuOpen
+  const isTransparent = (isHomePage || isSEOPage || isPremiumPage || isSuccessPage || isUnsubscribePage || isBlogPage || isTransparentNavbarPage) && !scrolled && !mobileMenuOpen
 
   return (
     <nav
