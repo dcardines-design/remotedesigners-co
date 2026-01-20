@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server'
 import {
-  fetchArbeitnowJobs,
   fetchJSearchJobs,
-  fetchHimalayasJobs,
-  fetchJobicyJobs,
-  fetchAuthenticJobs,
-  fetchWorkingNomadsJobs,
-  fetchMuseJobs,
   fetchAdzunaJobs,
+  // Disabled - no direct apply links (link to job board pages):
+  // fetchArbeitnowJobs,
+  // fetchHimalayasJobs,
+  // fetchJobicyJobs,
+  // fetchAuthenticJobs,
+  // fetchWorkingNomadsJobs,
+  // fetchMuseJobs,
 } from '@/lib/job-apis'
 import { syncJobs } from '@/lib/sync-jobs'
 
@@ -20,15 +21,17 @@ async function handleSync() {
 
     // Fetch from smaller/faster APIs
     // Note: Ashby moved to dedicated /api/jobs/sync/ashby route with batching
+    // Only sources with DIRECT apply links (not job board pages)
     const sources = [
-      { name: 'arbeitnow', fn: fetchArbeitnowJobs },
-      { name: 'jsearch', fn: fetchJSearchJobs },
-      { name: 'himalayas', fn: fetchHimalayasJobs },
-      { name: 'jobicy', fn: fetchJobicyJobs },
-      { name: 'authenticjobs', fn: fetchAuthenticJobs },
-      { name: 'workingnomads', fn: fetchWorkingNomadsJobs },
-      { name: 'muse', fn: fetchMuseJobs },
-      { name: 'adzuna', fn: fetchAdzunaJobs },
+      { name: 'jsearch', fn: fetchJSearchJobs },    // Direct: job_apply_link
+      { name: 'adzuna', fn: fetchAdzunaJobs },      // Direct: redirect_url
+      // Disabled - link to job board pages, not direct apply:
+      // { name: 'arbeitnow', fn: fetchArbeitnowJobs },
+      // { name: 'himalayas', fn: fetchHimalayasJobs },
+      // { name: 'jobicy', fn: fetchJobicyJobs },
+      // { name: 'authenticjobs', fn: fetchAuthenticJobs },
+      // { name: 'workingnomads', fn: fetchWorkingNomadsJobs },
+      // { name: 'muse', fn: fetchMuseJobs },
     ]
 
     for (const source of sources) {
