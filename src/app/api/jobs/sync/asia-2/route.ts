@@ -1,26 +1,26 @@
 import { NextResponse } from 'next/server'
-// import {
-//   fetchJobStreetJobs, // Disabled: Returns 404 - API changed
-//   fetchKalibrrJobs,   // Disabled: No direct apply links (links to Kalibrr page)
-//   fetchInstahyreJobs, // Disabled: Returns 404 - API changed
-//   fetchWantedlyJobs,  // Disabled: No direct apply links (links to Wantedly page)
-// } from '@/lib/job-apis'
-// import { syncJobs } from '@/lib/sync-jobs'
+import {
+  // fetchJobStreetJobs, // Disabled: Returns 404 - API changed
+  fetchKalibrrJobs,
+  // fetchInstahyreJobs, // Disabled: Returns 404 - API changed
+  fetchWantedlyJobs,
+} from '@/lib/job-apis'
+import { syncJobs } from '@/lib/sync-jobs'
 
-// Asia Part 2: ALL SOURCES DISABLED as of Jan 2026
-// - JobStreet: 404 API changed
-// - Instahyre: 404 API changed
-// - Kalibrr: No direct apply links (links to Kalibrr page)
-// - Wantedly: No direct apply links (links to Wantedly page)
+// Asia Part 2: Kalibrr (Philippines), Wantedly (Japan)
+// Note: JobStreet and Instahyre APIs changed/broken as of Jan 2026
 async function handleSync() {
-  // No working Asia sources with direct apply links
-  const results: { sourceName: string; message: string }[] = []
+  try {
+    const results = []
 
-  const sources: { name: string; fn: () => Promise<unknown[]> }[] = [
-    // All disabled - no direct apply links:
-    // { name: 'kalibrr', fn: fetchKalibrrJobs },
-    // { name: 'wantedly', fn: fetchWantedlyJobs },
-  ]
+    const sources = [
+      // Disabled sources - APIs changed/broken:
+      // { name: 'jobstreet', fn: fetchJobStreetJobs },
+      // { name: 'instahyre', fn: fetchInstahyreJobs },
+      // Working sources:
+      { name: 'kalibrr', fn: fetchKalibrrJobs },
+      { name: 'wantedly', fn: fetchWantedlyJobs },
+    ]
 
     for (const source of sources) {
       try {
