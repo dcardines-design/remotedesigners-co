@@ -9,7 +9,7 @@ interface BlogContentProps {
 
 export function BlogContent({ content }: BlogContentProps) {
   return (
-    <article className="prose prose-neutral max-w-none prose-headings:font-semibold prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h3:text-xl prose-h3:mt-8 prose-h3:mb-3 prose-p:text-neutral-700 prose-p:leading-relaxed prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-strong:text-neutral-900 prose-ul:my-4 prose-li:my-1 prose-img:rounded-lg prose-img:shadow-md">
+    <article className="prose prose-neutral max-w-none">
       <ReactMarkdown
         components={{
           // Custom link handling for internal links
@@ -17,7 +17,7 @@ export function BlogContent({ content }: BlogContentProps) {
             const isInternal = href?.startsWith('/') || href?.startsWith('#')
             if (isInternal) {
               return (
-                <Link href={href || '#'} {...props}>
+                <Link href={href || '#'} className="text-blue-600 hover:underline" {...props}>
                   {children}
                 </Link>
               )
@@ -27,13 +27,14 @@ export function BlogContent({ content }: BlogContentProps) {
                 href={href}
                 target="_blank"
                 rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
                 {...props}
               >
                 {children}
               </a>
             )
           },
-          // Add IDs to headings for anchor links
+          // Headings with proper styling
           h2: ({ children, ...props }) => {
             const id = children
               ?.toString()
@@ -41,7 +42,7 @@ export function BlogContent({ content }: BlogContentProps) {
               .replace(/[^\w\s-]/g, '')
               .replace(/\s+/g, '-')
             return (
-              <h2 id={id} {...props}>
+              <h2 id={id} className="text-2xl font-bold text-neutral-900 mt-12 mb-4 pb-2 border-b border-neutral-200" {...props}>
                 {children}
               </h2>
             )
@@ -53,18 +54,58 @@ export function BlogContent({ content }: BlogContentProps) {
               .replace(/[^\w\s-]/g, '')
               .replace(/\s+/g, '-')
             return (
-              <h3 id={id} {...props}>
+              <h3 id={id} className="text-xl font-semibold text-neutral-900 mt-8 mb-3" {...props}>
                 {children}
               </h3>
             )
           },
+          h4: ({ children, ...props }) => {
+            const id = children
+              ?.toString()
+              .toLowerCase()
+              .replace(/[^\w\s-]/g, '')
+              .replace(/\s+/g, '-')
+            return (
+              <h4 id={id} className="text-lg font-semibold text-neutral-900 mt-6 mb-2" {...props}>
+                {children}
+              </h4>
+            )
+          },
+          // Paragraphs
+          p: ({ children, ...props }) => (
+            <p className="text-neutral-700 leading-relaxed mb-4" {...props}>
+              {children}
+            </p>
+          ),
+          // Lists
+          ul: ({ children, ...props }) => (
+            <ul className="list-disc list-inside space-y-2 mb-6 text-neutral-700" {...props}>
+              {children}
+            </ul>
+          ),
+          ol: ({ children, ...props }) => (
+            <ol className="list-decimal list-inside space-y-2 mb-6 text-neutral-700" {...props}>
+              {children}
+            </ol>
+          ),
+          li: ({ children, ...props }) => (
+            <li className="leading-relaxed" {...props}>
+              {children}
+            </li>
+          ),
+          // Strong/bold text
+          strong: ({ children, ...props }) => (
+            <strong className="font-semibold text-neutral-900" {...props}>
+              {children}
+            </strong>
+          ),
           // Code blocks
           code: ({ className, children, ...props }) => {
             const match = /language-(\w+)/.exec(className || '')
             if (match) {
               return (
                 <code
-                  className={`${className} block bg-neutral-900 text-neutral-100 p-4 rounded-lg overflow-x-auto`}
+                  className={`${className} block bg-neutral-900 text-neutral-100 p-4 rounded-lg overflow-x-auto my-4`}
                   {...props}
                 >
                   {children}
@@ -73,7 +114,7 @@ export function BlogContent({ content }: BlogContentProps) {
             }
             return (
               <code
-                className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm"
+                className="bg-neutral-100 text-neutral-800 px-1.5 py-0.5 rounded text-sm font-mono"
                 {...props}
               >
                 {children}
@@ -95,7 +136,7 @@ export function BlogContent({ content }: BlogContentProps) {
               <img
                 src={src}
                 alt={alt}
-                className="rounded-lg shadow-md"
+                className="rounded-lg shadow-md w-full"
                 loading="lazy"
                 {...props}
               />
@@ -105,6 +146,10 @@ export function BlogContent({ content }: BlogContentProps) {
                 </figcaption>
               )}
             </figure>
+          ),
+          // Horizontal rule
+          hr: () => (
+            <hr className="my-8 border-neutral-200" />
           ),
         }}
       >
