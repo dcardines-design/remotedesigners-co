@@ -9,7 +9,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminSupabaseClient } from '@/lib/supabase'
-import { generateBlogImage, BlogCategory } from '@/lib/blog'
+import { generateBlogImage } from '@/lib/blog/image-generator'
+import { BlogCategory } from '@/lib/blog/seo-helpers'
 
 export const maxDuration = 300 // 5 minutes max
 
@@ -72,10 +73,13 @@ export async function POST(request: NextRequest) {
         const altText = `Featured image for ${post.title}`
 
         // Generate the image
-        const imageResult = await generateBlogImage(
-          post.category as BlogCategory,
-          altText
-        )
+        const imageResult = await generateBlogImage({
+          category: post.category as BlogCategory,
+          title: post.title,
+          variant: 'dreamy',
+          context: 'contextual',
+          shot: 'wide',
+        })
 
         if (imageResult?.storedUrl) {
           // Update the post with the new image
