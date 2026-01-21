@@ -28,7 +28,8 @@ export async function POST(request: NextRequest) {
     const result = await generateBlogImage(
       post.category as BlogCategory,
       `Illustration for ${post.title}`,
-      style as ImageStyle
+      style as ImageStyle,
+      post.title
     )
 
     if (!result) {

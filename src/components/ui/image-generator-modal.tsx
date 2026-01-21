@@ -13,6 +13,11 @@ interface ImageGeneratorModalProps {
 
 const IMAGE_STYLES = [
   {
+    id: 'contextual',
+    name: 'Contextual',
+    description: 'Based on blog topic, AI picks the scene',
+  },
+  {
     id: 'dreamy',
     name: 'Dreamy',
     description: 'Extra soft & hazy, morning light, Frieren mood',
@@ -65,7 +70,7 @@ export function ImageGeneratorModal({
   useEffect(() => {
     if (isOpen) {
       setPassword('')
-      setSelectedStyle('dreamy')
+      setSelectedStyle('contextual')
     }
   }, [isOpen])
 

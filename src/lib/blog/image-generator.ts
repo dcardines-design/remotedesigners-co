@@ -8,7 +8,7 @@ import { createAdminSupabaseClient } from '@/lib/supabase'
 import { BlogCategory } from './seo-helpers'
 
 // Available image styles
-export type ImageStyle = 'dreamy' | 'vibrant' | 'minimal' | 'nature'
+export type ImageStyle = 'contextual' | 'dreamy' | 'vibrant' | 'minimal' | 'nature'
 
 // Lazy OpenAI client initialization
 function getOpenAIClient(): OpenAI | null {
@@ -26,7 +26,7 @@ const CANVAS_RULES = `CRITICAL: The artwork MUST fill the ENTIRE 1792x1024 canva
 const BASE_STYLE = `dreamy solarpunk illustration in a soft anime watercolor style. Subtle futuristic eco elements like solar panels, wind turbines, floating structures, or green architecture blend naturally into the background. Painterly textures, no hard edges, gentle diffused lighting. Calm, optimistic, and airy mood, wide depth of field, minimal clutter, high detail but soft and serene. Watercolor anime aesthetic. ${CANVAS_RULES}`
 
 // Style variants - all based on the same solarpunk watercolor aesthetic
-const STYLE_PROMPTS: Record<ImageStyle, string> = {
+const STYLE_PROMPTS: Record<Exclude<ImageStyle, 'contextual'>, string> = {
   dreamy: `${BASE_STYLE} Pastel greens with accents of orange and pink. Soft morning light, ethereal glow. Frieren/Violet Evergarden mood. Extra soft and hazy.`,
 
   vibrant: `${BASE_STYLE} Lush orange and pink and green palette. Golden hour sunset lighting. Warm and glowing. Rich saturated watercolor washes while staying soft.`,
@@ -34,6 +34,11 @@ const STYLE_PROMPTS: Record<ImageStyle, string> = {
   minimal: `${BASE_STYLE} Muted pastel palette with lots of breathing room. Extra minimal clutter, vast open spaces. Whisper-quiet serene mood. Soft cream and pale green tones.`,
 
   nature: `${BASE_STYLE} Emphasis on lush greenery, wildflowers, and natural elements. Soft greens, sky blues, touches of pink flowers. Rolling hills and gentle clouds. Pastoral and peaceful.`,
+}
+
+// Contextual style - uses blog title to generate topic-specific imagery
+function getContextualPrompt(title: string): string {
+  return `${BASE_STYLE} For this blog topic "${title}" - create imagery that visually represents this concept. The main focus should gently integrate into the solarpunk scene. Pastel greens with accents of orange and pink.`
 }
 
 // Simple universal scenes that work across all styles
@@ -52,7 +57,8 @@ const UNIVERSAL_SCENES = [
 export async function generateBlogImage(
   category: BlogCategory,
   altText: string,
-  style: ImageStyle = 'dreamy'
+  style: ImageStyle = 'contextual',
+  title?: string
 ): Promise<{ url: string; storedUrl: string } | null> {
   const openai = getOpenAIClient()
   if (!openai) {
@@ -61,16 +67,20 @@ export async function generateBlogImage(
   }
 
   try {
-    // Select a random scene
-    const scene = UNIVERSAL_SCENES[Math.floor(Math.random() * UNIVERSAL_SCENES.length)]
+    let prompt: string
 
-    // Get style-specific prompt
-    const stylePrompt = STYLE_PROMPTS[style]
+    if (style === 'contextual' && title) {
+      // Contextual style uses the blog title directly
+      prompt = getContextualPrompt(title)
+      console.log('Title:', title)
+    } else {
+      // Other styles use random scenes
+      const scene = UNIVERSAL_SCENES[Math.floor(Math.random() * UNIVERSAL_SCENES.length)]
+      const stylePrompt = STYLE_PROMPTS[style === 'contextual' ? 'dreamy' : style]
+      prompt = `${scene}. ${stylePrompt}`
+      console.log('Scene:', scene)
+    }
 
-    // Build final prompt
-    const prompt = `${scene}. ${stylePrompt}`
-
-    console.log('Scene:', scene)
     console.log('Style:', style)
     console.log('Generating image with DALL-E 3...')
 
