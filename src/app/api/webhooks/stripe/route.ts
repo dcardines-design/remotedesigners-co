@@ -297,28 +297,7 @@ async function handleSubscriptionCheckoutCompleted(
 
       finalUserId = newUser.user.id
       console.log(`Created new user ${finalUserId} for email ${customerEmail}`)
-
-      // Send magic link welcome email
-      try {
-        const { data: linkData } = await supabase.auth.admin.generateLink({
-          type: 'magiclink',
-          email: customerEmail.toLowerCase(),
-          options: {
-            redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://remotedesigners.co'}/?welcome=true`,
-          },
-        })
-
-        if (linkData?.properties?.action_link) {
-          const { sendWelcomeEmail } = await import('@/lib/email')
-          await sendWelcomeEmail({
-            email: customerEmail.toLowerCase(),
-            magicLink: linkData.properties.action_link,
-          })
-          console.log(`Sent welcome email to ${customerEmail}`)
-        }
-      } catch (emailError) {
-        console.error('Failed to send welcome email:', emailError)
-      }
+      // Magic link email is sent in handleSubscriptionCreated
     }
   }
 

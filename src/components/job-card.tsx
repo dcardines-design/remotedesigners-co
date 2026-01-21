@@ -3,8 +3,9 @@
 import Link from 'next/link'
 import React from 'react'
 import { trackEvent } from '@/components/analytics-provider'
-import { CompanyLogo } from '@/components/company-logo'
 import {
+  getCompanyLogoUrl,
+  getSourceFavicon,
   toTitleCase,
   getRegionChip,
   cleanJobTitle,

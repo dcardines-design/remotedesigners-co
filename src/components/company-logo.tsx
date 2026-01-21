@@ -1,7 +1,5 @@
 'use client'
 
-import { useState } from 'react'
-
 const getCompanyLogoUrl = (company: string): string => {
   const cleanName = company.toLowerCase()
     .replace(/[^a-z0-9]/g, '')
@@ -15,25 +13,8 @@ const getSourceFavicon = (source: string): string | null => {
   return null
 }
 
-// Building icon SVG for fallback
-const BuildingIcon = ({ size = 20 }: { size?: number }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="1.5"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className="text-neutral-400"
-  >
-    <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
-    <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/>
-    <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>
-    <path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>
-  </svg>
-)
+// Building icon HTML for fallback
+const buildingIconHtml = (size: number) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-neutral-400"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>`
 
 interface CompanyLogoProps {
   company: string
@@ -56,32 +37,12 @@ export function CompanyLogo({
   iconSize = 20,
   className = ''
 }: CompanyLogoProps) {
-  // Determine initial image source: source favicon > company logo > clearbit
+  // Determine image source: source favicon > company logo > clearbit
   const sourceFavicon = source ? getSourceFavicon(source) : null
-  const initialSrc = sourceFavicon || companyLogo || getCompanyLogoUrl(company)
-
-  const [imgSrc, setImgSrc] = useState(initialSrc)
-  const [triedClearbit, setTriedClearbit] = useState(!companyLogo && !sourceFavicon) // Already using Clearbit if no logo
-  const [showFallback, setShowFallback] = useState(false)
-
-  const handleError = () => {
-    if (!triedClearbit) {
-      setTriedClearbit(true)
-      setImgSrc(getCompanyLogoUrl(company))
-    } else {
-      setShowFallback(true)
-    }
-  }
+  const imgSrc = sourceFavicon || companyLogo || getCompanyLogoUrl(company)
+  const clearbitUrl = getCompanyLogoUrl(company)
 
   const baseClasses = `rounded-full border border-neutral-200 flex items-center justify-center flex-shrink-0 overflow-hidden ${sizeClasses} ${className}`
-
-  if (showFallback) {
-    return (
-      <div className={`${baseClasses} bg-neutral-100`}>
-        <BuildingIcon size={iconSize} />
-      </div>
-    )
-  }
 
   return (
     <div className={`${baseClasses} bg-white`}>
@@ -89,7 +50,19 @@ export function CompanyLogo({
         src={imgSrc}
         alt={company}
         className="w-full h-full object-contain"
-        onError={handleError}
+        onError={(e) => {
+          const target = e.target as HTMLImageElement
+          // If we haven't tried Clearbit yet and current src isn't Clearbit, try it
+          if (!target.dataset.triedClearbit && !target.src.includes('logo.clearbit.com')) {
+            target.dataset.triedClearbit = 'true'
+            target.src = clearbitUrl
+          } else {
+            // All fallbacks failed, show building icon
+            target.style.display = 'none'
+            target.parentElement!.className = `${sizeClasses} ${className} rounded-full bg-neutral-100 border border-neutral-200 flex items-center justify-center flex-shrink-0`
+            target.parentElement!.innerHTML = buildingIconHtml(iconSize)
+          }
+        }}
       />
     </div>
   )
