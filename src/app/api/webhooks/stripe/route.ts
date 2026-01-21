@@ -321,31 +321,78 @@ async function handleSubscriptionCreated(
   supabase: ReturnType<typeof createAdminSupabaseClient>
 ) {
   const metadata = subscription.metadata || {}
-  const userId = metadata.user_id
+  let userId: string | undefined = metadata.user_id
 
-  if (!userId) {
-    // Try to get user from customer email
-    const stripe = getStripe()
-    const customer = await stripe.customers.retrieve(subscription.customer as string)
-    if (customer.deleted || !('email' in customer) || !customer.email) {
-      console.error('Cannot find user for subscription')
-      return
-    }
+  // Get customer email from Stripe
+  const stripe = getStripe()
+  const customer = await stripe.customers.retrieve(subscription.customer as string)
+  if (customer.deleted || !('email' in customer) || !customer.email) {
+    console.error('Cannot find customer email for subscription', subscription.id)
+    return
+  }
+  const customerEmail = customer.email.toLowerCase()
 
+  // If we have a user_id in metadata, verify it exists
+  if (userId) {
     const { data: authUsers } = await supabase.auth.admin.listUsers()
-    const existingUser = authUsers?.users?.find(
-      u => u.email?.toLowerCase() === customer.email?.toLowerCase()
-    )
+    const userExists = authUsers?.users?.find(u => u.id === userId)
 
-    if (!existingUser) {
-      console.error('User not found for email:', customer.email)
-      return
+    if (!userExists) {
+      console.log(`User ${userId} from metadata doesn't exist, will find/create by email`)
+      userId = undefined // Reset to trigger user lookup/creation
     }
-
-    metadata.user_id = existingUser.id
   }
 
-  await upsertSubscription(subscription, metadata.user_id!, supabase)
+  // If no valid userId, find or create user by email
+  if (!userId) {
+    const { data: authUsers } = await supabase.auth.admin.listUsers()
+    const existingUser = authUsers?.users?.find(
+      u => u.email?.toLowerCase() === customerEmail
+    )
+
+    if (existingUser) {
+      userId = existingUser.id
+      console.log(`Found existing user ${userId} for email ${customerEmail}`)
+    } else {
+      // Create new user
+      const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+        email: customerEmail,
+        email_confirm: true,
+      })
+
+      if (createError || !newUser.user) {
+        console.error('Failed to create user for subscription:', createError)
+        return
+      }
+
+      userId = newUser.user.id
+      console.log(`Created new user ${userId} for email ${customerEmail}`)
+
+      // Send welcome email with magic link
+      try {
+        const { data: linkData } = await supabase.auth.admin.generateLink({
+          type: 'magiclink',
+          email: customerEmail,
+          options: {
+            redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://remotedesigners.co'}/?welcome=true`,
+          },
+        })
+
+        if (linkData?.properties?.action_link) {
+          const { sendWelcomeEmail } = await import('@/lib/email')
+          await sendWelcomeEmail({
+            email: customerEmail,
+            magicLink: linkData.properties.action_link,
+          })
+          console.log(`Sent welcome email to ${customerEmail}`)
+        }
+      } catch (emailError) {
+        console.error('Failed to send welcome email:', emailError)
+      }
+    }
+  }
+
+  await upsertSubscription(subscription, userId, supabase)
 }
 
 // Handle subscription updated
@@ -363,7 +410,9 @@ async function handleSubscriptionUpdated(
   if (existingSub) {
     await upsertSubscription(subscription, existingSub.user_id, supabase)
   } else {
-    console.log(`No existing subscription found for ${subscription.id}`)
+    // Subscription doesn't exist in DB - treat it like a new subscription
+    console.log(`No existing subscription found for ${subscription.id}, creating it`)
+    await handleSubscriptionCreated(subscription, supabase)
   }
 }
 
