@@ -63,10 +63,13 @@ export async function POST(request: NextRequest) {
   console.log(`Regenerating image for: ${post.slug}`)
 
   try {
-    const imageResult = await generateBlogImage(
-      post.category as BlogCategory,
-      post.featured_image_alt || post.title
-    )
+    const imageResult = await generateBlogImage({
+      category: post.category as BlogCategory,
+      title: post.title,
+      variant: 'dreamy',
+      context: 'contextual',
+      shot: 'wide',
+    })
 
     if (imageResult) {
       // Update the post with new image
