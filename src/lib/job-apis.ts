@@ -3080,8 +3080,8 @@ export async function fetchAllJobs(): Promise<NormalizedJob[]> {
 }
 
 // ============ LINKEDIN (Public Search) ============
-// Helper to fetch job description from LinkedIn guest API
-async function fetchLinkedInJobDescription(jobId: string): Promise<string> {
+// Helper to fetch job details (description + company logo) from LinkedIn guest API
+async function fetchLinkedInJobDetails(jobId: string): Promise<{ description: string; company_logo?: string }> {
   try {
     const url = `https://www.linkedin.com/jobs-guest/jobs/api/jobPosting/${jobId}`
     const response = await fetch(url, {
@@ -3091,9 +3091,13 @@ async function fetchLinkedInJobDescription(jobId: string): Promise<string> {
       },
     })
 
-    if (!response.ok) return ''
+    if (!response.ok) return { description: '' }
 
     const html = await response.text()
+
+    // Extract company logo from the page
+    const logoMatch = html.match(/https:\/\/media\.licdn\.com\/[^"]+company-logo[^"]+/i)
+    const company_logo = logoMatch ? logoMatch[0].replace(/&amp;/g, '&') : undefined
 
     // Extract description from the job posting page
     const descMatch = html.match(/<div[^>]*class="[^"]*description[^"]*"[^>]*>([\s\S]*?)<\/div>/i)
@@ -3113,12 +3117,12 @@ async function fetchLinkedInJobDescription(jobId: string): Promise<string> {
         .replace(/&#39;/g, "'")
         .replace(/\n{3,}/g, '\n\n')
         .trim()
-      return desc
+      return { description: desc, company_logo }
     }
 
-    return ''
+    return { description: '', company_logo }
   } catch {
-    return ''
+    return { description: '' }
   }
 }
 
@@ -3207,7 +3211,7 @@ export async function fetchLinkedInJobs(): Promise<NormalizedJob[]> {
     const batchResults = await Promise.allSettled(
       batch.map(async (candidate) => {
         try {
-          const description = await fetchLinkedInJobDescription(candidate.jobId)
+          const { description, company_logo } = await fetchLinkedInJobDetails(candidate.jobId)
 
           // Skip AI categorization to save time - use regex fallback
           // AI can be re-enabled when we have more budget/time
@@ -3220,6 +3224,7 @@ export async function fetchLinkedInJobs(): Promise<NormalizedJob[]> {
             source: 'linkedin' as const,
             title: candidate.title,
             company: candidate.company,
+            company_logo,
             location: candidate.location || 'Remote',
             description,
             job_type,
