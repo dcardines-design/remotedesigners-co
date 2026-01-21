@@ -69,10 +69,13 @@ export async function GET(request: NextRequest) {
     // Generate featured image
     console.log('Generating featured image with DALL-E 3...')
     let featuredImageUrl: string | null = null
-    const imageResult = await generateBlogImage(
-      generatedContent.category as BlogCategory,
-      generatedContent.featured_image_alt
-    )
+    const imageResult = await generateBlogImage({
+      category: generatedContent.category as BlogCategory,
+      title: generatedContent.title,
+      variant: 'dreamy',
+      context: 'contextual',
+      shot: 'wide',
+    })
 
     if (imageResult) {
       featuredImageUrl = imageResult.storedUrl
