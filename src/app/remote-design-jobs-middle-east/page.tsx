@@ -51,7 +51,7 @@ export default async function Page() {
 
   const { data: jobs, count } = await supabase
     .from('jobs')
-    .select('*', { count: 'exact' })
+    .select('id, title, company, company_logo, location, salary_min, salary_max, salary_text, job_type, experience_level, skills, apply_url, posted_at, source, is_featured, is_sticky, is_rainbow, sticky_until', { count: 'exact' })
     .eq('is_active', true)
     .or(orConditions)
     .order('posted_at', { ascending: false })

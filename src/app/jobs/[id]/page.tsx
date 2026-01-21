@@ -37,7 +37,7 @@ async function getJob(slug: string): Promise<Job | null> {
 
   const { data, error } = await supabase
     .from('jobs')
-    .select('*')
+    .select('id, title, company, company_logo, location, salary_min, salary_max, salary_text, description, job_type, experience_level, skills, apply_url, source, external_id, posted_at, is_featured, is_active, is_sticky, sticky_until, is_rainbow')
     .eq('id', jobId)
     .single()
 

@@ -6,19 +6,20 @@ export async function syncJobs(jobs: NormalizedJob[], sourceName: string) {
   console.log(`Starting ${sourceName} sync...`)
   const supabase = createAdminSupabaseClient()
 
-  // Get existing jobs to check for duplicates
+  // Get existing jobs to check for duplicates (only last 30 days to reduce egress)
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
   const { data: existingJobs } = await supabase
     .from('jobs')
-    .select('id, external_id, apply_url, description')
+    .select('id, external_id, apply_url')
+    .gte('posted_at', thirtyDaysAgo)
 
-  const existingById = new Map<string, { id: string; descLength: number; applyUrl: string }>()
-  const existingByUrl = new Map<string, { id: string; descLength: number; applyUrl: string }>()
+  const existingById = new Map<string, { id: string; applyUrl: string }>()
+  const existingByUrl = new Map<string, { id: string; applyUrl: string }>()
   for (const j of existingJobs || []) {
-    const data = { id: j.id, descLength: j.description?.length || 0, applyUrl: j.apply_url || '' }
+    const data = { id: j.id, applyUrl: j.apply_url || '' }
     if (j.external_id) existingById.set(j.external_id, data)
     if (j.apply_url) existingByUrl.set(j.apply_url, data)
   }
-  const existingIds = new Set(existingById.keys())
 
   // Transform to database format
   const allJobs = jobs.map((job) => ({
@@ -41,9 +42,9 @@ export async function syncJobs(jobs: NormalizedJob[], sourceName: string) {
     posted_at: job.posted_at,
   }))
 
-  // Filter out duplicates and find jobs to update (better descriptions or direct apply URLs)
+  // Filter out duplicates and find jobs to update (direct apply URLs)
   const jobsToInsert: typeof allJobs = []
-  const jobsToUpdate: Array<{ id: string; description?: string; apply_url?: string }> = []
+  const jobsToUpdate: Array<{ id: string; apply_url: string }> = []
 
   for (const job of allJobs) {
     const existingByIdMatch = existingById.get(job.external_id)
@@ -54,17 +55,7 @@ export async function syncJobs(jobs: NormalizedJob[], sourceName: string) {
       // New job - insert it
       jobsToInsert.push(job)
     } else {
-      // Existing job - check for updates
-      const updates: { id: string; description?: string; apply_url?: string } = { id: existing.id }
-      let needsUpdate = false
-
-      // Check if new description is significantly better (50%+ longer)
-      if (job.description && job.description.length > 100 && job.description.length > existing.descLength * 1.5) {
-        updates.description = job.description.slice(0, 20000)
-        needsUpdate = true
-      }
-
-      // Check if apply_url changed to a direct URL (not a job board middleman)
+      // Existing job - check if apply_url should be updated to direct URL
       if (job.apply_url && job.apply_url !== existing.applyUrl) {
         const isDirectUrl = !job.apply_url.includes('remote.co') &&
                            !job.apply_url.includes('nodesk.co') &&
@@ -75,13 +66,8 @@ export async function syncJobs(jobs: NormalizedJob[], sourceName: string) {
 
         // Update if new URL is a direct apply URL and old was middleman
         if (isDirectUrl && wasMiddleman) {
-          updates.apply_url = job.apply_url
-          needsUpdate = true
+          jobsToUpdate.push({ id: existing.id, apply_url: job.apply_url })
         }
-      }
-
-      if (needsUpdate) {
-        jobsToUpdate.push(updates)
       }
     }
   }
@@ -119,16 +105,12 @@ export async function syncJobs(jobs: NormalizedJob[], sourceName: string) {
     }
   }
 
-  // Update jobs with better descriptions or direct apply URLs
+  // Update jobs with direct apply URLs
   let updated = 0
   for (const job of jobsToUpdate) {
-    const updateData: { description?: string; apply_url?: string } = {}
-    if (job.description) updateData.description = job.description
-    if (job.apply_url) updateData.apply_url = job.apply_url
-
     const { error } = await supabase
       .from('jobs')
-      .update(updateData)
+      .update({ apply_url: job.apply_url })
       .eq('id', job.id)
 
     if (!error) updated++
