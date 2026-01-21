@@ -74,15 +74,42 @@ interface BlogPostHeaderProps {
   readingTimeMinutes?: number | null
   title: string
   excerpt?: string | null
+  slug?: string
 }
 
-export function BlogPostHeader({ category, publishedAt, readingTimeMinutes, title, excerpt }: BlogPostHeaderProps) {
+export function BlogPostHeader({ category, publishedAt, readingTimeMinutes, title, excerpt, slug }: BlogPostHeaderProps) {
+  const [isGenerating, setIsGenerating] = useState(false)
   const categoryInfo = BLOG_CATEGORIES[category]
   const publishedDate = new Date(publishedAt).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   })
+
+  const handleGenerateImage = async () => {
+    if (!slug || isGenerating) return
+
+    setIsGenerating(true)
+    try {
+      const res = await fetch('/api/blog/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ slug }),
+      })
+
+      if (res.ok) {
+        // Refresh the page to show new image
+        window.location.reload()
+      } else {
+        const data = await res.json()
+        alert(data.error || 'Failed to generate image')
+      }
+    } catch (error) {
+      alert('Failed to generate image')
+    } finally {
+      setIsGenerating(false)
+    }
+  }
 
   return (
     <header className="mb-8">
@@ -95,7 +122,24 @@ export function BlogPostHeader({ category, publishedAt, readingTimeMinutes, titl
         </Link>
         <span className="text-sm text-neutral-400">{publishedDate}</span>
         {readingTimeMinutes && (
-          <span className="text-sm text-neutral-400">{readingTimeMinutes} min read</span>
+          <button
+            onClick={handleGenerateImage}
+            disabled={isGenerating || !slug}
+            className="text-sm text-neutral-400 hover:text-pink-600 transition-colors cursor-pointer disabled:cursor-wait flex items-center gap-1.5"
+            title={slug ? 'Click to generate new image' : undefined}
+          >
+            {isGenerating ? (
+              <>
+                <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                <span>Generating image...</span>
+              </>
+            ) : (
+              `${readingTimeMinutes} min read`
+            )}
+          </button>
         )}
       </div>
       <h1 className="font-dm-sans text-4xl md:text-5xl font-medium text-neutral-900 mt-6 mb-6 leading-tight tracking-tight">

@@ -177,6 +177,7 @@ export default async function BlogPostPage({ params }: Props) {
               readingTimeMinutes={post.reading_time_minutes}
               title={post.title}
               excerpt={post.excerpt}
+              slug={post.slug}
             />
 
             {/* Featured Image */}
