@@ -20,11 +20,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/', request.url))
     }
 
-    // If user was already logged in (user_id in metadata), just redirect home
+    // If user was already logged in (user_id in metadata), show welcome modal
     const userId = session.metadata?.user_id
     if (userId) {
-      console.log(`User ${userId} was logged in, redirecting home`)
-      return NextResponse.redirect(new URL('/?subscribed=true', request.url))
+      console.log(`User ${userId} was logged in, showing welcome modal`)
+      return NextResponse.redirect(new URL('/?welcome=true', request.url))
     }
 
     const email = session.customer_email || session.customer_details?.email

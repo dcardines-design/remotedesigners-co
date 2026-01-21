@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
-import { toast } from 'sonner'
 
 export function AuthHandler() {
   useEffect(() => {
@@ -22,35 +21,18 @@ export function AuthHandler() {
           refresh_token: refreshToken,
         }).then(({ error }) => {
           if (!error) {
-            // Clean up the URL hash
-            window.history.replaceState(null, '', window.location.pathname + window.location.search)
-            // Store flag for toast after reload
-            sessionStorage.setItem('show_welcome_toast', 'true')
-            // Reload to update the UI
-            window.location.reload()
+            // Store flag for welcome modal after reload
+            sessionStorage.setItem('show_welcome_modal', 'true')
+            // Redirect to home with welcome param to trigger modal
+            window.location.href = '/?welcome=true'
           }
         })
       }
     }
 
-    // Show welcome toast after reload (new subscriber logged in via magic link)
-    if (sessionStorage.getItem('show_welcome_toast')) {
-      sessionStorage.removeItem('show_welcome_toast')
-      setTimeout(() => {
-        toast.success('Welcome! You\'re all set 🎉')
-      }, 100)
-    }
-
-    // Show toast for logged-in user who just subscribed
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search)
-      if (urlParams.get('subscribed') === 'true') {
-        // Clean up URL
-        window.history.replaceState(null, '', window.location.pathname)
-        setTimeout(() => {
-          toast.success('Thanks for subscribing! 🎉')
-        }, 100)
-      }
+    // Clean up welcome modal flag (modal is triggered by URL param)
+    if (sessionStorage.getItem('show_welcome_modal')) {
+      sessionStorage.removeItem('show_welcome_modal')
     }
   }, [])
 
