@@ -16,34 +16,25 @@ function getOpenAIClient(): OpenAI | null {
   return new OpenAI({ apiKey })
 }
 
-// Frieren-style anime prompts - four shot variations
-const BASE_STYLE = `STRICT STYLE - This IS the artwork, not a photo of artwork:
-- Style: Studio Ghibli background art, Frieren anime aesthetic, watercolor painting
-- The image itself is the watercolor painting - NOT a photo of a painting on a desk
-- Colors: Lush greens, soft pinks, warm oranges, cream and golden tones throughout the ENTIRE image
-- Linework: Thin delicate sepia outlines
-- Lighting: Golden hour, warm and dreamy, evenly lit across full frame
-- Mood: Peaceful solarpunk utopia with wind turbines and glass domes
-- Small figures in scene, environment is the focus
-- DO NOT: photo of artwork, artwork on paper/desk, art supplies visible, frame/border, photorealistic, 3D, dark edges, dark bars, vignette, letterboxing, solid color borders, black/blue/dark margins
-COMPOSITION: Wide 16:9 horizontal landscape. The scene MUST fill the ENTIRE canvas from edge to edge with no empty space, no solid color bars, no dark borders on any side. The artwork extends fully to all four edges. No text, no watermarks.`
+// Soft anime watercolor style - dreamy and minimal
+const BASE_STYLE = `Dreamy soft anime watercolor illustration. Gentle pastel colors: soft greens, warm peach, pale pink, cream. Minimal detail, soft diffused edges, no hard lines. Ethereal and serene atmosphere. Subtle solarpunk elements (small wind turbines, glass domes) in soft focus. Light airy composition with lots of breathing room. Soft gradient sky fills background. Painterly watercolor texture throughout. NO borders, NO dark edges, NO margins, NO vignette, NO frame - artwork fills entire canvas edge to edge. NOT a photo of artwork. NOT realistic. Soft, dreamy, minimal anime aesthetic like Frieren or Violet Evergarden backgrounds.`
 
 const SHOT_STYLES = [
   {
-    name: 'Far/Landscape',
-    prompt: `Far landscape shot with environment as the main subject. Lush nature foreground with flowers and plants framing the scene. Small distant figures. Solarpunk architecture (glass domes, wind turbines, solar panels) in background. Scenic and atmospheric. ${BASE_STYLE}`
+    name: 'Landscape',
+    prompt: `Soft dreamy landscape. Gentle rolling hills, distant mountains in pale hues. Soft clouds, warm golden light. Tiny figures in distance. ${BASE_STYLE}`
   },
   {
     name: 'Wide',
-    prompt: `Wide shot showing full scene. Characters visible but environment equally important. Lush nature and solarpunk elements throughout. ${BASE_STYLE}`
+    prompt: `Wide serene scene. Soft nature environment with gentle lighting. Minimal elements, lots of sky and open space. Peaceful mood. ${BASE_STYLE}`
   },
   {
     name: 'Medium',
-    prompt: `Medium shot showing characters from waist up with environment visible behind them. Lush nature and solarpunk setting. ${BASE_STYLE}`
+    prompt: `Medium shot with soft blurred background. Gentle natural setting. Warm diffused lighting. Simple composition. ${BASE_STYLE}`
   },
   {
     name: 'Close',
-    prompt: `Close shot focusing on character upper body and face. Soft blurred background with hints of nature and solarpunk elements. ${BASE_STYLE}`
+    prompt: `Close view with very soft bokeh background. Warm pastel tones. Dreamy out of focus nature elements. Ethereal glow. ${BASE_STYLE}`
   }
 ]
 
@@ -52,56 +43,42 @@ function getAnimeStyle(): { name: string; prompt: string } {
   return SHOT_STYLES[Math.floor(Math.random() * SHOT_STYLES.length)]
 }
 
-// Scene descriptions for each topic category
+// Simple scene descriptions - minimal and dreamy
 const TOPIC_SCENES: Record<BlogCategory, string[]> = {
   'job-market-insights': [
-    'a designer reviewing data visualizations on floating holographic screens',
-    'a collaborative workspace with designers analyzing job trends together',
-    'a person climbing a growth chart made of organic vines and flowers',
-    'designers gathered around a glowing world map showing job connections',
-    'a creative studio with charts and graphs floating in a garden setting',
+    'a single figure gazing at a distant glowing horizon',
+    'soft hills with tiny paths leading to different directions',
+    'a peaceful valley with gentle morning mist',
   ],
   'remote-work-tips': [
-    'a cozy home office surrounded by plants and natural light',
-    'a designer working from a treehouse with modern tech',
-    'a peaceful balcony workspace overlooking a green city',
-    'a minimalist desk setup in a sunlit room with large windows',
-    'a person sketching on a tablet in a rooftop garden',
+    'a cozy window seat with soft light streaming in',
+    'a quiet balcony overlooking misty mountains',
+    'a peaceful room with plants and warm sunlight',
   ],
   'career-advice': [
-    'a designer sketching ideas in a sunlit garden studio',
-    'a mentor and mentee discussing design on a rooftop garden',
-    'a creative journey path winding through a lush landscape',
-    'a person standing at a crossroads with signposts in a beautiful meadow',
-    'a designer building a bridge to new opportunities in a nature setting',
+    'a winding path through soft rolling hills',
+    'a figure standing on a gentle hilltop at sunrise',
+    'stepping stones across a calm reflective pond',
   ],
   'design-news': [
-    'a busy creative newsroom with designers reading holographic news feeds',
-    'a town square with floating design news bulletins and excited readers',
-    'a designer discovering something exciting on a magical newspaper',
-    'a messenger bird delivering design news scrolls to a creative village',
-    'a community gathering around a glowing announcement board in a garden',
+    'soft clouds parting to reveal warm light',
+    'a peaceful morning sky with gentle colors',
+    'birds flying across a pastel gradient sky',
   ],
   'ux-design': [
-    'a designer crafting user journey maps on a large magical canvas',
-    'wireframes and prototypes floating in an enchanted design studio',
-    'a person conducting user research in a cozy cafe setting',
-    'designers collaborating on interface designs in a glass workshop',
-    'a creative workspace with user personas displayed on wooden boards',
+    'soft flowing ribbons in a gentle breeze',
+    'delicate paper planes floating in soft light',
+    'a calm stream reflecting the sky',
   ],
   'product-design': [
-    'a designer sculpting a 3D product prototype in a magical workshop',
-    'a team whiteboarding product ideas in a sunlit collaborative space',
-    'design systems and components floating in an organized studio',
-    'a designer iterating on product mockups with magical tools',
-    'a product launch celebration in a creative garden courtyard',
+    'soft geometric shapes floating in dreamy space',
+    'gentle light filtering through glass',
+    'minimalist forms in warm pastel tones',
   ],
   'graphic-design': [
-    'a village square with colorful banners and creative signage everywhere',
-    'floating typography and letters drifting through a flower garden',
-    'a peaceful meadow with glowing brand symbols hovering in the air',
-    'an artistic treehouse village with vibrant decorations and patterns',
-    'a serene landscape with colorful hot air balloons and creative patterns in the sky',
+    'soft watercolor washes blending together',
+    'gentle abstract shapes in warm hues',
+    'delicate brushstrokes in pastel colors',
   ],
 }
 
