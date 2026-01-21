@@ -363,44 +363,43 @@ async function handleSubscriptionCreated(
     if (existingUser) {
       userId = existingUser.id
       console.log(`Found existing user ${userId} for email ${customerEmail}`)
-
-      // Send magic link to existing user via Supabase native OTP
-      try {
-        const { createClient } = await import('@supabase/supabase-js')
-        const anonClient = createClient(
-          process.env.NEXT_PUBLIC_SUPABASE_URL!,
-          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-        )
-        await anonClient.auth.signInWithOtp({
-          email: customerEmail,
-          options: {
-            emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://remotedesigners.co'}/?welcome=true`,
-          },
-        })
-        console.log(`Sent Supabase magic link to existing user ${customerEmail}`)
-      } catch (otpError) {
-        console.error('Failed to send OTP to existing user:', otpError)
-      }
     } else {
-      // Invite new user - Supabase sends magic link automatically
-      const { data: inviteData, error: inviteError } = await supabase.auth.admin.inviteUserByEmail(
-        customerEmail,
-        {
-          redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://remotedesigners.co'}/?welcome=true`,
-        }
-      )
+      // Create new user first (so subscription can be tied to them immediately)
+      const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+        email: customerEmail,
+        email_confirm: true,
+      })
 
-      if (inviteError || !inviteData.user) {
-        console.error('Failed to invite user:', inviteError)
+      if (createError || !newUser.user) {
+        console.error('Failed to create user:', createError)
         return
       }
 
-      userId = inviteData.user.id
-      console.log(`Invited new user ${userId} - Supabase will send magic link to ${customerEmail}`)
+      userId = newUser.user.id
+      console.log(`Created new user ${userId} for email ${customerEmail}`)
     }
   }
 
+  // Create subscription tied to user
   await upsertSubscription(subscription, userId, supabase)
+
+  // Send magic link (same email for both new and existing users)
+  try {
+    const { createClient } = await import('@supabase/supabase-js')
+    const anonClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    await anonClient.auth.signInWithOtp({
+      email: customerEmail,
+      options: {
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://remotedesigners.co'}/?welcome=true`,
+      },
+    })
+    console.log(`Sent magic link to subscriber ${customerEmail}`)
+  } catch (otpError) {
+    console.error('Failed to send magic link:', otpError)
+  }
 }
 
 // Handle subscription updated

@@ -3,12 +3,8 @@
 import Link from 'next/link'
 import React from 'react'
 import { trackEvent } from '@/components/analytics-provider'
+import { CompanyLogo } from '@/components/company-logo'
 import {
-  getInitials,
-  getCompanyLogoUrl,
-  getGoogleFaviconUrl,
-  getSourceFavicon,
-  shouldSkipLogoFetch,
   toTitleCase,
   getRegionChip,
   cleanJobTitle,
@@ -228,38 +224,13 @@ export function JobCard({
 
       <div className="flex flex-col gap-3 px-2 md:pl-3 md:pr-0 md:flex-row md:gap-4">
         {/* Company Avatar */}
-        {shouldSkipLogoFetch(job.source || '', job.company_logo) ? (
-          <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-neutral-100 border border-neutral-200 flex items-center justify-center flex-shrink-0">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-400">
-              <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
-              <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/>
-              <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>
-              <path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>
-            </svg>
-          </div>
-        ) : (
-          <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border border-neutral-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
-            <img
-              src={getSourceFavicon(job.source || '') || job.company_logo || getCompanyLogoUrl(job.company)}
-              alt={job.company}
-              className="w-full h-full object-contain"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement
-                const clearbitUrl = getCompanyLogoUrl(job.company)
-                // If we haven't tried Clearbit yet and current src isn't Clearbit, try it
-                if (!target.dataset.triedClearbit && !target.src.includes('logo.clearbit.com')) {
-                  target.dataset.triedClearbit = 'true'
-                  target.src = clearbitUrl
-                } else {
-                  // All fallbacks failed, show building icon
-                  target.style.display = 'none'
-                  target.parentElement!.className = 'w-10 h-10 md:w-12 md:h-12 rounded-full bg-neutral-100 border border-neutral-200 flex items-center justify-center flex-shrink-0'
-                  target.parentElement!.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-neutral-400"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>`
-                }
-              }}
-            />
-          </div>
-        )}
+        <CompanyLogo
+          company={job.company}
+          companyLogo={job.company_logo}
+          source={job.source}
+          sizeClasses="w-10 h-10 md:w-12 md:h-12"
+          iconSize={20}
+        />
 
         {/* Job Info */}
         <div className="flex-1 min-w-0">

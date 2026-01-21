@@ -12,6 +12,7 @@ import { toast } from 'sonner'
 import { FREE_JOBS_LIMIT } from '@/lib/stripe'
 import { isCompMember } from '@/lib/admin'
 import { trackEvent } from '@/components/analytics-provider'
+import { CompanyLogo } from '@/components/company-logo'
 
 // Debounce hook
 function useDebounce<T>(value: T, delay: number): T {
@@ -395,31 +396,6 @@ interface Pagination {
 }
 
 // Helper functions
-const getInitials = (company: string) => company.substring(0, 2).toUpperCase()
-
-// Generate company logo URL using Clearbit
-const getCompanyLogoUrl = (company: string): string => {
-  // Clean company name and create domain guess
-  const cleanName = company.toLowerCase()
-    .replace(/[^a-z0-9]/g, '')  // Remove special chars
-    .replace(/\s+/g, '')        // Remove spaces
-  return `https://logo.clearbit.com/${cleanName}.com`
-}
-
-// Google Favicon fallback for when Clearbit fails
-const getGoogleFaviconUrl = (company: string): string => {
-  const cleanName = company.toLowerCase()
-    .replace(/[^a-z0-9]/g, '')
-    .replace(/\s+/g, '')
-  return `https://www.google.com/s2/favicons?domain=${cleanName}.com&sz=128`
-}
-
-// For certain sources, use the source's favicon instead of company logo
-const getSourceFavicon = (source: string): string | null => {
-  if (source === 'dribbble') return 'https://www.google.com/s2/favicons?domain=dribbble.com&sz=128'
-  return null
-}
-
 const toTitleCase = (str: string) =>
   str.toLowerCase().replace(/(?:^|[\s-])\w/g, match => match.toUpperCase())
 
@@ -1231,21 +1207,13 @@ function HomeContent() {
                     {/* 10% visible, rest blurred with gradient fade */}
                     <div className="relative flex gap-4 pl-3 select-none pointer-events-none">
                       {/* Company Avatar - blurred */}
-                      <div className="w-12 h-12 rounded-full bg-white border border-neutral-200 flex items-center justify-center flex-shrink-0 overflow-hidden blur-[3px]">
-                        <img
-                          src={getSourceFavicon(job.source) || job.company_logo || getCompanyLogoUrl(job.company)}
-                          alt={job.company}
-                          className="w-full h-full object-contain"
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement
-                            if (!target.dataset.triedFallback) {
-                              target.dataset.triedFallback = 'true'
-                              target.src = getGoogleFaviconUrl(job.company)
-                            } else {
-                              target.style.display = 'none'
-                              target.parentElement!.innerHTML = `<span class="text-sm font-medium text-neutral-400">${getInitials(job.company)}</span>`
-                            }
-                          }}
+                      <div className="blur-[3px]">
+                        <CompanyLogo
+                          company={job.company}
+                          companyLogo={job.company_logo}
+                          source={job.source}
+                          sizeClasses="w-12 h-12"
+                          iconSize={20}
                         />
                       </div>
                       <div className="flex-1 min-w-0">
@@ -1318,25 +1286,13 @@ function HomeContent() {
 
                   <div className="flex flex-col gap-3 px-2 md:pl-3 md:pr-0 md:flex-row md:gap-4">
                     {/* Company Avatar */}
-                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border border-neutral-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                      <img
-                        src={getSourceFavicon(job.source) || job.company_logo || getCompanyLogoUrl(job.company)}
-                        alt={job.company}
-                        className="w-full h-full object-contain"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement
-                          // Try Google Favicon as fallback before showing initials
-                          if (!target.dataset.triedFallback) {
-                            target.dataset.triedFallback = 'true'
-                            target.src = getGoogleFaviconUrl(job.company)
-                          } else {
-                            // Both Clearbit and Google failed, show initials
-                            target.style.display = 'none'
-                            target.parentElement!.innerHTML = `<span class="text-sm font-medium text-neutral-400">${getInitials(job.company)}</span>`
-                          }
-                        }}
-                      />
-                    </div>
+                    <CompanyLogo
+                      company={job.company}
+                      companyLogo={job.company_logo}
+                      source={job.source}
+                      sizeClasses="w-10 h-10 md:w-12 md:h-12"
+                      iconSize={20}
+                    />
 
                     {/* Job Info */}
                     <div className="flex-1 min-w-0">
