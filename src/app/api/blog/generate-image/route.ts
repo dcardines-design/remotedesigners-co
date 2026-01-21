@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminSupabaseClient } from '@/lib/supabase'
-import { generateBlogImage } from '@/lib/blog/image-generator'
+import { generateBlogImage, ImageStyle } from '@/lib/blog/image-generator'
 import { BlogCategory } from '@/lib/blog/seo-helpers'
 
 export async function POST(request: NextRequest) {
   try {
-    const { slug } = await request.json()
+    const { slug, style = 'dreamy' } = await request.json()
 
     if (!slug) {
       return NextResponse.json({ error: 'Slug is required' }, { status: 400 })
@@ -24,10 +24,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Blog post not found' }, { status: 404 })
     }
 
-    // Generate image using the library (Ghibli/Frieren anime style)
+    // Generate image using the library with selected style
     const result = await generateBlogImage(
       post.category as BlogCategory,
-      `Illustration for ${post.title}`
+      `Illustration for ${post.title}`,
+      style as ImageStyle
     )
 
     if (!result) {

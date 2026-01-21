@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import type { User } from '@supabase/supabase-js'
 import { Button, RainbowButton, PersonalizedAlertsModal } from '@/components/ui'
-import { Bell, ArrowUpRight, Menu, X, Briefcase, LogIn, Bookmark, FileText, LogOut, Sparkles } from 'lucide-react'
+import { Bell, ArrowUpRight, Menu, X, Briefcase, LogIn, Bookmark, FileText, LogOut, Sparkles, Newspaper } from 'lucide-react'
 import { useSignupModal } from '@/context/signup-modal-context'
 import { isCompMember } from '@/lib/admin'
 
@@ -388,6 +388,18 @@ export function Navbar() {
                 </div>
               </div>
             )}
+
+            {/* Blog link at top */}
+            <div className="px-4 pt-4">
+              <Link
+                href="/blog"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2 w-full px-4 py-3 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[1px] active:shadow-none transition-all"
+              >
+                <Newspaper className="w-4 h-4 text-neutral-400" />
+                Blog
+              </Link>
+            </div>
 
             {/* Bottom: All action buttons */}
             <div className="mt-auto px-4 pb-8 space-y-3">

@@ -1,8 +1,10 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import Link from 'next/link'
 import { BLOG_CATEGORIES, BlogCategory } from '@/lib/blog/seo-helpers'
+import { ImageGeneratorModal } from '@/components/ui'
 
 /**
  * Reusable Blog Breadcrumb component
@@ -78,6 +80,7 @@ interface BlogPostHeaderProps {
 }
 
 export function BlogPostHeader({ category, publishedAt, readingTimeMinutes, title, excerpt, slug }: BlogPostHeaderProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const categoryInfo = BLOG_CATEGORIES[category]
   const publishedDate = new Date(publishedAt).toLocaleDateString('en-US', {
@@ -86,7 +89,7 @@ export function BlogPostHeader({ category, publishedAt, readingTimeMinutes, titl
     day: 'numeric',
   })
 
-  const handleGenerateImage = async () => {
+  const handleGenerate = async (style: string) => {
     if (!slug || isGenerating) return
 
     setIsGenerating(true)
@@ -94,7 +97,7 @@ export function BlogPostHeader({ category, publishedAt, readingTimeMinutes, titl
       const res = await fetch('/api/blog/generate-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug }),
+        body: JSON.stringify({ slug, style }),
       })
 
       if (res.ok) {
@@ -108,49 +111,54 @@ export function BlogPostHeader({ category, publishedAt, readingTimeMinutes, titl
       alert('Failed to generate image')
     } finally {
       setIsGenerating(false)
+      setIsModalOpen(false)
     }
   }
 
   return (
-    <header className="mb-8">
-      <div className="flex flex-wrap items-center gap-3 mb-4">
-        <Link
-          href={`/blog/category/${category}`}
-          className="text-xs text-neutral-600 bg-white px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
-        >
-          {categoryInfo?.emoji} {categoryInfo?.name || category}
-        </Link>
-        <span className="text-sm text-neutral-400">{publishedDate}</span>
-        {readingTimeMinutes && (
-          <button
-            onClick={handleGenerateImage}
-            disabled={isGenerating || !slug}
-            className="text-sm text-neutral-400 hover:text-pink-600 transition-colors cursor-pointer disabled:cursor-wait flex items-center gap-1.5"
-            title={slug ? 'Click to generate new image' : undefined}
+    <>
+      <header className="mb-8">
+        <div className="flex flex-wrap items-center gap-3 mb-4">
+          <Link
+            href={`/blog/category/${category}`}
+            className="text-xs text-neutral-600 bg-white px-2.5 py-1 rounded border border-neutral-200 hover:shadow-[0px_2px_0px_0px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-none transition-all"
           >
-            {isGenerating ? (
-              <>
-                <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                </svg>
-                <span>Generating image...</span>
-              </>
-            ) : (
-              `${readingTimeMinutes} min read`
-            )}
-          </button>
+            {categoryInfo?.emoji} {categoryInfo?.name || category}
+          </Link>
+          <span className="text-sm text-neutral-400">{publishedDate}</span>
+          {readingTimeMinutes && slug && (
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="text-sm text-neutral-400 hover:text-pink-600 transition-colors cursor-pointer flex items-center gap-1.5"
+              title="Click to generate new image"
+            >
+              {readingTimeMinutes} min read
+            </button>
+          )}
+          {readingTimeMinutes && !slug && (
+            <span className="text-sm text-neutral-400">{readingTimeMinutes} min read</span>
+          )}
+        </div>
+        <h1 className="font-dm-sans text-4xl md:text-5xl font-medium text-neutral-900 mt-6 mb-6 leading-tight tracking-tight">
+          {title}
+        </h1>
+        {excerpt && (
+          <p className="text-base text-neutral-500 leading-relaxed">
+            {excerpt}
+          </p>
         )}
-      </div>
-      <h1 className="font-dm-sans text-4xl md:text-5xl font-medium text-neutral-900 mt-6 mb-6 leading-tight tracking-tight">
-        {title}
-      </h1>
-      {excerpt && (
-        <p className="text-base text-neutral-500 leading-relaxed">
-          {excerpt}
-        </p>
+      </header>
+
+      {slug && (
+        <ImageGeneratorModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          slug={slug}
+          onGenerate={handleGenerate}
+          isGenerating={isGenerating}
+        />
       )}
-    </header>
+    </>
   )
 }
 
@@ -335,8 +343,6 @@ export function BlogContent({ content }: BlogContentProps) {
 /**
  * Table of Contents component with scroll tracking
  */
-import { useState, useEffect } from 'react'
-
 interface TOCItem {
   id: string
   text: string

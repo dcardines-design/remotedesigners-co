@@ -1,11 +1,14 @@
 /**
  * AI Image Generation for Blog Posts using DALL-E 3
- * With GPT-4 Vision for style consistency
+ * Multiple style options available
  */
 
 import OpenAI from 'openai'
 import { createAdminSupabaseClient } from '@/lib/supabase'
 import { BlogCategory } from './seo-helpers'
+
+// Available image styles
+export type ImageStyle = 'dreamy' | 'vibrant' | 'minimal' | 'nature'
 
 // Lazy OpenAI client initialization
 function getOpenAIClient(): OpenAI | null {
@@ -16,79 +19,37 @@ function getOpenAIClient(): OpenAI | null {
   return new OpenAI({ apiKey })
 }
 
-// Soft anime watercolor style - dreamy and minimal
-const BASE_STYLE = `Dreamy soft anime watercolor illustration. Gentle pastel colors: soft greens, warm peach, pale pink, cream. Minimal detail, soft diffused edges, no hard lines. Ethereal and serene atmosphere. Subtle solarpunk elements (small wind turbines, glass domes) in soft focus. Light airy composition with lots of breathing room. Soft gradient sky fills background. Painterly watercolor texture throughout. NO borders, NO dark edges, NO margins, NO vignette, NO frame - artwork fills entire canvas edge to edge. NOT a photo of artwork. NOT realistic. Soft, dreamy, minimal anime aesthetic like Frieren or Violet Evergarden backgrounds.`
+// Canvas requirements - MUST fill entire frame
+const CANVAS_RULES = `CRITICAL: The artwork MUST fill the ENTIRE 1792x1024 canvas from edge to edge. NO borders. NO dark edges. NO margins. NO vignette. NO letterboxing. NO solid color bars on any side. The scene extends fully to all four edges with NO empty space. NOT a photo of artwork on paper/desk.`
 
-const SHOT_STYLES = [
-  {
-    name: 'Landscape',
-    prompt: `Soft dreamy landscape. Gentle rolling hills, distant mountains in pale hues. Soft clouds, warm golden light. Tiny figures in distance. ${BASE_STYLE}`
-  },
-  {
-    name: 'Wide',
-    prompt: `Wide serene scene. Soft nature environment with gentle lighting. Minimal elements, lots of sky and open space. Peaceful mood. ${BASE_STYLE}`
-  },
-  {
-    name: 'Medium',
-    prompt: `Medium shot with soft blurred background. Gentle natural setting. Warm diffused lighting. Simple composition. ${BASE_STYLE}`
-  },
-  {
-    name: 'Close',
-    prompt: `Close view with very soft bokeh background. Warm pastel tones. Dreamy out of focus nature elements. Ethereal glow. ${BASE_STYLE}`
-  }
+// Style-specific prompts
+const STYLE_PROMPTS: Record<ImageStyle, string> = {
+  dreamy: `Dreamy soft anime watercolor illustration in the style of Studio Ghibli and Frieren. Soft pastel colors: pale pink, warm peach, soft green, cream, lavender. Painterly watercolor texture with soft diffused edges. Ethereal glowing light, gentle atmosphere. Minimal detail, lots of breathing room. Serene and peaceful mood. ${CANVAS_RULES}`,
+
+  vibrant: `Bold colorful anime illustration with rich saturated colors. Warm oranges, deep teals, vibrant pinks, golden yellows. Dynamic composition with energy and movement. Cel-shaded anime style with clean lines. Bright optimistic mood. Sunset or golden hour lighting. ${CANVAS_RULES}`,
+
+  minimal: `Ultra minimal abstract illustration. Simple geometric shapes, clean lines. Soft neutral tones: warm whites, pale grays, subtle blush. Lots of negative space. Modern and sophisticated. Barely there details, whisper-quiet aesthetic. Zen-like calm. ${CANVAS_RULES}`,
+
+  nature: `Lush nature illustration in soft watercolor style. Rolling green hills, wildflowers, gentle clouds. Warm golden sunlight filtering through. Soft greens, sky blues, warm yellows, touches of pink flowers. Peaceful pastoral scene. Studio Ghibli countryside aesthetic. ${CANVAS_RULES}`,
+}
+
+// Simple universal scenes that work across all styles
+const UNIVERSAL_SCENES = [
+  'a peaceful landscape at golden hour',
+  'soft rolling hills under a gentle sky',
+  'a serene horizon with warm light',
+  'gentle clouds in a pastel sky',
+  'a quiet meadow with soft lighting',
 ]
-
-// Randomly select shot style
-function getAnimeStyle(): { name: string; prompt: string } {
-  return SHOT_STYLES[Math.floor(Math.random() * SHOT_STYLES.length)]
-}
-
-// Simple scene descriptions - minimal and dreamy
-const TOPIC_SCENES: Record<BlogCategory, string[]> = {
-  'job-market-insights': [
-    'a single figure gazing at a distant glowing horizon',
-    'soft hills with tiny paths leading to different directions',
-    'a peaceful valley with gentle morning mist',
-  ],
-  'remote-work-tips': [
-    'a cozy window seat with soft light streaming in',
-    'a quiet balcony overlooking misty mountains',
-    'a peaceful room with plants and warm sunlight',
-  ],
-  'career-advice': [
-    'a winding path through soft rolling hills',
-    'a figure standing on a gentle hilltop at sunrise',
-    'stepping stones across a calm reflective pond',
-  ],
-  'design-news': [
-    'soft clouds parting to reveal warm light',
-    'a peaceful morning sky with gentle colors',
-    'birds flying across a pastel gradient sky',
-  ],
-  'ux-design': [
-    'soft flowing ribbons in a gentle breeze',
-    'delicate paper planes floating in soft light',
-    'a calm stream reflecting the sky',
-  ],
-  'product-design': [
-    'soft geometric shapes floating in dreamy space',
-    'gentle light filtering through glass',
-    'minimalist forms in warm pastel tones',
-  ],
-  'graphic-design': [
-    'soft watercolor washes blending together',
-    'gentle abstract shapes in warm hues',
-    'delicate brushstrokes in pastel colors',
-  ],
-}
 
 /**
  * Generate a featured image for a blog post using DALL-E 3
- * Uses unified Ghibli watercolor style with topic-relevant scenes
+ * Supports multiple style options
  */
 export async function generateBlogImage(
   category: BlogCategory,
-  altText: string
+  altText: string,
+  style: ImageStyle = 'dreamy'
 ): Promise<{ url: string; storedUrl: string } | null> {
   const openai = getOpenAIClient()
   if (!openai) {
@@ -97,16 +58,17 @@ export async function generateBlogImage(
   }
 
   try {
-    // Select a random scene for the category
-    const scenes = TOPIC_SCENES[category]
-    const topicScene = scenes[Math.floor(Math.random() * scenes.length)]
+    // Select a random scene
+    const scene = UNIVERSAL_SCENES[Math.floor(Math.random() * UNIVERSAL_SCENES.length)]
 
-    // Build prompt: Frieren anime style + topic scene + random shot type
-    const shotStyle = getAnimeStyle()
-    const prompt = `${topicScene}. Solarpunk setting with wind turbines and glass domes visible. ${shotStyle.prompt}`
+    // Get style-specific prompt
+    const stylePrompt = STYLE_PROMPTS[style]
 
-    console.log('Scene:', topicScene)
-    console.log('Shot:', shotStyle.name)
+    // Build final prompt
+    const prompt = `${scene}. ${stylePrompt}`
+
+    console.log('Scene:', scene)
+    console.log('Style:', style)
     console.log('Generating image with DALL-E 3...')
 
     const response = await openai.images.generate({
