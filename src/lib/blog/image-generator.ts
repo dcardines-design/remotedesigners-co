@@ -22,24 +22,27 @@ function getOpenAIClient(): OpenAI | null {
 // Canvas requirements - MUST fill entire frame
 const CANVAS_RULES = `CRITICAL: The artwork MUST fill the ENTIRE 1792x1024 canvas from edge to edge. NO borders. NO dark edges. NO margins. NO vignette. NO letterboxing. NO solid color bars on any side. The scene extends fully to all four edges with NO empty space. NOT a photo of artwork on paper/desk.`
 
-// Style-specific prompts
+// Base style - dreamy solarpunk anime watercolor
+const BASE_STYLE = `dreamy solarpunk illustration in a soft anime watercolor style. Subtle futuristic eco elements like solar panels, wind turbines, floating structures, or green architecture blend naturally into the background. Painterly textures, no hard edges, gentle diffused lighting. Calm, optimistic, and airy mood, wide depth of field, minimal clutter, high detail but soft and serene. Watercolor anime aesthetic. ${CANVAS_RULES}`
+
+// Style variants - all based on the same solarpunk watercolor aesthetic
 const STYLE_PROMPTS: Record<ImageStyle, string> = {
-  dreamy: `Dreamy soft anime watercolor illustration in the style of Studio Ghibli and Frieren. Soft pastel colors: pale pink, warm peach, soft green, cream, lavender. Painterly watercolor texture with soft diffused edges. Ethereal glowing light, gentle atmosphere. Minimal detail, lots of breathing room. Serene and peaceful mood. ${CANVAS_RULES}`,
+  dreamy: `${BASE_STYLE} Pastel greens with accents of orange and pink. Soft morning light, ethereal glow. Frieren/Violet Evergarden mood. Extra soft and hazy.`,
 
-  vibrant: `Bold colorful anime illustration with rich saturated colors. Warm oranges, deep teals, vibrant pinks, golden yellows. Dynamic composition with energy and movement. Cel-shaded anime style with clean lines. Bright optimistic mood. Sunset or golden hour lighting. ${CANVAS_RULES}`,
+  vibrant: `${BASE_STYLE} Lush orange and pink and green palette. Golden hour sunset lighting. Warm and glowing. Rich saturated watercolor washes while staying soft.`,
 
-  minimal: `Ultra minimal abstract illustration. Simple geometric shapes, clean lines. Soft neutral tones: warm whites, pale grays, subtle blush. Lots of negative space. Modern and sophisticated. Barely there details, whisper-quiet aesthetic. Zen-like calm. ${CANVAS_RULES}`,
+  minimal: `${BASE_STYLE} Muted pastel palette with lots of breathing room. Extra minimal clutter, vast open spaces. Whisper-quiet serene mood. Soft cream and pale green tones.`,
 
-  nature: `Lush nature illustration in soft watercolor style. Rolling green hills, wildflowers, gentle clouds. Warm golden sunlight filtering through. Soft greens, sky blues, warm yellows, touches of pink flowers. Peaceful pastoral scene. Studio Ghibli countryside aesthetic. ${CANVAS_RULES}`,
+  nature: `${BASE_STYLE} Emphasis on lush greenery, wildflowers, and natural elements. Soft greens, sky blues, touches of pink flowers. Rolling hills and gentle clouds. Pastoral and peaceful.`,
 }
 
 // Simple universal scenes that work across all styles
 const UNIVERSAL_SCENES = [
-  'a peaceful landscape at golden hour',
-  'soft rolling hills under a gentle sky',
-  'a serene horizon with warm light',
-  'gentle clouds in a pastel sky',
-  'a quiet meadow with soft lighting',
+  'a peaceful solarpunk landscape at golden hour',
+  'soft rolling hills with distant wind turbines',
+  'a serene horizon with floating structures',
+  'gentle clouds over green architecture',
+  'a quiet meadow with solar panels in soft focus',
 ]
 
 /**

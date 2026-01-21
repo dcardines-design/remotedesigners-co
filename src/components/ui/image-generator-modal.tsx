@@ -15,22 +15,22 @@ const IMAGE_STYLES = [
   {
     id: 'dreamy',
     name: 'Dreamy',
-    description: 'Soft anime watercolor, pastel colors, ethereal',
+    description: 'Extra soft & hazy, morning light, Frieren mood',
   },
   {
     id: 'vibrant',
     name: 'Vibrant',
-    description: 'Bold colors, energetic, dynamic composition',
+    description: 'Rich orange/pink/green, golden sunset glow',
   },
   {
     id: 'minimal',
     name: 'Minimal',
-    description: 'Simple shapes, lots of whitespace, clean',
+    description: 'Muted pastels, vast open spaces, whisper-quiet',
   },
   {
     id: 'nature',
     name: 'Nature',
-    description: 'Lush landscapes, organic forms, serene',
+    description: 'Lush greenery, wildflowers, rolling hills',
   },
 ]
 
