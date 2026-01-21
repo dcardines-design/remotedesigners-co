@@ -8,6 +8,7 @@ import {
   getCompanyLogoUrl,
   getGoogleFaviconUrl,
   getSourceFavicon,
+  shouldSkipLogoFetch,
   toTitleCase,
   getRegionChip,
   cleanJobTitle,
@@ -227,23 +228,30 @@ export function JobCard({
 
       <div className="flex flex-col gap-3 px-2 md:pl-3 md:pr-0 md:flex-row md:gap-4">
         {/* Company Avatar */}
-        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border border-neutral-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
-          <img
-            src={getSourceFavicon(job.source || '') || job.company_logo || getCompanyLogoUrl(job.company)}
-            alt={job.company}
-            className="w-full h-full object-contain"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement
-              if (!target.dataset.triedFallback) {
-                target.dataset.triedFallback = 'true'
-                target.src = getGoogleFaviconUrl(job.company)
-              } else {
+        {shouldSkipLogoFetch(job.source || '', job.company_logo) ? (
+          <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-neutral-100 border border-neutral-200 flex items-center justify-center flex-shrink-0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-400">
+              <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/>
+              <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/>
+              <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/>
+              <path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>
+            </svg>
+          </div>
+        ) : (
+          <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border border-neutral-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
+            <img
+              src={getSourceFavicon(job.source || '') || job.company_logo || getCompanyLogoUrl(job.company)}
+              alt={job.company}
+              className="w-full h-full object-contain"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement
                 target.style.display = 'none'
-                target.parentElement!.innerHTML = `<span class="text-sm font-medium text-neutral-400">${getInitials(job.company)}</span>`
-              }
-            }}
-          />
-        </div>
+                target.parentElement!.className = 'w-10 h-10 md:w-12 md:h-12 rounded-full bg-neutral-100 border border-neutral-200 flex items-center justify-center flex-shrink-0'
+                target.parentElement!.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-neutral-400"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>`
+              }}
+            />
+          </div>
+        )}
 
         {/* Job Info */}
         <div className="flex-1 min-w-0">

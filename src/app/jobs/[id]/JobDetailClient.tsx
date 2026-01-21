@@ -44,11 +44,12 @@ const getCompanyLogoUrl = (company: string): string => {
   return `https://logo.clearbit.com/${cleanName}.com`
 }
 
-// Google Favicon fallback
+// Google Favicon fallback - returns empty string if company name is invalid
 const getGoogleFaviconUrl = (company: string): string => {
   const cleanName = company.toLowerCase()
     .replace(/[^a-z0-9]/g, '')
     .replace(/\s+/g, '')
+  if (!cleanName || cleanName.length < 2) return '' // Skip invalid names
   return `https://www.google.com/s2/favicons?domain=${cleanName}.com&sz=128`
 }
 
@@ -692,13 +693,9 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
                   className="w-full h-full object-contain"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement
-                    if (!target.dataset.triedFallback) {
-                      target.dataset.triedFallback = 'true'
-                      target.src = getGoogleFaviconUrl(job.company)
-                    } else {
-                      target.style.display = 'none'
-                      target.parentElement!.innerHTML = `<span class="text-xl font-medium text-neutral-400">${getInitials(job.company)}</span>`
-                    }
+                    target.style.display = 'none'
+                    target.parentElement!.className = 'w-12 h-12 md:w-16 md:h-16 rounded-full bg-neutral-100 border border-neutral-200 flex items-center justify-center mb-4 md:mb-6'
+                    target.parentElement!.innerHTML = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-neutral-400"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>`
                   }}
                 />
               </div>
@@ -890,14 +887,9 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
                       className="w-full h-full object-contain"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement
-                        if (!target.dataset.triedFallback) {
-                          target.dataset.triedFallback = 'true'
-                          target.src = getGoogleFaviconUrl(similarJob.company)
-                        } else if (!target.dataset.triedInitials) {
-                          target.dataset.triedInitials = 'true'
-                          target.style.display = 'none'
-                          target.parentElement!.innerHTML = `<span class="text-sm font-medium text-neutral-400">${getInitials(similarJob.company)}</span>`
-                        }
+                        target.style.display = 'none'
+                        target.parentElement!.className = 'w-12 h-12 rounded-full bg-neutral-100 border border-neutral-200 flex items-center justify-center flex-shrink-0'
+                        target.parentElement!.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="text-neutral-400"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>`
                       }}
                     />
                   </div>
