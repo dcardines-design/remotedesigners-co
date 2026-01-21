@@ -4,7 +4,7 @@ const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null
 
-const FROM_EMAIL = process.env.FROM_EMAIL || 'Dante @ RemoteDesigners <hello@remotedesigners.co>'
+const FROM_EMAIL = process.env.FROM_EMAIL || 'Dante @ RemoteDesigners 👋 <hello@remotedesigners.co>'
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://remotedesigners.co'
 
 interface SendEmailParams {
