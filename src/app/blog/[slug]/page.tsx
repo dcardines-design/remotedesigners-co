@@ -164,6 +164,17 @@ export default async function BlogPostPage({ params }: Props) {
         }}
       />
 
+      {/* Full Bleed Featured Image */}
+      {post.featured_image && (
+        <figure className="w-full">
+          <img
+            src={post.featured_image}
+            alt={post.featured_image_alt || post.title}
+            className="w-full h-[50vh] md:h-[60vh] object-cover"
+          />
+        </figure>
+      )}
+
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-12">
         <BlogBreadcrumb category={post.category} postTitle={post.title} />
 
@@ -179,17 +190,6 @@ export default async function BlogPostPage({ params }: Props) {
               excerpt={post.excerpt}
               slug={post.slug}
             />
-
-            {/* Featured Image */}
-            {post.featured_image && (
-              <figure className="mb-10">
-                <img
-                  src={post.featured_image}
-                  alt={post.featured_image_alt || post.title}
-                  className="w-full rounded-lg shadow-md"
-                />
-              </figure>
-            )}
 
             {/* Mobile Table of Contents */}
             <div className="lg:hidden">
