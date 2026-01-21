@@ -275,7 +275,7 @@ export async function sendSubscriptionConfirmation(data: SubscriptionConfirmatio
           <td align="center" style="padding: 40px 20px;">
             <table cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 500px;">
               <tr>
-                <td style="padding-bottom: 32px;">
+                <td style="padding-bottom: 32px; text-align: center;">
                   <h1 style="margin: 0; font-size: 20px; font-weight: 600; color: #171717;">remotedesigners.co</h1>
                 </td>
               </tr>
@@ -310,7 +310,7 @@ export async function sendSubscriptionConfirmation(data: SubscriptionConfirmatio
 
   return sendEmail({
     to: data.email,
-    subject: 'Payment confirmed - Remote Designers',
+    subject: "You're in! Welcome to the club 🎉",
     html,
   })
 }
@@ -334,7 +334,7 @@ export async function sendPaymentFailedEmail(data: PaymentFailedData): Promise<b
           <td align="center" style="padding: 40px 20px;">
             <table cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 500px;">
               <tr>
-                <td style="padding-bottom: 32px;">
+                <td style="padding-bottom: 32px; text-align: center;">
                   <h1 style="margin: 0; font-size: 20px; font-weight: 600; color: #171717;">remotedesigners.co</h1>
                 </td>
               </tr>
