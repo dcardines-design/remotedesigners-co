@@ -65,8 +65,7 @@ export async function POST(request: NextRequest) {
   try {
     const imageResult = await generateBlogImage(
       post.category as BlogCategory,
-      post.featured_image_alt || post.title,
-      styleIndex
+      post.featured_image_alt || post.title
     )
 
     if (imageResult) {
