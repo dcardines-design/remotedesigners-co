@@ -656,7 +656,7 @@ function WelcomeModal({ isOpen, onClose, isLoggedIn }: { isOpen: boolean; onClos
             </p>
           </div>
 
-          {/* Email notice for new users */}
+          {/* Email notice - hidden since we auto-login now
           {!isLoggedIn && (
             <div className="mb-6 py-2.5 px-4 bg-green-50 rounded-xl border border-green-200">
               <div className="flex items-center gap-2 mb-1">
@@ -668,6 +668,7 @@ function WelcomeModal({ isOpen, onClose, isLoggedIn }: { isOpen: boolean; onClos
               <p className="text-sm text-green-700">We sent you a magic link to log in.</p>
             </div>
           )}
+          */}
 
           {/* Benefits list */}
           <div className="mb-6 grid grid-cols-2 gap-3">
