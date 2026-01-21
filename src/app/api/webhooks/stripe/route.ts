@@ -367,29 +367,29 @@ async function handleSubscriptionCreated(
 
       userId = newUser.user.id
       console.log(`Created new user ${userId} for email ${customerEmail}`)
-
-      // Send welcome email with magic link
-      try {
-        const { data: linkData } = await supabase.auth.admin.generateLink({
-          type: 'magiclink',
-          email: customerEmail,
-          options: {
-            redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://remotedesigners.co'}/?welcome=true`,
-          },
-        })
-
-        if (linkData?.properties?.action_link) {
-          const { sendWelcomeEmail } = await import('@/lib/email')
-          await sendWelcomeEmail({
-            email: customerEmail,
-            magicLink: linkData.properties.action_link,
-          })
-          console.log(`Sent welcome email to ${customerEmail}`)
-        }
-      } catch (emailError) {
-        console.error('Failed to send welcome email:', emailError)
-      }
     }
+  }
+
+  // Send welcome email with magic link to ALL subscribers (new and existing)
+  try {
+    const { data: linkData } = await supabase.auth.admin.generateLink({
+      type: 'magiclink',
+      email: customerEmail,
+      options: {
+        redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://remotedesigners.co'}/?welcome=true`,
+      },
+    })
+
+    if (linkData?.properties?.action_link) {
+      const { sendWelcomeEmail } = await import('@/lib/email')
+      await sendWelcomeEmail({
+        email: customerEmail,
+        magicLink: linkData.properties.action_link,
+      })
+      console.log(`Sent welcome email to ${customerEmail}`)
+    }
+  } catch (emailError) {
+    console.error('Failed to send welcome email:', emailError)
   }
 
   await upsertSubscription(subscription, userId, supabase)
