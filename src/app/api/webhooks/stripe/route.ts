@@ -311,6 +311,7 @@ async function handleSubscriptionCreated(
 ) {
   const metadata = subscription.metadata || {}
   let userId: string | undefined = metadata.user_id
+  let wasLoggedIn = Boolean(userId) // Track if user was logged in when subscribing
 
   // Get customer email from Stripe
   const stripe = getStripe()
@@ -328,7 +329,8 @@ async function handleSubscriptionCreated(
 
     if (!userExists) {
       console.log(`User ${userId} from metadata doesn't exist, will find/create by email`)
-      userId = undefined // Reset to trigger user lookup/creation
+      userId = undefined
+      wasLoggedIn = false
     }
   }
 
@@ -362,24 +364,9 @@ async function handleSubscriptionCreated(
   // Create subscription tied to user
   await upsertSubscription(subscription, userId, supabase)
 
-  // Send magic link (same email for both new and existing users)
-  try {
-    const { createClient } = await import('@supabase/supabase-js')
-    const anonClient = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://remotedesigners.co'
-    await anonClient.auth.signInWithOtp({
-      email: customerEmail,
-      options: {
-        emailRedirectTo: baseUrl,
-      },
-    })
-    console.log(`Sent magic link to subscriber ${customerEmail}`)
-  } catch (otpError) {
-    console.error('Failed to send magic link:', otpError)
-  }
+  // Note: Auto-login is handled by /api/auth/post-checkout endpoint
+  // No magic link email needed - user is redirected and logged in automatically
+  console.log(`Subscription created for user ${userId} (wasLoggedIn: ${wasLoggedIn})`)
 }
 
 // Handle subscription updated
@@ -408,6 +395,13 @@ async function handleSubscriptionDeleted(
   subscription: Stripe.Subscription,
   supabase: ReturnType<typeof createAdminSupabaseClient>
 ) {
+  // Get the user_id before updating
+  const { data: existingSub } = await supabase
+    .from('subscriptions')
+    .select('user_id')
+    .eq('stripe_subscription_id', subscription.id)
+    .single()
+
   const { error } = await supabase
     .from('subscriptions')
     .update({
@@ -419,6 +413,14 @@ async function handleSubscriptionDeleted(
   if (error) {
     console.error('Failed to cancel subscription:', error)
     throw error
+  }
+
+  // Update profile's is_subscribed flag to false
+  if (existingSub?.user_id) {
+    await supabase
+      .from('profiles')
+      .update({ is_subscribed: false })
+      .eq('id', existingSub.user_id)
   }
 
   console.log(`Subscription ${subscription.id} cancelled`)
@@ -482,5 +484,12 @@ async function upsertSubscription(
     throw error
   }
 
-  console.log(`Subscription ${status} for user ${userId}`)
+  // Update profile's is_subscribed flag
+  const isActive = ['active', 'trialing'].includes(status)
+  await supabase
+    .from('profiles')
+    .update({ is_subscribed: isActive })
+    .eq('id', userId)
+
+  console.log(`Subscription ${status} for user ${userId}, is_subscribed: ${isActive}`)
 }

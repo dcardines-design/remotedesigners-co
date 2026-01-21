@@ -33,12 +33,24 @@ export function AuthHandler() {
       }
     }
 
-    // Show welcome toast after reload
+    // Show welcome toast after reload (new subscriber logged in via magic link)
     if (sessionStorage.getItem('show_welcome_toast')) {
       sessionStorage.removeItem('show_welcome_toast')
       setTimeout(() => {
         toast.success('Welcome! You\'re all set 🎉')
       }, 100)
+    }
+
+    // Show toast for logged-in user who just subscribed
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      if (urlParams.get('subscribed') === 'true') {
+        // Clean up URL
+        window.history.replaceState(null, '', window.location.pathname)
+        setTimeout(() => {
+          toast.success('Thanks for subscribing! 🎉')
+        }, 100)
+      }
     }
   }, [])
 

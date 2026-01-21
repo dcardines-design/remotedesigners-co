@@ -260,7 +260,7 @@ export async function createSubscriptionCheckout(
       },
     ],
     mode: 'subscription',
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/?welcome=true&session_id={CHECKOUT_SESSION_ID}`,
+    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/post-checkout?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/membership`,
     metadata: {
       user_id: userId || '',
