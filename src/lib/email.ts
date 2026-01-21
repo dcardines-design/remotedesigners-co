@@ -254,3 +254,118 @@ Questions? Contact us at hello@remotedesigners.co
     text,
   })
 }
+
+interface SubscriptionConfirmationData {
+  email: string
+  plan: string
+  amount: number
+}
+
+export async function sendSubscriptionConfirmation(data: SubscriptionConfirmationData): Promise<boolean> {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #fafafa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #fafafa;">
+        <tr>
+          <td align="center" style="padding: 40px 20px;">
+            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 500px;">
+              <tr>
+                <td style="padding-bottom: 32px;">
+                  <h1 style="margin: 0; font-size: 20px; font-weight: 600; color: #171717;">remotedesigners.co</h1>
+                </td>
+              </tr>
+              <tr>
+                <td style="background: white; border-radius: 16px; padding: 32px; border: 1px solid #e5e5e5;">
+                  <div style="width: 48px; height: 48px; background: #dcfce7; border-radius: 50%; margin: 0 auto 24px; text-align: center; line-height: 48px;">
+                    <span style="color: #16a34a; font-size: 24px;">✓</span>
+                  </div>
+                  <h2 style="margin: 0 0 8px; font-size: 24px; font-weight: 600; color: #171717; text-align: center;">Payment confirmed!</h2>
+                  <p style="margin: 0 0 24px; font-size: 15px; color: #525252; text-align: center;">Your ${data.plan} subscription is now active.</p>
+                  <div style="background: #fafafa; border-radius: 12px; padding: 20px; margin-bottom: 24px; text-align: center;">
+                    <p style="margin: 0; font-size: 14px; color: #525252;">Amount paid</p>
+                    <p style="margin: 4px 0 0; font-size: 24px; font-weight: 600; color: #171717;">$${data.amount.toFixed(2)}</p>
+                  </div>
+                  <a href="${BASE_URL}" style="display: block; width: 100%; padding: 14px 0; background: #171717; color: white; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 500; text-align: center;">Browse jobs</a>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 32px 0; text-align: center;">
+                  <p style="margin: 0; font-size: 13px; color: #a3a3a3;">
+                    Questions? Contact us at <a href="mailto:hello@remotedesigners.co" style="color: #525252;">hello@remotedesigners.co</a>
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `
+
+  return sendEmail({
+    to: data.email,
+    subject: 'Payment confirmed - Remote Designers',
+    html,
+  })
+}
+
+interface PaymentFailedData {
+  email: string
+  reason?: string
+}
+
+export async function sendPaymentFailedEmail(data: PaymentFailedData): Promise<boolean> {
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #fafafa; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+      <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #fafafa;">
+        <tr>
+          <td align="center" style="padding: 40px 20px;">
+            <table cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 500px;">
+              <tr>
+                <td style="padding-bottom: 32px;">
+                  <h1 style="margin: 0; font-size: 20px; font-weight: 600; color: #171717;">remotedesigners.co</h1>
+                </td>
+              </tr>
+              <tr>
+                <td style="background: white; border-radius: 16px; padding: 32px; border: 1px solid #e5e5e5;">
+                  <div style="width: 48px; height: 48px; background: #fee2e2; border-radius: 50%; margin: 0 auto 24px; text-align: center; line-height: 48px;">
+                    <span style="color: #dc2626; font-size: 24px;">!</span>
+                  </div>
+                  <h2 style="margin: 0 0 8px; font-size: 24px; font-weight: 600; color: #171717; text-align: center;">Payment failed</h2>
+                  <p style="margin: 0 0 24px; font-size: 15px; color: #525252; text-align: center;">We couldn't process your subscription payment. ${data.reason ? `Reason: ${data.reason}` : 'Please update your payment method.'}</p>
+                  <a href="${BASE_URL}/membership" style="display: block; width: 100%; padding: 14px 0; background: #171717; color: white; border-radius: 8px; text-decoration: none; font-size: 15px; font-weight: 500; text-align: center;">Update payment method</a>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 32px 0; text-align: center;">
+                  <p style="margin: 0; font-size: 13px; color: #a3a3a3;">
+                    Need help? Contact us at <a href="mailto:hello@remotedesigners.co" style="color: #525252;">hello@remotedesigners.co</a>
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `
+
+  return sendEmail({
+    to: data.email,
+    subject: 'Payment failed - Action required',
+    html,
+  })
+}

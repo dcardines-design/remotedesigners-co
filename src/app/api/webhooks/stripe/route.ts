@@ -71,11 +71,19 @@ export async function POST(request: NextRequest) {
         break
       }
 
-      // Invoice paid (subscription renewal)
+      // Invoice paid (subscription renewal or new subscription)
       case 'invoice.paid': {
         const invoice = event.data.object as Stripe.Invoice & { subscription?: string | null }
-        if (invoice.subscription) {
+        if (invoice.subscription && invoice.customer_email) {
           console.log(`Invoice paid for subscription ${invoice.subscription}`)
+
+          // Send confirmation email
+          const { sendSubscriptionConfirmation } = await import('@/lib/email')
+          await sendSubscriptionConfirmation({
+            email: invoice.customer_email,
+            plan: invoice.lines?.data?.[0]?.description || 'Subscription',
+            amount: (invoice.amount_paid || 0) / 100,
+          })
         }
         break
       }
@@ -84,7 +92,15 @@ export async function POST(request: NextRequest) {
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice
         console.log(`Payment failed for invoice ${invoice.id}`)
-        // Could send email notification here
+
+        // Send failure notification email
+        if (invoice.customer_email) {
+          const { sendPaymentFailedEmail } = await import('@/lib/email')
+          await sendPaymentFailedEmail({
+            email: invoice.customer_email,
+            reason: invoice.last_finalization_error?.message,
+          })
+        }
         break
       }
 

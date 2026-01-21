@@ -217,12 +217,14 @@ function PremiumContent() {
 
       if (!response.ok) throw new Error(data.error || 'Failed to create checkout')
 
-      // Production - open Stripe checkout in new tab
-      if (data.checkoutUrl) window.open(data.checkoutUrl, '_blank')
+      // Production - redirect to Stripe checkout (same window to prevent multiple tabs)
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl
+        return // Don't reset loading state - we're redirecting
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong')
-    } finally {
-      setIsLoading(false)
+      setIsLoading(false) // Only reset on error
     }
   }
 

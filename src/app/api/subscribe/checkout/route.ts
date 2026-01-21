@@ -35,11 +35,47 @@ export async function POST(request: Request) {
     // Check if user is logged in
     const supabase = await createAuthSupabaseClient()
     const { data: { user } } = await supabase.auth.getUser()
+    const adminSupabase = createServerSupabaseClient()
+
+    // Check if user already has an active subscription
+    if (user) {
+      const { data: existingSub } = await adminSupabase
+        .from('subscriptions')
+        .select('status')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .single()
+
+      if (existingSub) {
+        return NextResponse.json({
+          error: 'You already have an active subscription',
+          alreadySubscribed: true,
+        }, { status: 400 })
+      }
+    } else if (email) {
+      // Check by email for non-logged-in users
+      const { data: authUsers } = await adminSupabase.auth.admin.listUsers()
+      const existingUser = authUsers?.users?.find(u => u.email?.toLowerCase() === email.toLowerCase())
+
+      if (existingUser) {
+        const { data: existingSub } = await adminSupabase
+          .from('subscriptions')
+          .select('status')
+          .eq('user_id', existingUser.id)
+          .eq('status', 'active')
+          .single()
+
+        if (existingSub) {
+          return NextResponse.json({
+            error: 'This email already has an active subscription. Please log in.',
+            alreadySubscribed: true,
+          }, { status: 400 })
+        }
+      }
+    }
 
     // TEST MODE: Create subscription directly without Stripe
     if (TEST_MODE) {
-      const adminSupabase = createServerSupabaseClient()
-
       // If user is logged in, use their id
       if (user) {
         const { error } = await adminSupabase
