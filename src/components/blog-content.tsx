@@ -89,7 +89,7 @@ export function BlogPostHeader({ category, publishedAt, readingTimeMinutes, titl
     day: 'numeric',
   })
 
-  const handleGenerate = async (style: string) => {
+  const handleGenerate = async (options: { variant: string; context: string; shot: string }) => {
     if (!slug || isGenerating) return
 
     setIsGenerating(true)
@@ -97,7 +97,7 @@ export function BlogPostHeader({ category, publishedAt, readingTimeMinutes, titl
       const res = await fetch('/api/blog/generate-image', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slug, style }),
+        body: JSON.stringify({ slug, ...options }),
       })
 
       if (res.ok) {

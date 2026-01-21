@@ -7,36 +7,30 @@ interface ImageGeneratorModalProps {
   isOpen: boolean
   onClose: () => void
   slug: string
-  onGenerate: (style: string) => void
+  onGenerate: (options: { variant: string; context: string; shot: string }) => void
   isGenerating: boolean
 }
 
-const IMAGE_STYLES = [
-  {
-    id: 'contextual',
-    name: 'Contextual',
-    description: 'Based on blog topic, AI picks the scene',
-  },
-  {
-    id: 'dreamy',
-    name: 'Dreamy',
-    description: 'Extra soft & hazy, morning light, Frieren mood',
-  },
-  {
-    id: 'vibrant',
-    name: 'Vibrant',
-    description: 'Rich orange/pink/green, golden sunset glow',
-  },
-  {
-    id: 'minimal',
-    name: 'Minimal',
-    description: 'Muted pastels, vast open spaces, whisper-quiet',
-  },
-  {
-    id: 'nature',
-    name: 'Nature',
-    description: 'Lush greenery, wildflowers, rolling hills',
-  },
+// Color/mood variants
+const VARIANTS = [
+  { id: 'dreamy', name: 'Dreamy', description: 'Soft & hazy, morning light' },
+  { id: 'vibrant', name: 'Vibrant', description: 'Rich sunset glow' },
+  { id: 'minimal', name: 'Minimal', description: 'Muted, vast spaces' },
+  { id: 'nature', name: 'Nature', description: 'Lush greenery' },
+]
+
+// Context type
+const CONTEXTS = [
+  { id: 'contextual', name: 'Contextual', description: 'Based on blog topic' },
+  { id: 'abstract', name: 'Abstract', description: 'Generic beautiful scene' },
+]
+
+// Shot styles
+const SHOTS = [
+  { id: 'wide', name: 'Wide', description: 'Landscape, environment focus' },
+  { id: 'medium', name: 'Medium', description: 'Balanced scene' },
+  { id: 'closeup', name: 'Close-up', description: 'Detail focus' },
+  { id: 'portrait', name: 'Portrait', description: 'People/character focus' },
 ]
 
 export function ImageGeneratorModal({
@@ -47,7 +41,9 @@ export function ImageGeneratorModal({
   isGenerating,
 }: ImageGeneratorModalProps) {
   const [password, setPassword] = useState('')
-  const [selectedStyle, setSelectedStyle] = useState('dreamy')
+  const [variant, setVariant] = useState('dreamy')
+  const [context, setContext] = useState('contextual')
+  const [shot, setShot] = useState('wide')
 
   const isPasswordCorrect = password === '1011'
 
@@ -70,7 +66,9 @@ export function ImageGeneratorModal({
   useEffect(() => {
     if (isOpen) {
       setPassword('')
-      setSelectedStyle('contextual')
+      setVariant('dreamy')
+      setContext('contextual')
+      setShot('wide')
     }
   }, [isOpen])
 
@@ -85,7 +83,7 @@ export function ImageGeneratorModal({
       />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-8 animate-in fade-in zoom-in-95 duration-200">
+      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 animate-in fade-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
         {/* Close button */}
         <button
           onClick={onClose}
@@ -97,13 +95,13 @@ export function ImageGeneratorModal({
         </button>
 
         {/* Header */}
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-medium text-neutral-900 tracking-tight">Generate Image</h2>
-          <p className="mt-2 text-neutral-500">Create a new featured image for this post</p>
+        <div className="text-center mb-5">
+          <h2 className="text-xl font-medium text-neutral-900 tracking-tight">Generate Image</h2>
+          <p className="mt-1 text-sm text-neutral-500">Create a new featured image</p>
         </div>
 
         {/* Password Input */}
-        <div className="mb-6">
+        <div className="mb-5">
           <Input
             label="Password"
             type="password"
@@ -113,26 +111,74 @@ export function ImageGeneratorModal({
           />
         </div>
 
-        {/* Style Tabs */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-neutral-700 mb-3">
-            Image Style
+        {/* 1. Variant Selection */}
+        <div className="mb-4">
+          <label className="block text-xs font-medium text-neutral-500 uppercase tracking-wide mb-2">
+            Variant
           </label>
-          <div className="grid grid-cols-2 gap-2">
-            {IMAGE_STYLES.map((style) => (
+          <div className="grid grid-cols-4 gap-1.5">
+            {VARIANTS.map((v) => (
               <button
-                key={style.id}
-                onClick={() => setSelectedStyle(style.id)}
+                key={v.id}
+                onClick={() => setVariant(v.id)}
                 className={`
-                  p-3 rounded-lg border text-left transition-all
-                  ${selectedStyle === style.id
-                    ? 'border-neutral-900 bg-neutral-50 ring-1 ring-neutral-900'
-                    : 'border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50'
+                  px-2 py-1.5 rounded-md border text-center transition-all text-xs
+                  ${variant === v.id
+                    ? 'border-neutral-900 bg-neutral-900 text-white'
+                    : 'border-neutral-200 hover:border-neutral-300 text-neutral-600'
                   }
                 `}
               >
-                <div className="font-medium text-sm text-neutral-900">{style.name}</div>
-                <div className="text-xs text-neutral-500 mt-0.5">{style.description}</div>
+                {v.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 2. Context Selection */}
+        <div className="mb-4">
+          <label className="block text-xs font-medium text-neutral-500 uppercase tracking-wide mb-2">
+            Context
+          </label>
+          <div className="grid grid-cols-2 gap-1.5">
+            {CONTEXTS.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => setContext(c.id)}
+                className={`
+                  px-3 py-2 rounded-md border text-left transition-all
+                  ${context === c.id
+                    ? 'border-neutral-900 bg-neutral-900 text-white'
+                    : 'border-neutral-200 hover:border-neutral-300'
+                  }
+                `}
+              >
+                <div className={`font-medium text-sm ${context === c.id ? 'text-white' : 'text-neutral-900'}`}>{c.name}</div>
+                <div className={`text-xs mt-0.5 ${context === c.id ? 'text-neutral-300' : 'text-neutral-500'}`}>{c.description}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 3. Shot Style Selection */}
+        <div className="mb-5">
+          <label className="block text-xs font-medium text-neutral-500 uppercase tracking-wide mb-2">
+            Shot Style
+          </label>
+          <div className="grid grid-cols-4 gap-1.5">
+            {SHOTS.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => setShot(s.id)}
+                className={`
+                  px-2 py-1.5 rounded-md border text-center transition-all text-xs
+                  ${shot === s.id
+                    ? 'border-neutral-900 bg-neutral-900 text-white'
+                    : 'border-neutral-200 hover:border-neutral-300 text-neutral-600'
+                  }
+                `}
+              >
+                {s.name}
               </button>
             ))}
           </div>
@@ -144,7 +190,7 @@ export function ImageGeneratorModal({
           size="lg"
           fullWidth
           disabled={!isPasswordCorrect || isGenerating}
-          onClick={() => onGenerate(selectedStyle)}
+          onClick={() => onGenerate({ variant, context, shot })}
         >
           {isGenerating ? (
             <span className="flex items-center gap-2">

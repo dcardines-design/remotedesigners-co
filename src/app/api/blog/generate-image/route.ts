@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminSupabaseClient } from '@/lib/supabase'
-import { generateBlogImage, ImageStyle } from '@/lib/blog/image-generator'
+import { generateBlogImage, Variant, Context, Shot } from '@/lib/blog/image-generator'
 import { BlogCategory } from '@/lib/blog/seo-helpers'
 
 export async function POST(request: NextRequest) {
   try {
-    const { slug, style = 'dreamy' } = await request.json()
+    const { slug, variant = 'dreamy', context = 'contextual', shot = 'wide' } = await request.json()
 
     if (!slug) {
       return NextResponse.json({ error: 'Slug is required' }, { status: 400 })
@@ -24,13 +24,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Blog post not found' }, { status: 404 })
     }
 
-    // Generate image using the library with selected style
-    const result = await generateBlogImage(
-      post.category as BlogCategory,
-      `Illustration for ${post.title}`,
-      style as ImageStyle,
-      post.title
-    )
+    // Generate image using the library with selected options
+    const result = await generateBlogImage({
+      category: post.category as BlogCategory,
+      title: post.title,
+      variant: variant as Variant,
+      context: context as Context,
+      shot: shot as Shot,
+    })
 
     if (!result) {
       return NextResponse.json({ error: 'Failed to generate image' }, { status: 500 })
