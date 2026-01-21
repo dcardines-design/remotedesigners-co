@@ -120,8 +120,8 @@ export function Footer() {
               <li><Link href="/post-job" className="hover:text-white transition-colors">Post a Job</Link></li>
               <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
               <li><button onClick={() => setIsLoginModalOpen(true)} className="hover:text-white transition-colors">Log In</button></li>
-              <li><Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link></li>
-              <li><Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link></li>
+              <li><a href="mailto:hello@remotedesigners.co" className="hover:text-white transition-colors">Contact Us</a></li>
+              <li><a href="https://x.com/dantecardines" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">X (Twitter)</a></li>
             </ul>
           </div>
         </div>
@@ -137,9 +137,11 @@ export function Footer() {
               className="h-10 w-auto"
             />
           </div>
-          <p className="text-xs text-neutral-500">
-            © {new Date().getFullYear()} RemoteDesigners.co. All rights reserved.
-          </p>
+          <div className="flex items-center gap-4 text-xs text-neutral-500">
+            <span>© {new Date().getFullYear()} RemoteDesigners.co. All rights reserved.</span>
+            <Link href="/privacy" className="hover:text-neutral-300 transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-neutral-300 transition-colors">Terms</Link>
+          </div>
         </div>
       </div>
 

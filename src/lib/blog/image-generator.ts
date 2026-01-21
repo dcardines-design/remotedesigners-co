@@ -44,11 +44,11 @@ const VARIANT_PROMPTS: Record<Variant, string> = {
 }
 
 // Shot style modifiers
-const SHOT_PROMPTS: Record<Shot, string> = {
-  wide: 'Wide landscape shot. Environment is the main focus. Expansive view with tiny figures in distance if any. Lots of sky and horizon.',
-  medium: 'Medium shot. Balanced composition showing both environment and subject. Natural framing.',
-  closeup: 'Close-up shot. Focus on details with soft bokeh background. Intimate and detailed view.',
-  portrait: 'Portrait composition with people or characters as focus. Soft blurred solarpunk background. Warm and inviting.',
+const SHOT_PROMPTS: Record<Shot, (title: string) => string> = {
+  wide: () => 'Wide landscape shot. Environment is the main focus. Expansive view with tiny figures in distance if any. Lots of sky and horizon.',
+  medium: () => 'Medium shot. Balanced composition showing both environment and subject. Natural framing.',
+  closeup: (title) => `Close-up shot focusing on objects, hands, or people that visually represent "${title}". Soft bokeh solarpunk background. Intimate detailed view of topic-relevant items.`,
+  portrait: () => 'Portrait composition with people or characters as focus. Soft blurred solarpunk background. Warm and inviting.',
 }
 
 // Abstract scenes (generic beautiful scenes)
@@ -85,7 +85,7 @@ export async function generateBlogImage(options: GenerateOptions): Promise<{ url
       sceneDescription = ABSTRACT_SCENES[Math.floor(Math.random() * ABSTRACT_SCENES.length)]
     }
 
-    const prompt = `${sceneDescription} ${BASE_STYLE} ${VARIANT_PROMPTS[variant]} ${SHOT_PROMPTS[shot]}`
+    const prompt = `${sceneDescription} ${BASE_STYLE} ${VARIANT_PROMPTS[variant]} ${SHOT_PROMPTS[shot](title)}`
 
     console.log('Context:', context)
     console.log('Variant:', variant)
