@@ -214,6 +214,7 @@ export async function createJobCheckout(data: JobPostingData) {
     customer_email: data.poster_email.toLowerCase(),
     metadata,
     expires_at: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour
+    allow_promotion_codes: true,
   })
 
   return session
@@ -272,6 +273,7 @@ export async function createSubscriptionCheckout(
       },
     },
     expires_at: Math.floor(Date.now() / 1000) + 60 * 60, // 1 hour
+    allow_promotion_codes: true,
   }
 
   // Add customer email or existing customer
