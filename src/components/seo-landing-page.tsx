@@ -6,12 +6,57 @@ import { useRouter } from 'next/navigation'
 import { generateJobSlug } from '@/lib/slug'
 import { HeroBackground } from './hero-background'
 import { JobCard } from './job-card'
-import { CompanyLogo } from '@/components/company-logo'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import { FREE_JOBS_LIMIT } from '@/lib/stripe'
 import { isCompMember } from '@/lib/admin'
 import { toast } from 'sonner'
 import { useSignupModal } from '@/context/signup-modal-context'
+
+// Helper functions
+const getInitials = (company: string) => company.substring(0, 2).toUpperCase()
+
+const getCompanyLogoUrl = (company: string): string => {
+  const cleanName = company.toLowerCase().replace(/[^a-z0-9]/g, '').replace(/\s+/g, '')
+  return `https://logo.clearbit.com/${cleanName}.com`
+}
+
+const getGoogleFaviconUrl = (company: string): string => {
+  const cleanName = company.toLowerCase().replace(/[^a-z0-9]/g, '').replace(/\s+/g, '')
+  return `https://www.google.com/s2/favicons?domain=${cleanName}.com&sz=128`
+}
+
+// Company logo component with fallback
+function CompanyLogo({ company, companyLogo }: { company: string; companyLogo?: string }) {
+  const [imgSrc, setImgSrc] = useState(companyLogo || getCompanyLogoUrl(company))
+  const [fallbackAttempted, setFallbackAttempted] = useState(false)
+  const [showInitials, setShowInitials] = useState(false)
+
+  const handleError = () => {
+    if (!fallbackAttempted) {
+      setFallbackAttempted(true)
+      setImgSrc(getGoogleFaviconUrl(company))
+    } else {
+      setShowInitials(true)
+    }
+  }
+
+  if (showInitials) {
+    return (
+      <span className="text-sm font-medium text-neutral-400">
+        {getInitials(company)}
+      </span>
+    )
+  }
+
+  return (
+    <img
+      src={imgSrc}
+      alt={company}
+      className="w-full h-full object-contain"
+      onError={handleError}
+    />
+  )
+}
 
 const toTitleCase = (str: string) =>
   str.toLowerCase().replace(/(?:^|[\s-])\w/g, match => match.toUpperCase())
@@ -386,13 +431,21 @@ export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageT
                     {/* 10% visible, rest blurred with gradient fade */}
                     <div className="relative flex gap-4 pl-3 select-none pointer-events-none">
                       {/* Company Avatar - blurred */}
-                      <div className="blur-[3px]">
-                        <CompanyLogo
-                          company={job.company}
-                          companyLogo={job.company_logo}
-                          source={job.source}
-                          sizeClasses="w-12 h-12"
-                          iconSize={20}
+                      <div className="w-12 h-12 rounded-full bg-white border border-neutral-200 flex items-center justify-center flex-shrink-0 overflow-hidden blur-[3px]">
+                        <img
+                          src={job.company_logo || getCompanyLogoUrl(job.company)}
+                          alt={job.company}
+                          className="w-full h-full object-contain"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement
+                            if (!target.dataset.triedFallback) {
+                              target.dataset.triedFallback = 'true'
+                              target.src = getGoogleFaviconUrl(job.company)
+                            } else {
+                              target.style.display = 'none'
+                              target.parentElement!.innerHTML = `<span class="text-sm font-medium text-neutral-400">${getInitials(job.company)}</span>`
+                            }
+                          }}
                         />
                       </div>
                       <div className="flex-1 min-w-0">

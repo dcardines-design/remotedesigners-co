@@ -10,12 +10,11 @@ export const getCompanyLogoUrl = (company: string): string => {
   return `https://logo.clearbit.com/${cleanName}.com`
 }
 
-// Google Favicon fallback for when Clearbit fails - returns empty string if company name is invalid
+// Google Favicon fallback for when Clearbit fails
 export const getGoogleFaviconUrl = (company: string): string => {
   const cleanName = company.toLowerCase()
     .replace(/[^a-z0-9]/g, '')
     .replace(/\s+/g, '')
-  if (!cleanName || cleanName.length < 2) return '' // Skip invalid names
   return `https://www.google.com/s2/favicons?domain=${cleanName}.com&sz=128`
 }
 
@@ -23,16 +22,6 @@ export const getGoogleFaviconUrl = (company: string): string => {
 export const getSourceFavicon = (source: string): string | null => {
   if (source === 'dribbble') return 'https://www.google.com/s2/favicons?domain=dribbble.com&sz=128'
   return null
-}
-
-// Sources that typically don't have good company logos - skip Clearbit for these
-const AGGREGATOR_SOURCES = ['remotive', 'linkedin', 'indeed', 'remoteok', 'weworkremotely', 'nodesk', 'remote.co']
-
-export const shouldSkipLogoFetch = (source: string, companyLogo?: string | null): boolean => {
-  // If job already has a logo, use it
-  if (companyLogo) return false
-  // Skip Clearbit for aggregator sources without logos
-  return AGGREGATOR_SOURCES.includes(source?.toLowerCase() || '')
 }
 
 export const toTitleCase = (str: string) =>

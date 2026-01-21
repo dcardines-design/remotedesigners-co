@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import ReactMarkdown from 'react-markdown'
 import { SocialProof, RainbowButton } from '@/components/ui'
-import { CompanyLogo } from '@/components/company-logo'
 import { useSignupModal } from '@/context/signup-modal-context'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import { isCompMember } from '@/lib/admin'
@@ -33,6 +32,24 @@ interface Job {
   is_sticky?: boolean
   sticky_until?: string
   is_rainbow?: boolean
+}
+
+const getInitials = (company: string) => company.substring(0, 2).toUpperCase()
+
+// Generate company logo URL using Clearbit
+const getCompanyLogoUrl = (company: string): string => {
+  const cleanName = company.toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .replace(/\s+/g, '')
+  return `https://logo.clearbit.com/${cleanName}.com`
+}
+
+// Google Favicon fallback
+const getGoogleFaviconUrl = (company: string): string => {
+  const cleanName = company.toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+    .replace(/\s+/g, '')
+  return `https://www.google.com/s2/favicons?domain=${cleanName}.com&sz=128`
 }
 
 const toTitleCase = (str: string) =>
@@ -668,14 +685,23 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
           <div className="w-full md:w-[360px] flex-shrink-0">
             <div className="bg-white border border-neutral-200 rounded-xl rounded-tr-[80px] md:rounded-tr-[100px] p-5 md:p-6 md:sticky md:top-24">
               {/* Company Logo */}
-              <CompanyLogo
-                company={job.company}
-                companyLogo={job.company_logo}
-                source={job.source}
-                sizeClasses="w-12 h-12 md:w-16 md:h-16"
-                iconSize={24}
-                className="mb-4 md:mb-6"
-              />
+              <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-white border border-neutral-200 flex items-center justify-center mb-4 md:mb-6 overflow-hidden">
+                <img
+                  src={job.company_logo || getCompanyLogoUrl(job.company)}
+                  alt={job.company}
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement
+                    if (!target.dataset.triedFallback) {
+                      target.dataset.triedFallback = 'true'
+                      target.src = getGoogleFaviconUrl(job.company)
+                    } else {
+                      target.style.display = 'none'
+                      target.parentElement!.innerHTML = `<span class="text-xl font-medium text-neutral-400">${getInitials(job.company)}</span>`
+                    }
+                  }}
+                />
+              </div>
 
               {/* Badges */}
               {job.is_featured && (
@@ -857,13 +883,24 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
                 className="bg-white border border-neutral-200 rounded-xl p-5 hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.05)] hover:-translate-y-1 transition-all"
               >
                 <div className="flex items-start gap-3 mb-4">
-                  <CompanyLogo
-                    company={similarJob.company}
-                    companyLogo={similarJob.company_logo}
-                    source={similarJob.source}
-                    sizeClasses="w-12 h-12"
-                    iconSize={20}
-                  />
+                  <div className="w-12 h-12 rounded-full bg-white border border-neutral-200 flex items-center justify-center overflow-hidden flex-shrink-0">
+                    <img
+                      src={similarJob.company_logo || getCompanyLogoUrl(similarJob.company)}
+                      alt={similarJob.company}
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        if (!target.dataset.triedFallback) {
+                          target.dataset.triedFallback = 'true'
+                          target.src = getGoogleFaviconUrl(similarJob.company)
+                        } else if (!target.dataset.triedInitials) {
+                          target.dataset.triedInitials = 'true'
+                          target.style.display = 'none'
+                          target.parentElement!.innerHTML = `<span class="text-sm font-medium text-neutral-400">${getInitials(similarJob.company)}</span>`
+                        }
+                      }}
+                    />
+                  </div>
                   <div className="min-w-0">
                     <p className="text-sm text-neutral-500 truncate">{similarJob.company}</p>
                     <h3 className="font-medium text-neutral-900 line-clamp-2">{similarJob.title}</h3>

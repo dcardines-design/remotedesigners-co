@@ -6,6 +6,7 @@ import { Footer } from '@/components/footer'
 import { SignupModalProvider } from '@/context/signup-modal-context'
 import { AnalyticsProvider } from '@/components/analytics-provider'
 import { Toaster } from 'sonner'
+import { AuthHandler } from '@/components/auth-handler'
 
 const inter = Inter({ subsets: ['latin'] })
 const dmSans = DM_Sans({
@@ -123,6 +124,7 @@ export default function RootLayout({
         <script src="https://js.stripe.com/v3/" defer></script>
       </head>
       <body className={`${inter.className} ${dmSans.variable}`}>
+        <AuthHandler />
         <AnalyticsProvider>
           <SignupModalProvider>
             <Navbar />

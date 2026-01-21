@@ -4,7 +4,9 @@ import Link from 'next/link'
 import React from 'react'
 import { trackEvent } from '@/components/analytics-provider'
 import {
+  getInitials,
   getCompanyLogoUrl,
+  getGoogleFaviconUrl,
   getSourceFavicon,
   toTitleCase,
   getRegionChip,
@@ -225,13 +227,23 @@ export function JobCard({
 
       <div className="flex flex-col gap-3 px-2 md:pl-3 md:pr-0 md:flex-row md:gap-4">
         {/* Company Avatar */}
-        <CompanyLogo
-          company={job.company}
-          companyLogo={job.company_logo}
-          source={job.source}
-          sizeClasses="w-10 h-10 md:w-12 md:h-12"
-          iconSize={20}
-        />
+        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border border-neutral-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
+          <img
+            src={getSourceFavicon(job.source || '') || job.company_logo || getCompanyLogoUrl(job.company)}
+            alt={job.company}
+            className="w-full h-full object-contain"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement
+              if (!target.dataset.triedFallback) {
+                target.dataset.triedFallback = 'true'
+                target.src = getGoogleFaviconUrl(job.company)
+              } else {
+                target.style.display = 'none'
+                target.parentElement!.innerHTML = `<span class="text-sm font-medium text-neutral-400">${getInitials(job.company)}</span>`
+              }
+            }}
+          />
+        </div>
 
         {/* Job Info */}
         <div className="flex-1 min-w-0">

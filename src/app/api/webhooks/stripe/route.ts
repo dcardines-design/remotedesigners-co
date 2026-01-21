@@ -369,10 +369,11 @@ async function handleSubscriptionCreated(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://remotedesigners.co'
     await anonClient.auth.signInWithOtp({
       email: customerEmail,
       options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://remotedesigners.co'}/?welcome=true`,
+        emailRedirectTo: baseUrl,
       },
     })
     console.log(`Sent magic link to subscriber ${customerEmail}`)
