@@ -289,12 +289,9 @@ export function Navbar() {
                 priority
               />
             </Link>
-            <Link
-              href="/blog"
-              className="hidden md:inline-flex px-3 py-1.5 text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
-            >
+            <Button variant="ghost" size="sm" className="hidden md:inline-flex" onClick={() => window.location.href = '/blog'}>
               Blog
-            </Link>
+            </Button>
           </div>
 
           {/* Desktop nav */}
