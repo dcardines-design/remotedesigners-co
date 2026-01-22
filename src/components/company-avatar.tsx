@@ -38,12 +38,10 @@ interface CompanyAvatarProps {
 /**
  * CompanyAvatar - Displays company logo with smart fallbacks
  *
- * Fallback chain:
- * 1. Source favicon (e.g., Dribbble) - if source is provided
- * 2. Company logo from database
- * 3. Clearbit logo - dynamically generated, works for known companies
- * 4. Icon Horse favicon - reliable favicon service
- * 5. Initials - final fallback (e.g., "AP" for Apple)
+ * Matches homepage logic:
+ * 1. Source favicon OR company_logo OR Clearbit (initial)
+ * 2. Icon Horse favicon (1st fallback)
+ * 3. Initials (final fallback)
  */
 export function CompanyAvatar({
   company,
@@ -52,11 +50,8 @@ export function CompanyAvatar({
   size = 'md',
   className = ''
 }: CompanyAvatarProps) {
-  const [fallbackLevel, setFallbackLevel] = useState(0)
-  // 0 = primary (source favicon or company logo)
-  // 1 = clearbit
-  // 2 = icon horse favicon
-  // 3 = initials
+  const [triedFallback, setTriedFallback] = useState(false)
+  const [showInitials, setShowInitials] = useState(false)
 
   const sizeClasses = {
     sm: 'w-8 h-8 text-xs',
@@ -64,18 +59,19 @@ export function CompanyAvatar({
     lg: 'w-12 h-12 md:w-16 md:h-16 text-xl'
   }
 
-  const sourceFavicon = getSourceFavicon(source)
-  const primarySrc = sourceFavicon || logo || null
-
-  // If no primary source, start at clearbit level
-  const effectiveLevel = !primarySrc && fallbackLevel === 0 ? 1 : fallbackLevel
+  // Initial src: source favicon OR company_logo OR Clearbit
+  const primarySrc = getSourceFavicon(source) || logo || getClearbitLogoUrl(company)
 
   const handleError = () => {
-    setFallbackLevel(prev => prev + 1)
+    if (!triedFallback) {
+      setTriedFallback(true)
+    } else {
+      setShowInitials(true)
+    }
   }
 
   // Show initials
-  if (effectiveLevel >= 3) {
+  if (showInitials) {
     return (
       <div className={`rounded-full bg-white border border-neutral-200 flex items-center justify-center flex-shrink-0 overflow-hidden ${sizeClasses[size]} ${className}`}>
         <span className="font-medium text-neutral-400">{getInitials(company)}</span>
@@ -83,8 +79,8 @@ export function CompanyAvatar({
     )
   }
 
-  // Show Icon Horse favicon
-  if (effectiveLevel === 2) {
+  // Show Icon Horse (after first error)
+  if (triedFallback) {
     return (
       <div className={`rounded-full bg-white border border-neutral-200 flex items-center justify-center flex-shrink-0 overflow-hidden ${sizeClasses[size]} ${className}`}>
         <img
@@ -97,25 +93,11 @@ export function CompanyAvatar({
     )
   }
 
-  // Show clearbit logo
-  if (effectiveLevel === 1) {
-    return (
-      <div className={`rounded-full bg-white border border-neutral-200 flex items-center justify-center flex-shrink-0 overflow-hidden ${sizeClasses[size]} ${className}`}>
-        <img
-          src={getClearbitLogoUrl(company)}
-          alt={company}
-          className="w-full h-full object-contain"
-          onError={handleError}
-        />
-      </div>
-    )
-  }
-
-  // Show primary source (source favicon or company logo)
+  // Show primary (source favicon OR company_logo OR Clearbit)
   return (
     <div className={`rounded-full bg-white border border-neutral-200 flex items-center justify-center flex-shrink-0 overflow-hidden ${sizeClasses[size]} ${className}`}>
       <img
-        src={primarySrc!}
+        src={primarySrc}
         alt={company}
         className="w-full h-full object-contain"
         onError={handleError}
