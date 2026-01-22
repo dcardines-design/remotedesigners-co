@@ -2,12 +2,10 @@
 
 import Link from 'next/link'
 import React from 'react'
+import { useRouter } from 'next/navigation'
 import { trackEvent } from '@/components/analytics-provider'
+import { CompanyAvatar } from '@/components/company-avatar'
 import {
-  getInitials,
-  getCompanyLogoUrl,
-  getGoogleFaviconUrl,
-  getSourceFavicon,
   toTitleCase,
   getRegionChip,
   cleanJobTitle,
@@ -59,6 +57,7 @@ export function JobCard({
   variant = 'default',
   isSubscribed = true,
 }: JobCardProps) {
+  const router = useRouter()
   const isNew = isNewJob(job.posted_at)
   const timeAgo = formatTimeAgo(job.posted_at)
   const salary = formatSalary(job)
@@ -210,9 +209,11 @@ export function JobCard({
   const hiddenChips = allChips.slice(MAX_CHIPS)
   const remainingCount = hiddenChips.length
 
+  const jobUrl = `/jobs/${generateJobSlug(job.title, job.company, job.id)}`
+
   return (
-    <Link
-      href={`/jobs/${generateJobSlug(job.title, job.company, job.id)}`}
+    <div
+      onClick={() => router.push(jobUrl)}
       className={`block border rounded-xl p-5 relative hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08),0px_1px_2px_0px_rgba(0,0,0,0.05)] transition-all duration-200 cursor-pointer ${
         job.is_featured
           ? 'bg-amber-50 border-amber-200 hover:border-amber-300'
@@ -227,23 +228,12 @@ export function JobCard({
 
       <div className="flex flex-col gap-3 px-2 md:pl-3 md:pr-0 md:flex-row md:gap-4">
         {/* Company Avatar */}
-        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border border-neutral-200 flex items-center justify-center flex-shrink-0 overflow-hidden">
-          <img
-            src={getSourceFavicon(job.source || '') || job.company_logo || getCompanyLogoUrl(job.company)}
-            alt={job.company}
-            className="w-full h-full object-contain"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement
-              if (!target.dataset.triedFallback) {
-                target.dataset.triedFallback = 'true'
-                target.src = getGoogleFaviconUrl(job.company)
-              } else {
-                target.style.display = 'none'
-                target.parentElement!.innerHTML = `<span class="text-sm font-medium text-neutral-400">${getInitials(job.company)}</span>`
-              }
-            }}
-          />
-        </div>
+        <CompanyAvatar
+          company={job.company}
+          logo={job.company_logo}
+          source={job.source}
+          size="md"
+        />
 
         {/* Job Info */}
         <div className="flex-1 min-w-0">
@@ -375,6 +365,6 @@ export function JobCard({
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   )
 }

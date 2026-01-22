@@ -406,12 +406,12 @@ const getCompanyLogoUrl = (company: string): string => {
   return `https://logo.clearbit.com/${cleanName}.com`
 }
 
-// Google Favicon fallback for when Clearbit fails
-const getGoogleFaviconUrl = (company: string): string => {
+// Icon Horse favicon - reliable favicon service
+const getFaviconUrl = (company: string): string => {
   const cleanName = company.toLowerCase()
     .replace(/[^a-z0-9]/g, '')
     .replace(/\s+/g, '')
-  return `https://www.google.com/s2/favicons?domain=${cleanName}.com&sz=128`
+  return `https://icon.horse/icon/${cleanName}.com`
 }
 
 // For certain sources, use the source's favicon instead of company logo
@@ -1241,7 +1241,7 @@ function HomeContent() {
                             const target = e.target as HTMLImageElement
                             if (!target.dataset.triedFallback) {
                               target.dataset.triedFallback = 'true'
-                              target.src = getGoogleFaviconUrl(job.company)
+                              target.src = getFaviconUrl(job.company)
                             } else {
                               target.style.display = 'none'
                               target.parentElement!.innerHTML = `<span class="text-sm font-medium text-neutral-400">${getInitials(job.company)}</span>`
@@ -1326,12 +1326,10 @@ function HomeContent() {
                         className="w-full h-full object-contain"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement
-                          // Try Google Favicon as fallback before showing initials
                           if (!target.dataset.triedFallback) {
                             target.dataset.triedFallback = 'true'
-                            target.src = getGoogleFaviconUrl(job.company)
+                            target.src = getFaviconUrl(job.company)
                           } else {
-                            // Both Clearbit and Google failed, show initials
                             target.style.display = 'none'
                             target.parentElement!.innerHTML = `<span class="text-sm font-medium text-neutral-400">${getInitials(job.company)}</span>`
                           }
