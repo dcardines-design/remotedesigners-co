@@ -74,7 +74,7 @@ export async function DELETE(request: NextRequest) {
   }
 }
 
-// POST - Remove duplicate jobs
+// POST - Remove duplicate jobs (by apply_url AND title+company)
 export async function POST(request: NextRequest) {
   try {
     console.log('Starting job cleanup...')
@@ -83,40 +83,62 @@ export async function POST(request: NextRequest) {
     // Get all jobs
     const { data: allJobs, error: fetchError } = await supabase
       .from('jobs')
-      .select('id, apply_url, description, created_at')
-      .order('created_at', { ascending: false })
+      .select('id, title, company, apply_url, description, posted_at')
+      .order('posted_at', { ascending: true })
 
     if (fetchError || !allJobs) {
       throw fetchError || new Error('Failed to fetch jobs')
     }
 
-    // Group by apply_url to find duplicates
+    const idsToDelete = new Set<string>()
+
+    // Pass 1: Dedup by apply_url
     const byUrl = new Map<string, typeof allJobs>()
     for (const job of allJobs) {
+      if (!job.apply_url) continue
       const existing = byUrl.get(job.apply_url) || []
       existing.push(job)
       byUrl.set(job.apply_url, existing)
     }
 
-    // Find duplicates and determine which to delete
-    const idsToDelete: string[] = []
-    for (const [url, jobs] of Array.from(byUrl.entries())) {
+    for (const [, jobs] of Array.from(byUrl.entries())) {
       if (jobs.length > 1) {
-        // Keep the one with description, or the newest if both have/lack descriptions
         const withDesc = jobs.filter(j => j.description)
         const toKeep = withDesc.length > 0 ? withDesc[0] : jobs[0]
-        const toDelete = jobs.filter(j => j.id !== toKeep.id)
-        idsToDelete.push(...toDelete.map(j => j.id))
+        for (const j of jobs) {
+          if (j.id !== toKeep.id) idsToDelete.add(j.id)
+        }
       }
     }
 
-    console.log(`Found ${idsToDelete.length} duplicate jobs to delete`)
+    // Pass 2: Dedup by normalized title+company
+    const byTitleCompany = new Map<string, typeof allJobs>()
+    for (const job of allJobs) {
+      if (idsToDelete.has(job.id)) continue // Skip already marked
+      const key = `${job.title.trim().toLowerCase()}|||${job.company.trim().toLowerCase()}`
+      const existing = byTitleCompany.get(key) || []
+      existing.push(job)
+      byTitleCompany.set(key, existing)
+    }
+
+    for (const [, jobs] of Array.from(byTitleCompany.entries())) {
+      if (jobs.length > 1) {
+        const withDesc = jobs.filter(j => j.description)
+        const toKeep = withDesc.length > 0 ? withDesc[0] : jobs[0]
+        for (const j of jobs) {
+          if (j.id !== toKeep.id) idsToDelete.add(j.id)
+        }
+      }
+    }
+
+    const idsArray = Array.from(idsToDelete)
+    console.log(`Found ${idsArray.length} duplicate jobs to delete`)
 
     // Delete duplicates in batches
     let deleted = 0
     const batchSize = 50
-    for (let i = 0; i < idsToDelete.length; i += batchSize) {
-      const batch = idsToDelete.slice(i, i + batchSize)
+    for (let i = 0; i < idsArray.length; i += batchSize) {
+      const batch = idsArray.slice(i, i + batchSize)
       const { error } = await supabase
         .from('jobs')
         .delete()
