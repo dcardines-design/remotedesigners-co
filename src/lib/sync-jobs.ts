@@ -6,19 +6,41 @@ export async function syncJobs(jobs: NormalizedJob[], sourceName: string) {
   console.log(`Starting ${sourceName} sync...`)
   const supabase = createAdminSupabaseClient()
 
-  // Get existing jobs to check for duplicates (only last 30 days to reduce egress)
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
-  const { data: existingJobs } = await supabase
+  // Get existing jobs to check for duplicates
+  // Check by external_id (all time), apply_url (90 days), and title+company (90 days)
+  const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString()
+
+  // Get all external_ids for this source (no date filter to prevent re-inserts)
+  // Limit to 5000 to avoid query limits, ordered by newest first
+  const { data: existingBySource } = await supabase
     .from('jobs')
-    .select('id, external_id, apply_url')
-    .gte('posted_at', thirtyDaysAgo)
+    .select('id, external_id, apply_url, title, company')
+    .eq('source', sourceName)
+    .order('posted_at', { ascending: false })
+    .limit(5000)
+
+  // Get recent jobs for cross-source deduplication (by URL and title+company)
+  const { data: recentJobs } = await supabase
+    .from('jobs')
+    .select('id, external_id, apply_url, title, company')
+    .gte('posted_at', ninetyDaysAgo)
+
+  const existingJobs = [...(existingBySource || []), ...(recentJobs || [])]
 
   const existingById = new Map<string, { id: string; applyUrl: string }>()
   const existingByUrl = new Map<string, { id: string; applyUrl: string }>()
+  const existingByTitleCompany = new Map<string, { id: string; applyUrl: string }>()
+
+  const normalizeTitleCompany = (title: string, company: string) =>
+    `${title.trim().toLowerCase()}|||${company.trim().toLowerCase()}`
+
   for (const j of existingJobs || []) {
     const data = { id: j.id, applyUrl: j.apply_url || '' }
     if (j.external_id) existingById.set(j.external_id, data)
     if (j.apply_url) existingByUrl.set(j.apply_url, data)
+    if (j.title && j.company) {
+      existingByTitleCompany.set(normalizeTitleCompany(j.title, j.company), data)
+    }
   }
 
   // Transform to database format
@@ -46,14 +68,21 @@ export async function syncJobs(jobs: NormalizedJob[], sourceName: string) {
   const jobsToInsert: typeof allJobs = []
   const jobsToUpdate: Array<{ id: string; apply_url: string }> = []
 
+  // Also track title+company within this batch to prevent intra-batch duplicates
+  const batchTitleCompany = new Set<string>()
+
   for (const job of allJobs) {
     const existingByIdMatch = existingById.get(job.external_id)
     const existingByUrlMatch = existingByUrl.get(job.apply_url)
-    const existing = existingByIdMatch || existingByUrlMatch
+    const titleCompanyKey = normalizeTitleCompany(job.title, job.company)
+    const existingByTitleCompanyMatch = existingByTitleCompany.get(titleCompanyKey)
+    const existingInBatch = batchTitleCompany.has(titleCompanyKey)
+    const existing = existingByIdMatch || existingByUrlMatch || existingByTitleCompanyMatch || (existingInBatch ? { id: 'batch', applyUrl: '' } : null)
 
     if (!existing) {
       // New job - insert it
       jobsToInsert.push(job)
+      batchTitleCompany.add(titleCompanyKey)
     } else {
       // Existing job - check if apply_url should be updated to direct URL
       if (job.apply_url && job.apply_url !== existing.applyUrl) {
