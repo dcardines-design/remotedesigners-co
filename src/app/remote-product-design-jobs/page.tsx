@@ -55,7 +55,7 @@ export default async function Page() {
     .eq('is_active', true)
     .or(orConditions)
     .order('posted_at', { ascending: false })
-    .limit(50)
+    .limit(20)
 
   const { breadcrumbSchema, faqSchema } = generateStructuredData()
 
@@ -72,6 +72,7 @@ export default async function Page() {
         pageType="jobType"
         faqs={allFaqs}
         breadcrumbLabel="Product Design"
+      filterKeywords={page.filterKeywords}
       />
     </>
   )

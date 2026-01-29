@@ -53,7 +53,7 @@ export default async function Page() {
     .eq('is_active', true)
     .eq('experience_level', page.filterValue)
     .order('posted_at', { ascending: false })
-    .limit(50)
+    .limit(20)
 
   const { breadcrumbSchema, faqSchema } = generateStructuredData()
 
@@ -70,6 +70,7 @@ export default async function Page() {
         pageType="experienceLevel"
         faqs={allFaqs}
         breadcrumbLabel="Design Director"
+      experienceLevel={page.filterValue}
       />
     </>
   )

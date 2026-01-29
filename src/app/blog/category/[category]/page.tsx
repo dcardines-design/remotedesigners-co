@@ -32,7 +32,7 @@ async function getPostsByCategory(category: string): Promise<BlogPost[]> {
     .eq('status', 'published')
     .eq('category', category)
     .order('published_at', { ascending: false })
-    .limit(50)
+    .limit(20)
 
   if (error) {
     console.error('Error fetching posts by category:', error)

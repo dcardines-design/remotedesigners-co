@@ -36,7 +36,7 @@ export default async function Page() {
     .or(titleConditions)
     .or(locationConditions)
     .order('posted_at', { ascending: false })
-    .limit(50)
+    .limit(20)
 
   const jobTypeName = jobTypeConfig.h1.replace('Remote ', '').replace(' Jobs', '')
   const regionName = 'Worldwide'
@@ -52,6 +52,8 @@ export default async function Page() {
       faqs={allFaqs}
       breadcrumbLabel={regionName}
       parentPage={{ label: `${jobTypeName} Jobs`, href: `/remote-visual-design-jobs` }}
-    />
+    filterKeywords={jobTypeConfig.filterKeywords}
+        locationKeywords={regionConfig.locationKeywords}
+      />
   )
 }

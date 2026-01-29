@@ -206,15 +206,27 @@ interface SEOLandingPageProps {
   faqs?: FAQ[]
   breadcrumbLabel: string
   parentPage?: { label: string; href: string }
+  // Optional filter params for load more API calls
+  filterKeywords?: string[]
+  locationKeywords?: string[]
+  experienceLevel?: string
+  employmentType?: string
 }
 
-export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageType, faqs, breadcrumbLabel, parentPage }: SEOLandingPageProps) {
+export function SEOLandingPage({ h1, intro, jobs: initialJobs, totalCount, currentSlug, pageType, faqs, breadcrumbLabel, parentPage, filterKeywords, locationKeywords, experienceLevel, employmentType }: SEOLandingPageProps) {
   const router = useRouter()
   const { openLoginModal } = useSignupModal()
   const [isSubscribed, setIsSubscribed] = useState(false)
   const [savedJobs, setSavedJobs] = useState<Set<string>>(new Set())
   const [savingJobs, setSavingJobs] = useState<Set<string>>(new Set())
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  // Pagination state
+  const [jobs, setJobs] = useState(initialJobs)
+  const [page, setPage] = useState(1)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const JOBS_PER_PAGE = 20
+  const hasMore = jobs.length < totalCount
 
   // Check subscription status and fetch saved jobs
   useEffect(() => {
@@ -253,6 +265,47 @@ export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageT
     }
     checkSubscriptionAndSavedJobs()
   }, [])
+
+  // Load more jobs function
+  const loadMoreJobs = async () => {
+    if (loadingMore || !hasMore) return
+
+    setLoadingMore(true)
+    try {
+      const nextPage = page + 1
+
+      // Build API URL with filters
+      const params = new URLSearchParams({
+        page: nextPage.toString(),
+        limit: JOBS_PER_PAGE.toString(),
+      })
+
+      if (filterKeywords?.length) {
+        params.set('title_keywords', filterKeywords.join(','))
+      }
+      if (locationKeywords?.length) {
+        params.set('location_keywords', locationKeywords.join(','))
+      }
+      if (experienceLevel) {
+        params.set('experience', experienceLevel)
+      }
+      if (employmentType) {
+        params.set('type', employmentType)
+      }
+
+      const response = await fetch(`/api/jobs?${params.toString()}`)
+      const data = await response.json()
+
+      if (data.jobs?.length > 0) {
+        setJobs(prev => [...prev, ...data.jobs])
+        setPage(nextPage)
+      }
+    } catch (error) {
+      console.error('Error loading more jobs:', error)
+    } finally {
+      setLoadingMore(false)
+    }
+  }
 
   const handleSaveJob = async (e: React.MouseEvent, jobId: string) => {
     e.preventDefault()
@@ -403,7 +456,7 @@ export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageT
         </div>
 
         {/* Job Listings */}
-        <div className="space-y-4 mb-16">
+        <div className="space-y-4 mb-8">
           {jobs.length === 0 ? (
             <div className="border border-neutral-200 rounded-lg bg-white p-8 text-center">
               <p className="text-neutral-500">No jobs found yet. Check back soon!</p>
@@ -501,6 +554,19 @@ export function SEOLandingPage({ h1, intro, jobs, totalCount, currentSlug, pageT
             })
           )}
         </div>
+
+        {/* Load More Button - show for all users when there are more jobs */}
+        {hasMore && (
+          <div className="mb-16">
+            <button
+              onClick={loadMoreJobs}
+              disabled={loadingMore}
+              className="w-full border border-neutral-200 rounded-lg bg-white p-3 md:p-4 text-center text-sm md:text-base text-neutral-900 font-medium shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] hover:bg-neutral-50 hover:translate-y-[1px] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loadingMore ? 'Loading...' : 'Load more jobs'}
+            </button>
+          </div>
+        )}
 
         {/* FAQ Section */}
         {faqs && faqs.length > 0 && (

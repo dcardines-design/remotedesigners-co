@@ -53,7 +53,7 @@ export default async function Page() {
     .eq('is_active', true)
     .ilike('job_type', `%${page.filterValue}%`)
     .order('posted_at', { ascending: false })
-    .limit(50)
+    .limit(20)
 
   const { breadcrumbSchema, faqSchema } = generateStructuredData()
 
@@ -70,6 +70,7 @@ export default async function Page() {
         pageType="employmentType"
         faqs={allFaqs}
         breadcrumbLabel="Part-Time"
+      employmentType={page.filterValue}
       />
     </>
   )

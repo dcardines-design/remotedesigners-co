@@ -25,6 +25,7 @@ export type JobSource =
   | 'linkedin'
   | 'indeed'
   | 'ycombinator'
+  | 'rapidapi-remote'
 
 export interface NormalizedJob {
   id: string

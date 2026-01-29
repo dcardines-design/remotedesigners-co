@@ -84,7 +84,7 @@ Rules:
 
 export interface NormalizedJob {
   id: string
-  source: 'remotive' | 'remoteok' | 'arbeitnow' | 'jsearch' | 'himalayas' | 'jobicy' | 'greenhouse' | 'lever' | 'ashby' | 'adzuna' | 'authenticjobs' | 'workingnomads' | 'themuse' | 'glints' | 'tokyodev' | 'nodeflairsg' | 'jooble' | 'jobstreet' | 'kalibrr' | 'instahyre' | 'wantedly' | 'linkedin' | 'indeed' | 'ycombinator' | 'nodesk' | 'remoteco' | 'justremote' | 'weworkremotely' | 'mycareersfuture' | 'dribbble' | 'coroflot'
+  source: 'remotive' | 'remoteok' | 'arbeitnow' | 'jsearch' | 'himalayas' | 'jobicy' | 'greenhouse' | 'lever' | 'ashby' | 'adzuna' | 'authenticjobs' | 'workingnomads' | 'themuse' | 'glints' | 'tokyodev' | 'nodeflairsg' | 'jooble' | 'jobstreet' | 'kalibrr' | 'instahyre' | 'wantedly' | 'linkedin' | 'indeed' | 'ycombinator' | 'nodesk' | 'remoteco' | 'justremote' | 'weworkremotely' | 'mycareersfuture' | 'dribbble' | 'coroflot' | 'rapidapi-remote'
   title: string
   company: string
   company_logo?: string
@@ -1255,10 +1255,9 @@ export async function fetchMuseJobs(): Promise<NormalizedJob[]> {
       const jobs: MuseJob[] = data.results || []
 
       for (const job of jobs) {
-        // Check if it's a design job
+        // Check if it's a design job (title or category only - description is too loose)
         const isDesign = isDesignJob(job.name) ||
-          job.categories?.some(c => c.name.toLowerCase().includes('design')) ||
-          job.contents?.toLowerCase().includes('design')
+          job.categories?.some(c => c.name.toLowerCase().includes('design'))
 
         if (isDesign) {
           const location = job.locations?.[0]?.name || 'Remote'
@@ -2885,18 +2884,57 @@ export async function fetchRapidAPIRemoteJobs(): Promise<NormalizedJob[]> {
           .replace(/\s+/g, ' ')
           .trim()
 
-        // Extract company name from URL if not provided
-        let company = 'Unknown Company'
+        // Extract company name from URL
+        let company = ''
         if (job.url) {
-          const urlMatch = job.url.match(/https?:\/\/([^.]+)\./)
-          if (urlMatch) {
-            company = urlMatch[1]
-              .replace(/jobs?|careers?|boards?|greenhouse|lever|ashby|applytojob/gi, '')
-              .replace(/-/g, ' ')
-              .trim()
-            if (company) {
-              company = company.charAt(0).toUpperCase() + company.slice(1)
+          const url = job.url
+
+          // Try to extract from common job board URL patterns
+          // Lever: jobs.lever.co/companyname/...
+          const leverMatch = url.match(/jobs\.lever\.co\/([^\/]+)/)
+          // SmartRecruiters: jobs.smartrecruiters.com/CompanyName/...
+          const smartMatch = url.match(/jobs\.smartrecruiters\.com\/([^\/]+)/)
+          // Greenhouse: boards.greenhouse.io/companyname/...
+          const greenhouseMatch = url.match(/boards\.greenhouse\.io\/([^\/]+)/)
+          // Ashby: jobs.ashbyhq.com/companyname/...
+          const ashbyMatch = url.match(/jobs\.ashbyhq\.com\/([^\/]+)/)
+          // Workday: companyname.wd5.myworkdayjobs.com/...
+          const workdayMatch = url.match(/([^.]+)\.wd\d+\.myworkdayjobs\.com/)
+          // BambooHR: companyname.bamboohr.com/...
+          const bambooMatch = url.match(/([^.]+)\.bamboohr\.com/)
+          // ApplyToJob: companyname.applytojob.com/...
+          const applyToJobMatch = url.match(/([^.]+)\.applytojob\.com/)
+          // Generic subdomain: companyname.jobs/careers/etc
+          const subdomainMatch = url.match(/https?:\/\/([^.]+)\./)
+
+          if (leverMatch) {
+            company = leverMatch[1]
+          } else if (smartMatch) {
+            company = smartMatch[1]
+          } else if (greenhouseMatch) {
+            company = greenhouseMatch[1]
+          } else if (ashbyMatch) {
+            company = ashbyMatch[1]
+          } else if (workdayMatch) {
+            company = workdayMatch[1]
+          } else if (bambooMatch) {
+            company = bambooMatch[1]
+          } else if (applyToJobMatch) {
+            company = applyToJobMatch[1]
+          } else if (subdomainMatch) {
+            // Fallback: use subdomain but filter out generic ones
+            const subdomain = subdomainMatch[1].toLowerCase()
+            if (!['jobs', 'careers', 'boards', 'apply', 'www'].includes(subdomain)) {
+              company = subdomainMatch[1]
             }
+          }
+
+          // Clean up company name
+          if (company) {
+            company = company
+              .replace(/-/g, ' ')
+              .replace(/\b\w/g, c => c.toUpperCase()) // Title case
+              .trim()
           }
         }
 
@@ -2916,7 +2954,7 @@ export async function fetchRapidAPIRemoteJobs(): Promise<NormalizedJob[]> {
 
         jobs.push({
           id: `rapidapi-remote-${job.id}`,
-          source: 'remotive' as const, // Use existing source type
+          source: 'rapidapi-remote' as const,
           title: title,
           company: company,
           location: location,

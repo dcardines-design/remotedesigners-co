@@ -42,7 +42,7 @@ async function getBlogPosts(): Promise<BlogPost[]> {
     .select('id, slug, title, excerpt, category, tags, featured_image, featured_image_alt, published_at, reading_time_minutes')
     .eq('status', 'published')
     .order('published_at', { ascending: false })
-    .limit(50)
+    .limit(20)
 
   if (error) {
     console.error('Error fetching blog posts:', error)

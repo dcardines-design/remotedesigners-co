@@ -54,6 +54,7 @@ Base URL: `/api/cron/sync-indeed-query?region=XX&type=YY`
 | Job | URL | Schedule |
 |-----|-----|----------|
 | Daily Digest | /api/cron/daily-digest | 9:00 AM Manila |
+| Backfill Company Info | /api/cron/backfill-company-info | 2:00 AM Manila |
 
 ### Adding New Cron Jobs
 

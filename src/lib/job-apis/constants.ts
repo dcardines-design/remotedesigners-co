@@ -105,7 +105,27 @@ export const EXCLUDE_KEYWORDS = [
   'chief', 'officer', 'president', 'founder', 'co-founder',
   'consultant', 'advisor', 'strategist', 'coordinator',
   'assistant', 'intern', 'trainee', 'apprentice',
-  'mentor', 'coach', 'trainer'
+  'mentor', 'coach', 'trainer',
+
+  // Non-design industry roles
+  'defense', 'military', 'solution leader', 'solution architect',
+  'supply chain', 'procurement', 'logistics', 'warehouse',
+  'manufacturing', 'production manager', 'quality assurance',
+  'nurse', 'physician', 'therapist', 'pharmacist', 'clinical',
+  'electrical engineer', 'mechanical engineer', 'civil engineer',
+  'chemical engineer', 'industrial engineer',
+  'real estate', 'property manager', 'loan officer', 'underwriter',
+  'truck driver', 'driver', 'dispatcher', 'delivery',
+  'construction', 'plumber', 'electrician', 'hvac',
+  'janitor', 'custodian', 'maintenance', 'technician',
+  'cashier', 'retail', 'store manager', 'shift leader',
+]
+
+// Title MUST contain at least one of these keywords to be considered
+export const REQUIRED_TITLE_KEYWORDS = [
+  'design', 'designer', 'ux', 'ui', 'creative', 'graphic',
+  'visual', 'brand', 'illustration', 'illustrator', 'animator',
+  'motion', 'art director', 'figma', 'webflow', 'prototyp',
 ]
 
 // Specific patterns that strongly indicate design roles

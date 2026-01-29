@@ -56,10 +56,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     }
   }
 
-  const title = `${job.title} at ${job.company} - Remote Design Job`
+  const title = job.company
+    ? `${job.title} at ${job.company} - Remote Design Job`
+    : `${job.title} - Remote Design Job`
   const description = job.description
     ? job.description.slice(0, 160).replace(/<[^>]*>/g, '') + '...'
-    : `${job.title} position at ${job.company}. ${job.location}. Apply now on RemoteDesigners.co`
+    : job.company
+      ? `${job.title} position at ${job.company}. ${job.location}. Apply now on RemoteDesigners.co`
+      : `${job.title}. ${job.location}. Apply now on RemoteDesigners.co`
 
   return {
     title,
@@ -70,13 +74,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       type: 'website',
       url: `${BASE_URL}/jobs/${id}`,
       siteName: 'RemoteDesigners.co',
-      images: job.company_logo ? [{ url: job.company_logo, alt: job.company }] : undefined,
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: job.company_logo ? [job.company_logo] : undefined,
     },
     alternates: {
       canonical: `${BASE_URL}/jobs/${id}`,

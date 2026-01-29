@@ -3,6 +3,7 @@
 import type { AIJobCategorization } from './types'
 import {
   EXCLUDE_KEYWORDS,
+  REQUIRED_TITLE_KEYWORDS,
   DESIGN_TITLE_PATTERNS,
   CORE_DESIGN_TITLES,
   EXCLUDED_SKILL_TERMS,
@@ -19,6 +20,15 @@ export function isDesignJob(title: string, tags?: string[], description?: string
   )
 
   if (hasExcludedKeyword) {
+    return false
+  }
+
+  // Title must contain at least one design-related keyword
+  const hasRequiredKeyword = REQUIRED_TITLE_KEYWORDS.some(keyword =>
+    lowerTitle.includes(keyword.toLowerCase())
+  )
+
+  if (!hasRequiredKeyword) {
     return false
   }
 

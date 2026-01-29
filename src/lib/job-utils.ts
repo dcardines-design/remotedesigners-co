@@ -2,25 +2,25 @@
 
 export const getInitials = (company: string) => company.substring(0, 2).toUpperCase()
 
-// Generate company logo URL using Clearbit
+// Generate company logo URL using Clearbit (256px for retina displays)
 export const getCompanyLogoUrl = (company: string): string => {
   const cleanName = company.toLowerCase()
     .replace(/[^a-z0-9]/g, '')
     .replace(/\s+/g, '')
-  return `https://logo.clearbit.com/${cleanName}.com`
+  return `https://logo.clearbit.com/${cleanName}.com?size=256`
 }
 
-// Google Favicon fallback for when Clearbit fails
+// Google Favicon fallback for when Clearbit fails (256px for retina)
 export const getGoogleFaviconUrl = (company: string): string => {
   const cleanName = company.toLowerCase()
     .replace(/[^a-z0-9]/g, '')
     .replace(/\s+/g, '')
-  return `https://www.google.com/s2/favicons?domain=${cleanName}.com&sz=128`
+  return `https://www.google.com/s2/favicons?domain=${cleanName}.com&sz=256`
 }
 
 // For certain sources, use the source's favicon instead of company logo
 export const getSourceFavicon = (source: string): string | null => {
-  if (source === 'dribbble') return 'https://www.google.com/s2/favicons?domain=dribbble.com&sz=128'
+  if (source === 'dribbble') return 'https://www.google.com/s2/favicons?domain=dribbble.com&sz=256'
   return null
 }
 
