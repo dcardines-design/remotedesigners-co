@@ -118,7 +118,7 @@ function generateJobPostingSchema(job: Job) {
     validThrough: validThrough,
     hiringOrganization: {
       '@type': 'Organization',
-      name: job.company,
+      name: job.company || 'Company', // Fallback required by Google structured data
       ...(job.company_logo && { logo: job.company_logo }),
     },
     employmentType: job.job_type?.toUpperCase().replace('-', '_') || 'FULL_TIME',
