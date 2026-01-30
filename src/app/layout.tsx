@@ -71,9 +71,8 @@ export const metadata: Metadata = {
     description: 'Discover curated remote design jobs sourced from company career pages, YC startups, and top job boards.',
     images: [`${BASE_URL}/og-image.png`],
   },
-  alternates: {
-    canonical: BASE_URL,
-  },
+  // Note: Don't set a default canonical here - each page should set its own
+  // to avoid "Alternate page with proper canonical" errors in Search Console
 }
 
 // Structured data for Organization and WebSite
