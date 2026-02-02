@@ -84,7 +84,7 @@ Rules:
 
 export interface NormalizedJob {
   id: string
-  source: 'remotive' | 'remoteok' | 'arbeitnow' | 'jsearch' | 'himalayas' | 'jobicy' | 'greenhouse' | 'lever' | 'ashby' | 'adzuna' | 'authenticjobs' | 'workingnomads' | 'themuse' | 'glints' | 'tokyodev' | 'nodeflairsg' | 'jooble' | 'jobstreet' | 'kalibrr' | 'instahyre' | 'wantedly' | 'linkedin' | 'indeed' | 'ycombinator' | 'nodesk' | 'remoteco' | 'justremote' | 'weworkremotely' | 'mycareersfuture' | 'dribbble' | 'coroflot' | 'rapidapi-remote'
+  source: 'remotive' | 'remoteok' | 'arbeitnow' | 'jsearch' | 'himalayas' | 'jobicy' | 'greenhouse' | 'lever' | 'ashby' | 'adzuna' | 'authenticjobs' | 'workingnomads' | 'themuse' | 'glints' | 'tokyodev' | 'nodeflairsg' | 'jooble' | 'jobstreet' | 'kalibrr' | 'instahyre' | 'wantedly' | 'linkedin' | 'indeed' | 'ycombinator' | 'nodesk' | 'remoteco' | 'justremote' | 'weworkremotely' | 'mycareersfuture' | 'dribbble' | 'coroflot' | 'rapidapi-remote' | 'wellfound' | 'builtin' | 'simplyhired' | 'workable' | 'workatastartup'
   title: string
   company: string
   company_logo?: string
@@ -3656,3 +3656,600 @@ export async function fetchCoroflotJobs(): Promise<NormalizedJob[]> {
     return []
   }
 }
+
+// ============ WELLFOUND (AngelList) JOBS ============
+// Fetches startup jobs from Wellfound's public job listings
+
+export async function fetchWellfoundJobs(): Promise<NormalizedJob[]> {
+  try {
+    // Wellfound GraphQL API endpoint
+    const response = await fetch('https://wellfound.com/graphql', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'RemoteDesigners.co Job Aggregator',
+      },
+      body: JSON.stringify({
+        operationName: 'SearchJobs',
+        variables: {
+          query: 'designer',
+          locations: [],
+          remote: true,
+          page: 1,
+          perPage: 50,
+        },
+        query: `
+          query SearchJobs($query: String!, $remote: Boolean, $page: Int, $perPage: Int) {
+            talent {
+              jobSearchResults(query: $query, remote: $remote, page: $page, perPage: $perPage) {
+                jobs {
+                  id
+                  title
+                  slug
+                  remote
+                  description
+                  createdAt
+                  compensation
+                  startup {
+                    name
+                    logoUrl
+                    highConcept
+                  }
+                  locationNames
+                }
+              }
+            }
+          }
+        `,
+      }),
+    })
+
+    if (!response.ok) {
+      console.error('Wellfound API error:', response.status)
+      return []
+    }
+
+    const data = await response.json()
+    const jobs = data?.data?.talent?.jobSearchResults?.jobs || []
+
+    return jobs
+      .filter((job: any) => isDesignJob(job.title))
+      .map((job: any) => ({
+        id: `wellfound-${job.id}`,
+        source: 'wellfound' as const,
+        title: job.title,
+        company: job.startup?.name || 'Startup',
+        company_logo: job.startup?.logoUrl || undefined,
+        location: job.locationNames?.join(', ') || 'Remote',
+        salary_text: job.compensation || undefined,
+        description: job.description || job.startup?.highConcept || '',
+        job_type: 'full-time',
+        experience_level: parseExperienceLevel(job.title),
+        skills: extractSkills(job.description || ''),
+        apply_url: `https://wellfound.com/jobs/${job.slug}`,
+        posted_at: job.createdAt || new Date().toISOString(),
+        is_featured: false,
+      }))
+  } catch (error) {
+    console.error('Wellfound fetch error:', error)
+    return []
+  }
+}
+
+// ============ BUILTIN JOBS ============
+// Fetches tech company jobs from BuiltIn's RSS feed
+
+export async function fetchBuiltInJobs(): Promise<NormalizedJob[]> {
+  try {
+    // BuiltIn has RSS feeds for different categories
+    const response = await fetch('https://builtin.com/jobs/remote/design/feed', {
+      headers: {
+        'User-Agent': 'RemoteDesigners.co Job Aggregator',
+      },
+    })
+
+    if (!response.ok) {
+      // Try alternative endpoint
+      const altResponse = await fetch('https://builtin.com/jobs/design?remote=true', {
+        headers: {
+          'User-Agent': 'RemoteDesigners.co Job Aggregator',
+        },
+      })
+
+      if (!altResponse.ok) {
+        console.error('BuiltIn error:', altResponse.status)
+        return []
+      }
+
+      // Parse HTML for jobs if RSS not available
+      const html = await altResponse.text()
+      const jobs: NormalizedJob[] = []
+
+      // Extract job listings from HTML
+      const jobRegex = /<article[^>]*data-id="(\d+)"[^>]*>[\s\S]*?<\/article>/g
+      let match
+
+      while ((match = jobRegex.exec(html)) !== null) {
+        const article = match[0]
+        const id = match[1]
+
+        const titleMatch = article.match(/class="job-title[^"]*"[^>]*>([^<]+)</)
+        const companyMatch = article.match(/class="company-name[^"]*"[^>]*>([^<]+)</)
+        const locationMatch = article.match(/class="location[^"]*"[^>]*>([^<]+)</)
+        const linkMatch = article.match(/href="(\/jobs\/[^"]+)"/)
+
+        if (titleMatch && companyMatch) {
+          const title = titleMatch[1].trim()
+          if (!isDesignJob(title)) continue
+
+          jobs.push({
+            id: `builtin-${id}`,
+            source: 'builtin' as const,
+            title,
+            company: companyMatch[1].trim(),
+            location: locationMatch ? locationMatch[1].trim() : 'Remote',
+            description: '',
+            job_type: 'full-time',
+            experience_level: parseExperienceLevel(title),
+            skills: [],
+            apply_url: linkMatch ? `https://builtin.com${linkMatch[1]}` : `https://builtin.com/jobs/${id}`,
+            posted_at: new Date().toISOString(),
+            is_featured: false,
+          })
+        }
+      }
+
+      console.log(`BuiltIn: Fetched ${jobs.length} jobs from HTML`)
+      return jobs
+    }
+
+    const text = await response.text()
+    const jobs: NormalizedJob[] = []
+
+    // Parse RSS items
+    const itemRegex = /<item>([\s\S]*?)<\/item>/g
+    let match
+
+    while ((match = itemRegex.exec(text)) !== null) {
+      const item = match[1]
+
+      const titleMatch = item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) || item.match(/<title>(.*?)<\/title>/)
+      const linkMatch = item.match(/<link>(.*?)<\/link>/)
+      const descMatch = item.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/)
+      const pubDateMatch = item.match(/<pubDate>(.*?)<\/pubDate>/)
+      const guidMatch = item.match(/<guid[^>]*>(.*?)<\/guid>/)
+
+      if (!titleMatch || !linkMatch) continue
+
+      const fullTitle = titleMatch[1].trim()
+      const link = linkMatch[1].trim()
+
+      // Parse "Job Title at Company" format
+      let title = fullTitle
+      let company = 'Tech Company'
+
+      const atMatch = fullTitle.match(/^(.+?)\s+at\s+(.+)$/)
+      if (atMatch) {
+        title = atMatch[1].trim()
+        company = atMatch[2].trim()
+      }
+
+      if (!isDesignJob(title)) continue
+
+      const jobId = guidMatch ? guidMatch[1].split('/').pop() : link.split('/').pop()
+
+      jobs.push({
+        id: `builtin-${jobId}`,
+        source: 'builtin' as const,
+        title,
+        company,
+        company_logo: `https://logo.clearbit.com/${company.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+        location: 'Remote',
+        description: descMatch ? descMatch[1].replace(/<[^>]*>/g, '').trim() : '',
+        job_type: 'full-time',
+        experience_level: parseExperienceLevel(title),
+        skills: extractSkills(descMatch ? descMatch[1] : ''),
+        apply_url: link,
+        posted_at: pubDateMatch ? new Date(pubDateMatch[1]).toISOString() : new Date().toISOString(),
+        is_featured: false,
+      })
+    }
+
+    console.log(`BuiltIn: Fetched ${jobs.length} jobs from RSS`)
+    return jobs
+  } catch (error) {
+    console.error('BuiltIn fetch error:', error)
+    return []
+  }
+}
+
+// ============ SIMPLYHIRED JOBS ============
+// Fetches jobs from SimplyHired RSS feed
+
+export async function fetchSimplyHiredJobs(): Promise<NormalizedJob[]> {
+  try {
+    // SimplyHired RSS feed for remote design jobs
+    const response = await fetch(
+      'https://www.simplyhired.com/search?q=designer&l=remote&fdb=7&ws=remote&format=rss',
+      {
+        headers: {
+          'User-Agent': 'RemoteDesigners.co Job Aggregator',
+        },
+      }
+    )
+
+    if (!response.ok) {
+      console.error('SimplyHired error:', response.status)
+      return []
+    }
+
+    const text = await response.text()
+    const jobs: NormalizedJob[] = []
+
+    // Parse RSS items
+    const itemRegex = /<item>([\s\S]*?)<\/item>/g
+    let match
+
+    while ((match = itemRegex.exec(text)) !== null) {
+      const item = match[1]
+
+      const titleMatch = item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) || item.match(/<title>(.*?)<\/title>/)
+      const linkMatch = item.match(/<link>(.*?)<\/link>/)
+      const descMatch = item.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/)
+      const pubDateMatch = item.match(/<pubDate>(.*?)<\/pubDate>/)
+      const guidMatch = item.match(/<guid[^>]*>(.*?)<\/guid>/)
+
+      if (!titleMatch || !linkMatch) continue
+
+      const fullTitle = titleMatch[1].trim()
+      const link = linkMatch[1].trim()
+
+      // Parse "Job Title - Company - Location" format
+      let title = fullTitle
+      let company = 'Unknown Company'
+      let location = 'Remote'
+
+      const parts = fullTitle.split(' - ')
+      if (parts.length >= 2) {
+        title = parts[0].trim()
+        company = parts[1].trim()
+        if (parts.length >= 3) {
+          location = parts[2].trim()
+        }
+      }
+
+      if (!isDesignJob(title)) continue
+
+      const jobId = guidMatch ? guidMatch[1].split('/').pop() : link.split('/').pop() || Date.now().toString()
+
+      jobs.push({
+        id: `simplyhired-${jobId}`,
+        source: 'simplyhired' as const,
+        title,
+        company,
+        company_logo: `https://logo.clearbit.com/${company.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+        location,
+        description: descMatch ? descMatch[1].replace(/<[^>]*>/g, '').trim() : '',
+        job_type: 'full-time',
+        experience_level: parseExperienceLevel(title),
+        skills: extractSkills(descMatch ? descMatch[1] : ''),
+        apply_url: link,
+        posted_at: pubDateMatch ? new Date(pubDateMatch[1]).toISOString() : new Date().toISOString(),
+        is_featured: false,
+      })
+    }
+
+    console.log(`SimplyHired: Fetched ${jobs.length} jobs`)
+    return jobs
+  } catch (error) {
+    console.error('SimplyHired fetch error:', error)
+    return []
+  }
+}
+
+// ============ WORK AT A STARTUP (YC Official Job Board) ============
+// Fetches jobs from YC's official job board - workatastartup.com
+// These are direct applications to YC companies
+
+export async function fetchWorkAtAStartupJobs(): Promise<NormalizedJob[]> {
+  try {
+    // Work at a Startup has a public API endpoint
+    const response = await fetch('https://www.workatastartup.com/api/companies/search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'RemoteDesigners.co Job Aggregator',
+      },
+      body: JSON.stringify({
+        query: '',
+        page: 1,
+        per_page: 100,
+        filters: {
+          role: ['design'],
+          remote: true,
+        },
+      }),
+    })
+
+    if (!response.ok) {
+      // Fallback: Try the Algolia endpoint that powers the site
+      const algoliaResponse = await fetch(
+        'https://45bwzj1sgc-dsn.algolia.net/1/indexes/*/queries',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-algolia-api-key': 'NDYzYmNmMTRjNjQyNmVkNjNlMTQwOWI5N2ZhMzlhMjVjMGE4N2E3YjM2Mzk1NGIwMTllYTNlYzhlNmU5ZTgzM3RhZ0ZpbHRlcnM9JTVCJTIyaXNIaXJpbmclMjIlNUQ=',
+            'x-algolia-application-id': '45BWZJ1SGC',
+          },
+          body: JSON.stringify({
+            requests: [{
+              indexName: 'WaaSCompanies_production',
+              params: 'query=designer&filters=isHiring:true&hitsPerPage=100',
+            }],
+          }),
+        }
+      )
+
+      if (!algoliaResponse.ok) {
+        console.error('Work at a Startup API error:', algoliaResponse.status)
+        return []
+      }
+
+      const algoliaData = await algoliaResponse.json()
+      const companies = algoliaData.results?.[0]?.hits || []
+
+      const allJobs: NormalizedJob[] = []
+
+      for (const company of companies) {
+        // Each company may have multiple job openings
+        const jobs = company.jobs || []
+
+        for (const job of jobs) {
+          const title = job.title || ''
+
+          if (!isDesignJob(title)) continue
+
+          allJobs.push({
+            id: `workatastartup-${company.id}-${job.id || Date.now()}`,
+            source: 'workatastartup' as const,
+            title,
+            company: company.name || 'YC Startup',
+            company_logo: company.small_logo_url || company.logo_url || undefined,
+            location: job.remote ? 'Remote' : (job.location || 'San Francisco, CA'),
+            salary_min: job.salary_min || undefined,
+            salary_max: job.salary_max || undefined,
+            description: job.description || company.one_liner || '',
+            job_type: 'full-time',
+            experience_level: parseExperienceLevel(title),
+            skills: filterSkills(extractSkills(job.description || '')),
+            apply_url: `https://www.workatastartup.com/jobs/${job.id}`,
+            posted_at: job.created_at || new Date().toISOString(),
+            is_featured: false,
+          })
+        }
+      }
+
+      console.log(`Work at a Startup (Algolia): Fetched ${allJobs.length} design jobs`)
+      return allJobs
+    }
+
+    const data = await response.json()
+    const companies = data.companies || data.results || []
+
+    const allJobs: NormalizedJob[] = []
+
+    for (const company of companies) {
+      const jobs = company.jobs || company.job_listings || []
+
+      for (const job of jobs) {
+        const title = job.title || job.role || ''
+
+        if (!isDesignJob(title)) continue
+
+        allJobs.push({
+          id: `workatastartup-${company.id}-${job.id}`,
+          source: 'workatastartup' as const,
+          title,
+          company: company.name,
+          company_logo: company.small_logo_url || company.logo_url || undefined,
+          location: job.remote ? 'Remote' : (job.location || 'San Francisco, CA'),
+          salary_min: job.salary_min || undefined,
+          salary_max: job.salary_max || undefined,
+          description: job.description || company.one_liner || '',
+          job_type: 'full-time',
+          experience_level: parseExperienceLevel(title),
+          skills: filterSkills(extractSkills(job.description || '')),
+          apply_url: `https://www.workatastartup.com/jobs/${job.id}`,
+          posted_at: job.created_at || new Date().toISOString(),
+          is_featured: false,
+        })
+      }
+    }
+
+    console.log(`Work at a Startup: Fetched ${allJobs.length} design jobs`)
+    return allJobs
+  } catch (error) {
+    console.error('Work at a Startup fetch error:', error)
+    return []
+  }
+}
+
+// ============ WORKABLE ATS ============
+// Popular ATS used by many startups and mid-size companies
+// Direct apply URLs to company career pages
+
+export const WORKABLE_COMPANIES = [
+  // Design Tools & Creative
+  { name: 'Lottie', slug: 'lottiefiles' },
+  { name: 'Overflow', slug: 'overflow' },
+  { name: 'UXPin', slug: 'uxpin' },
+  { name: 'Marvel', slug: 'marvelapp' },
+  { name: 'Avocode', slug: 'avocode' },
+  { name: 'Icons8', slug: 'icons8' },
+  { name: 'Blush', slug: 'blush-design' },
+
+  // Tech Companies
+  { name: 'Toggl', slug: 'toggl' },
+  { name: 'Hotjar', slug: 'hotjar' },
+  { name: 'Algolia', slug: 'algolia' },
+  { name: 'Mailchimp', slug: 'mailchimp' },
+  { name: 'ConvertKit', slug: 'convertkit' },
+  { name: 'Buffer', slug: 'buffer' },
+  { name: 'Hootsuite', slug: 'hootsuite' },
+  { name: 'Later', slug: 'latermedia' },
+  { name: 'Sprout Social', slug: 'sproutsocial' },
+
+  // Productivity & SaaS
+  { name: 'Trainual', slug: 'trainual' },
+  { name: 'Process Street', slug: 'process-street' },
+  { name: 'Slite', slug: 'slite' },
+  { name: 'Tettra', slug: 'tettra' },
+  { name: 'Nuclino', slug: 'nuclino' },
+  { name: 'Slab', slug: 'slab' },
+  { name: 'Confluence', slug: 'atlassian' },
+
+  // E-commerce & Marketing
+  { name: 'Privy', slug: 'privy' },
+  { name: 'Klaviyo', slug: 'klaviyo' },
+  { name: 'Omnisend', slug: 'omnisend' },
+  { name: 'Drip', slug: 'drip' },
+  { name: 'ActiveCampaign', slug: 'activecampaign' },
+  { name: 'Customer.io', slug: 'customerio' },
+  { name: 'Segment', slug: 'segment' },
+
+  // Fintech
+  { name: 'Mollie', slug: 'mollie' },
+  { name: 'Adyen', slug: 'adyen' },
+  { name: 'GoCardless', slug: 'gocardless' },
+  { name: 'Checkout.com', slug: 'checkout' },
+  { name: 'Paysafe', slug: 'paysafe' },
+
+  // Health & Wellness
+  { name: 'Mindbody', slug: 'mindbody' },
+  { name: 'Gympass', slug: 'gympass' },
+  { name: 'ClassPass', slug: 'classpass' },
+  { name: 'Zwift', slug: 'zwift' },
+
+  // Developer Tools
+  { name: 'JetBrains', slug: 'jetbrains' },
+  { name: 'Docker', slug: 'docker' },
+  { name: 'DigitalOcean', slug: 'digitalocean' },
+  { name: 'Linode', slug: 'linode' },
+  { name: 'Vultr', slug: 'vultr' },
+  { name: 'Hetzner', slug: 'hetzner' },
+
+  // Remote-First Companies
+  { name: 'GitLab', slug: 'gitlab' },
+  { name: 'Automattic', slug: 'automattic' },
+  { name: 'Basecamp', slug: 'basecamp' },
+  { name: 'Doist', slug: 'doist' },
+  { name: 'Help Scout', slug: 'helpscout' },
+  { name: 'Close', slug: 'close' },
+  { name: 'Harvest', slug: 'harvest' },
+  { name: 'InVision', slug: 'invisionapp' },
+
+  // Design Agencies
+  { name: 'Toptal', slug: 'toptal' },
+  { name: 'Designlab', slug: 'designlab' },
+  { name: 'Dribbble', slug: 'dribbble' },
+  { name: 'Creative Market', slug: 'creativemarket' },
+  { name: 'Envato', slug: 'envato' },
+  { name: '99designs', slug: '99designs' },
+
+  // Media & Content
+  { name: 'Unsplash', slug: 'unsplash' },
+  { name: 'Pexels', slug: 'pexels' },
+  { name: 'Shutterstock', slug: 'shutterstock' },
+  { name: 'Getty Images', slug: 'gettyimages' },
+  { name: 'Adobe Stock', slug: 'adobestock' },
+
+  // More Tech Startups
+  { name: 'Notion', slug: 'notionlabs' },
+  { name: 'Pitch', slug: 'pitch' },
+  { name: 'Rows', slug: 'rows' },
+  { name: 'Coda', slug: 'coda' },
+  { name: 'Airtable', slug: 'airtable' },
+  { name: 'Monday.com', slug: 'monday' },
+  { name: 'ClickUp', slug: 'clickup' },
+  { name: 'Asana', slug: 'asana' },
+  { name: 'Wrike', slug: 'wrike' },
+  { name: 'Smartsheet', slug: 'smartsheet' },
+]
+
+export async function fetchWorkableJobs(companies?: { name: string; slug: string }[]): Promise<NormalizedJob[]> {
+  const targetCompanies = companies || WORKABLE_COMPANIES
+  console.log(`Fetching jobs from ${targetCompanies.length} Workable boards...`)
+  const allJobs: NormalizedJob[] = []
+
+  // Fetch all companies in parallel for speed
+  const results = await Promise.allSettled(
+    targetCompanies.map(async (company) => {
+      try {
+        // Workable public API endpoint
+        const response = await fetch(
+          `https://apply.workable.com/api/v1/widget/accounts/${company.slug}`,
+          {
+            headers: {
+              'Accept': 'application/json',
+              'User-Agent': 'RemoteDesigners.co Job Aggregator',
+            },
+          }
+        )
+
+        if (!response.ok) return []
+
+        const data = await response.json()
+        const jobs = data.jobs || []
+
+        const companyJobs: NormalizedJob[] = []
+
+        for (const job of jobs) {
+          const title = job.title || ''
+
+          // Only include design-related jobs
+          if (!isDesignJob(title)) continue
+
+          // Check if remote
+          const isRemote = job.remote ||
+            job.location?.toLowerCase().includes('remote') ||
+            job.workplace_type === 'remote'
+
+          companyJobs.push({
+            id: `workable-${company.slug}-${job.shortcode || job.id}`,
+            source: 'workable' as const,
+            title,
+            company: company.name,
+            company_logo: data.logo || `https://logo.clearbit.com/${company.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+            location: isRemote ? 'Remote' : (job.location || job.city || 'Unknown'),
+            description: job.description || '',
+            job_type: job.employment_type?.toLowerCase() || 'full-time',
+            experience_level: parseExperienceLevel(title),
+            skills: filterSkills(extractSkills(job.description || '')),
+            apply_url: `https://apply.workable.com/${company.slug}/j/${job.shortcode}/`,
+            posted_at: job.published_at || job.created_at || new Date().toISOString(),
+            is_featured: false,
+          })
+        }
+
+        return companyJobs
+      } catch (error) {
+        // Silently skip failed companies
+        return []
+      }
+    })
+  )
+
+  // Collect all jobs from successful fetches
+  for (const result of results) {
+    if (result.status === 'fulfilled') {
+      allJobs.push(...result.value)
+    }
+  }
+
+  console.log(`Workable: Found ${allJobs.length} design jobs`)
+  return allJobs
+}
+
+// Alias for batch fetching from routes
+export const fetchWorkableJobsForCompanies = fetchWorkableJobs

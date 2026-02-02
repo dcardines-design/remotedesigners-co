@@ -26,6 +26,17 @@ export type JobSource =
   | 'indeed'
   | 'ycombinator'
   | 'rapidapi-remote'
+  | 'dribbble'
+  | 'weworkremotely'
+  | 'coroflot'
+  | 'nodesk'
+  | 'justremote'
+  | 'wellfound'
+  | 'builtin'
+  | 'designjobs'
+  | 'simplyhired'
+  | 'workable'
+  | 'workatastartup'
 
 export interface NormalizedJob {
   id: string

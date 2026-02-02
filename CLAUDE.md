@@ -33,6 +33,13 @@ Folder ID: 55290
 | Asia 2 | /api/jobs/sync/asia-2 | Every hour :27 |
 | RapidAPI Remote | /api/jobs/sync/rapidapi-remote | Every hour :35 |
 
+#### Job Sync - Direct ATS Sources (NEW)
+| Job | URL | Schedule |
+|-----|-----|----------|
+| Work at a Startup (YC) | /api/jobs/sync/workatastartup | Every hour :37 |
+| Workable 1/2 | /api/jobs/sync/workable?batch=1 | Every hour :55 |
+| Workable 2/2 | /api/jobs/sync/workable?batch=2 | Every hour :57 |
+
 #### Indeed Regional Sync (Granular)
 Base URL: `/api/cron/sync-indeed-query?region=XX&type=YY`
 
