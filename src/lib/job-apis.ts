@@ -3952,125 +3952,79 @@ export async function fetchSimplyHiredJobs(): Promise<NormalizedJob[]> {
 // These are direct applications to YC companies
 
 export async function fetchWorkAtAStartupJobs(): Promise<NormalizedJob[]> {
+  const apiKey = process.env.RAPIDAPI_KEY
+  if (!apiKey) {
+    console.log('YC Jobs: No RapidAPI key configured, skipping')
+    return []
+  }
+
   try {
-    // Work at a Startup has a public API endpoint
-    const response = await fetch('https://www.workatastartup.com/api/companies/search', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'User-Agent': 'RemoteDesigners.co Job Aggregator',
-      },
-      body: JSON.stringify({
-        query: '',
-        page: 1,
-        per_page: 100,
-        filters: {
-          role: ['design'],
-          remote: true,
+    // Use RapidAPI YC Jobs endpoint - fetches from YC's job board
+    const response = await fetch(
+      'https://yc-jobs.p.rapidapi.com/active-jb-7d?title_filter=designer OR design OR UX OR UI OR creative&remote=true',
+      {
+        headers: {
+          'x-rapidapi-key': apiKey,
+          'x-rapidapi-host': 'yc-jobs.p.rapidapi.com',
         },
-      }),
-    })
+      }
+    )
 
     if (!response.ok) {
-      // Fallback: Try the Algolia endpoint that powers the site
-      const algoliaResponse = await fetch(
-        'https://45bwzj1sgc-dsn.algolia.net/1/indexes/*/queries',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-algolia-api-key': 'NDYzYmNmMTRjNjQyNmVkNjNlMTQwOWI5N2ZhMzlhMjVjMGE4N2E3YjM2Mzk1NGIwMTllYTNlYzhlNmU5ZTgzM3RhZ0ZpbHRlcnM9JTVCJTIyaXNIaXJpbmclMjIlNUQ=',
-            'x-algolia-application-id': '45BWZJ1SGC',
-          },
-          body: JSON.stringify({
-            requests: [{
-              indexName: 'WaaSCompanies_production',
-              params: 'query=designer&filters=isHiring:true&hitsPerPage=100',
-            }],
-          }),
-        }
-      )
-
-      if (!algoliaResponse.ok) {
-        console.error('Work at a Startup API error:', algoliaResponse.status)
-        return []
-      }
-
-      const algoliaData = await algoliaResponse.json()
-      const companies = algoliaData.results?.[0]?.hits || []
-
-      const allJobs: NormalizedJob[] = []
-
-      for (const company of companies) {
-        // Each company may have multiple job openings
-        const jobs = company.jobs || []
-
-        for (const job of jobs) {
-          const title = job.title || ''
-
-          if (!isDesignJob(title)) continue
-
-          allJobs.push({
-            id: `workatastartup-${company.id}-${job.id || Date.now()}`,
-            source: 'workatastartup' as const,
-            title,
-            company: company.name || 'YC Startup',
-            company_logo: company.small_logo_url || company.logo_url || undefined,
-            location: job.remote ? 'Remote' : (job.location || 'San Francisco, CA'),
-            salary_min: job.salary_min || undefined,
-            salary_max: job.salary_max || undefined,
-            description: job.description || company.one_liner || '',
-            job_type: 'full-time',
-            experience_level: parseExperienceLevel(title),
-            skills: filterSkills(extractSkills(job.description || '')),
-            apply_url: `https://www.workatastartup.com/jobs/${job.id}`,
-            posted_at: job.created_at || new Date().toISOString(),
-            is_featured: false,
-          })
-        }
-      }
-
-      console.log(`Work at a Startup (Algolia): Fetched ${allJobs.length} design jobs`)
-      return allJobs
+      console.error('YC Jobs API error:', response.status)
+      return []
     }
 
-    const data = await response.json()
-    const companies = data.companies || data.results || []
+    const jobs = await response.json()
+
+    if (!Array.isArray(jobs)) {
+      console.error('YC Jobs: Unexpected response format')
+      return []
+    }
 
     const allJobs: NormalizedJob[] = []
 
-    for (const company of companies) {
-      const jobs = company.jobs || company.job_listings || []
+    for (const job of jobs) {
+      const title = job.title || ''
 
-      for (const job of jobs) {
-        const title = job.title || job.role || ''
+      // Filter for design jobs
+      if (!isDesignJob(title)) continue
 
-        if (!isDesignJob(title)) continue
-
-        allJobs.push({
-          id: `workatastartup-${company.id}-${job.id}`,
-          source: 'workatastartup' as const,
-          title,
-          company: company.name,
-          company_logo: company.small_logo_url || company.logo_url || undefined,
-          location: job.remote ? 'Remote' : (job.location || 'San Francisco, CA'),
-          salary_min: job.salary_min || undefined,
-          salary_max: job.salary_max || undefined,
-          description: job.description || company.one_liner || '',
-          job_type: 'full-time',
-          experience_level: parseExperienceLevel(title),
-          skills: filterSkills(extractSkills(job.description || '')),
-          apply_url: `https://www.workatastartup.com/jobs/${job.id}`,
-          posted_at: job.created_at || new Date().toISOString(),
-          is_featured: false,
-        })
+      // Parse salary from salary_raw
+      let salaryMin: number | undefined
+      let salaryMax: number | undefined
+      if (job.salary_raw?.value) {
+        salaryMin = job.salary_raw.value.minValue
+        salaryMax = job.salary_raw.value.maxValue
       }
+
+      // Get location
+      const locations = job.locations_derived || []
+      const location = job.remote_derived ? 'Remote' : (locations[0] || 'San Francisco, CA')
+
+      allJobs.push({
+        id: `workatastartup-${job.id}`,
+        source: 'workatastartup' as const,
+        title,
+        company: job.organization || 'YC Startup',
+        company_logo: job.organization_logo || undefined,
+        location,
+        salary_min: salaryMin,
+        salary_max: salaryMax,
+        description: '', // RapidAPI doesn't include full description
+        job_type: job.employment_type?.includes('FULL_TIME') ? 'full-time' : 'contract',
+        experience_level: parseExperienceLevel(title),
+        skills: [],
+        apply_url: job.url || `https://www.ycombinator.com/companies/${job.organization?.toLowerCase().replace(/\s+/g, '-')}/jobs`,
+        posted_at: job.date_posted || new Date().toISOString(),
+        is_featured: false,
+      })
     }
 
-    console.log(`Work at a Startup: Fetched ${allJobs.length} design jobs`)
+    console.log(`YC Jobs (RapidAPI): Fetched ${allJobs.length} design jobs`)
     return allJobs
   } catch (error) {
-    console.error('Work at a Startup fetch error:', error)
+    console.error('YC Jobs fetch error:', error)
     return []
   }
 }
