@@ -568,6 +568,28 @@ export function SEOLandingPage({ h1, intro, jobs: initialJobs, totalCount, curre
           </div>
         )}
 
+        {/* Resume Builder CTA */}
+        <div className="mb-12">
+          <Link href="/resume-builder" className="block border border-neutral-200 rounded-xl px-6 py-5 bg-white hover:border-neutral-300 hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.05)] transition-all group">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-[52px] bg-white rounded border border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.06)] p-1.5 shrink-0 flex flex-col gap-[3px] transition-all group-hover:-translate-y-0.5 group-hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08)]">
+                <div className="w-3 h-[2px] bg-neutral-400 mx-auto rounded-full" />
+                <div className="w-full h-[1px] bg-neutral-200" />
+                <div className="w-full h-[1.5px] bg-neutral-300 rounded-full" />
+                <div className="w-3/4 h-[1.5px] bg-neutral-200 rounded-full" />
+                <div className="w-full h-[1px] bg-neutral-200" />
+                <div className="w-full h-[1.5px] bg-neutral-300 rounded-full" />
+                <div className="w-1/2 h-[1.5px] bg-neutral-200 rounded-full" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-neutral-900">Build your resume for free</p>
+                <p className="text-xs text-neutral-500 mt-0.5">3 ATS-optimized templates. Export to PDF instantly.</p>
+              </div>
+              <svg className="w-4 h-4 text-neutral-400 shrink-0 ml-auto transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+            </div>
+          </Link>
+        </div>
+
         {/* FAQ Section */}
         {faqs && faqs.length > 0 && (
           <FAQSection faqs={faqs} />

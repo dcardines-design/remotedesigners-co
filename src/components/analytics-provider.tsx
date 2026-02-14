@@ -164,4 +164,88 @@ export const trackEvent = {
       window.gtag?.('set', 'user_properties', traits)
     }
   },
+
+  // Newsletter signup
+  newsletterSignup: (location: string) => {
+    window.gtag?.('event', 'newsletter_signup', {
+      location,
+      email_domain: 'unknown', // Privacy: don't track actual email
+    })
+  },
+
+  // Job alert events
+  jobAlertCreated: (keywords: string[], frequency: string) => {
+    window.gtag?.('event', 'job_alert_created', {
+      keywords: keywords.join(','),
+      frequency,
+    })
+  },
+
+  jobAlertDeleted: (alertId: string) => {
+    window.gtag?.('event', 'job_alert_deleted', {
+      alert_id: alertId,
+    })
+  },
+
+  // Billing portal opened
+  billingPortalOpened: (plan: string) => {
+    window.gtag?.('event', 'billing_portal_opened', {
+      plan,
+    })
+  },
+
+  // Share job
+  shareJob: (jobId: string, jobTitle: string, method: string) => {
+    window.gtag?.('event', 'share_job', {
+      job_id: jobId,
+      job_title: jobTitle,
+      share_method: method,
+    })
+  },
+
+  // Scroll depth tracking
+  scrollDepth: (percent: number, pageType: string) => {
+    window.gtag?.('event', 'scroll_depth', {
+      percent,
+      page_type: pageType,
+    })
+  },
+
+  // Job impression (card viewed in viewport)
+  jobImpression: (jobId: string, position: number, pageType: string) => {
+    window.gtag?.('event', 'job_impression', {
+      job_id: jobId,
+      position,
+      page_type: pageType,
+    })
+  },
+
+  // Outbound click tracking
+  outboundClick: (url: string, linkText: string, context: string) => {
+    window.gtag?.('event', 'outbound_click', {
+      url,
+      link_text: linkText,
+      context,
+    })
+  },
+
+  // Resume builder
+  resumeBuilderPromoClick: () => {
+    window.gtag?.('event', 'resume_builder_promo_click', {
+      location: 'homepage_sidebar',
+    })
+  },
+  resumeBuilderView: () => {
+    window.gtag?.('event', 'resume_builder_view')
+  },
+  resumeBuilderExport: (template: string) => {
+    window.gtag?.('event', 'resume_builder_export', {
+      template,
+    })
+  },
+  resumeBuilderTemplateChange: (template: string) => {
+    window.gtag?.('event', 'resume_builder_template_change', {
+      template,
+    })
+  },
 }

@@ -372,6 +372,7 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
   const [openFaq, setOpenFaq] = useState<number>(0)
   const [isSaved, setIsSaved] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [copied, setCopied] = useState(false)
   const [similarJobs, setSimilarJobs] = useState<Job[]>([])
   const [userId, setUserId] = useState<string | null>(null)
   const [isSubscribed, setIsSubscribed] = useState(false)
@@ -725,29 +726,54 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
                   Apply now
                 </RainbowButton>
 
-                <button
-                  onClick={handleSaveJob}
-                  disabled={isSaving}
-                  className={`flex items-center justify-center gap-2 w-full px-4 py-2 md:px-6 md:py-3 rounded-lg text-sm md:text-base font-medium border transition-all ${
-                    isSaved
-                      ? 'bg-white text-neutral-700 border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]'
-                      : 'bg-white text-neutral-700 border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.05)] hover:translate-y-[1px]'
-                  } ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  <svg
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill={isSaved ? '#ef4444' : 'none'}
-                    stroke={isSaved ? '#ef4444' : 'currentColor'}
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSaveJob}
+                    disabled={isSaving}
+                    className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 md:px-6 md:py-3 rounded-lg text-sm md:text-base font-medium border transition-all ${
+                      isSaved
+                        ? 'bg-white text-neutral-700 border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)]'
+                        : 'bg-white text-neutral-700 border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.05)] hover:translate-y-[1px]'
+                    } ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
                   >
-                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-                  </svg>
-                  {isSaved ? 'Saved' : 'Save job'}
-                </button>
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill={isSaved ? '#ef4444' : 'none'}
+                      stroke={isSaved ? '#ef4444' : 'currentColor'}
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+                    </svg>
+                    {isSaved ? 'Saved' : 'Save'}
+                  </button>
+                  <button
+                    onClick={async () => {
+                      const url = window.location.href
+                      await navigator.clipboard.writeText(url)
+                      setCopied(true)
+                      trackEvent.shareJob(job.id, job.title, 'copy_link')
+                      setTimeout(() => setCopied(false), 2000)
+                    }}
+                    className="flex items-center justify-center gap-2 px-4 py-2 md:px-6 md:py-3 rounded-lg text-sm md:text-base font-medium border bg-white text-neutral-700 border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] hover:shadow-[0px_1px_0px_0px_rgba(0,0,0,0.05)] hover:translate-y-[1px] transition-all"
+                  >
+                    {copied ? (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 6L9 17l-5-5" />
+                      </svg>
+                    ) : (
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+                        <polyline points="16 6 12 2 8 6" />
+                        <line x1="12" y1="2" x2="12" y2="15" />
+                      </svg>
+                    )}
+                    {copied ? 'Copied!' : 'Share'}
+                  </button>
+                </div>
               </div>
 
               {/* Posted Date & Source */}
@@ -811,6 +837,28 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
           </div>
         </div>
       )}
+
+      {/* Resume Builder CTA */}
+      <div className="max-w-6xl mx-auto px-4 md:px-8 py-6">
+        <Link href="/resume-builder" className="block border border-neutral-200 rounded-xl px-6 py-5 bg-white hover:border-neutral-300 hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.05)] transition-all group">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-[52px] bg-white rounded border border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.06)] p-1.5 shrink-0 flex flex-col gap-[3px] transition-all group-hover:-translate-y-0.5 group-hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08)]">
+              <div className="w-3 h-[2px] bg-neutral-400 mx-auto rounded-full" />
+              <div className="w-full h-[1px] bg-neutral-200" />
+              <div className="w-full h-[1.5px] bg-neutral-300 rounded-full" />
+              <div className="w-3/4 h-[1.5px] bg-neutral-200 rounded-full" />
+              <div className="w-full h-[1px] bg-neutral-200" />
+              <div className="w-full h-[1.5px] bg-neutral-300 rounded-full" />
+              <div className="w-1/2 h-[1.5px] bg-neutral-200 rounded-full" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-neutral-900">Applying for this role? Build your resume first.</p>
+              <p className="text-xs text-neutral-500 mt-0.5">Free ATS-optimized resume builder with 3 designer-friendly templates.</p>
+            </div>
+            <svg className="w-4 h-4 text-neutral-400 shrink-0 ml-auto transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+          </div>
+        </Link>
+      </div>
 
       {/* CTA Card Section - Hidden for subscribed users */}
       {!isSubscribed && (

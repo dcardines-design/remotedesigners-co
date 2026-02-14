@@ -2,8 +2,9 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Input, Button, Checkbox, Select } from '@/components/ui'
-import { Plus, Trash2, Sparkles, Download, Eye, GripVertical, FileText, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Search, X, Upload, Palette } from 'lucide-react'
+import { Plus, Trash2, Sparkles, Download, Eye, GripVertical, FileText, Lightbulb, ChevronDown, ChevronLeft, ChevronRight, Search, X, Upload, Palette } from 'lucide-react'
 import { toast } from 'sonner'
+import { trackEvent } from '@/components/analytics-provider'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 import { isCompMember } from '@/lib/admin'
 import { useSignupModal } from '@/context/signup-modal-context'
@@ -136,11 +137,78 @@ const defaultProject: Project = {
   link: '',
 }
 
+const RESUME_FAQS = [
+  { question: 'Is this resume builder really free?', answer: 'Yes, 100% free. All 3 templates, the ATS score checker, and PDF export are free with no sign-up required.' },
+  { question: 'What does ATS-optimized mean?', answer: 'ATS (Applicant Tracking System) is software that companies use to scan and filter resumes before a human sees them. Our templates use clean formatting, standard section headings, and readable fonts so ATS can parse your resume correctly.' },
+  { question: 'Which template should I choose?', answer: 'Classic works well for most design roles. Modern is great if you want a contemporary look with accent colors. Minimal is ideal for senior designers who want the content to speak for itself.' },
+  { question: 'Can I use this for non-design roles?', answer: 'Yes. While our templates and tips are tailored for designers, the builder works for any profession. Just update the sections to fit your field.' },
+  { question: 'Is my data saved?', answer: 'Your resume data is saved locally in your browser. Nothing is sent to a server. If you clear your browser data, your resume will be lost — so always export a PDF copy.' },
+  { question: 'What file format does it export?', answer: 'PDF. The export matches exactly what you see in the preview, formatted for US Letter size (8.5 × 11 inches).' },
+]
+
+function ResumeBuilderFAQ() {
+  const [openFaq, setOpenFaq] = useState<number>(0)
+
+  return (
+    <div className="mb-8">
+      <h2 className="text-xl md:text-2xl font-medium text-neutral-900 mb-6 md:mb-8">Frequently Asked Questions</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 items-start">
+        {RESUME_FAQS.map((faq, index) => {
+          const isOpen = openFaq === index
+          return (
+            <button
+              key={index}
+              onClick={() => setOpenFaq(isOpen ? -1 : index)}
+              className="w-full border-t border-neutral-200 hover:bg-neutral-100/50 transition-colors duration-150 py-4 px-2 md:px-0 text-left"
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-neutral-900">{faq.question}</span>
+                <div className={`w-8 h-8 rounded-full border border-neutral-200 flex items-center justify-center flex-shrink-0 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`}>
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="transition-transform duration-150"
+                  >
+                    <path
+                      d="M3 7H11"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M7 3V11"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      className={`origin-center transition-transform duration-150 ${isOpen ? 'scale-y-0' : 'scale-y-100'}`}
+                    />
+                  </svg>
+                </div>
+              </div>
+              <div
+                className={`grid transition-all duration-150 ease-out ${isOpen ? 'grid-rows-[1fr] opacity-100 mt-2' : 'grid-rows-[0fr] opacity-0'}`}
+              >
+                <div className="overflow-hidden">
+                  <p className="text-neutral-600 pr-12">{faq.answer}</p>
+                </div>
+              </div>
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export default function ResumeBuilderPage() {
   const [activeTab, setActiveTab] = useState<'edit' | 'preview'>('edit')
   const [activeSection, setActiveSection] = useState<ActiveSection | null>('contact')
   const [isEnhancing, setIsEnhancing] = useState<string | null>(null)
   const [isSaving, setIsSaving] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
   const [hydrated, setHydrated] = useState(false)
   const resumeRef = useRef<HTMLDivElement>(null)
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -191,6 +259,29 @@ export default function ResumeBuilderPage() {
       }
     } catch {}
     setHydrated(true)
+  }, [])
+
+  // Make main navbar non-sticky on this page
+  useEffect(() => {
+    trackEvent.resumeBuilderView()
+    const nav = document.querySelector('nav.sticky')
+    if (nav) {
+      nav.classList.remove('sticky')
+      nav.classList.add('relative')
+    }
+    return () => {
+      if (nav) {
+        nav.classList.remove('relative')
+        nav.classList.add('sticky')
+      }
+    }
+  }, [])
+
+  // Track scroll for builder bar border
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
   // Check auth + subscription status
@@ -483,6 +574,7 @@ export default function ResumeBuilderPage() {
     const filename = personalInfo.fullName.trim()
       ? `${personalInfo.fullName.trim().replace(/\s+/g, '_')}_Resume.pdf`
       : 'Resume.pdf'
+    trackEvent.resumeBuilderExport(selectedTemplate)
     html2pdf()
       .set({
         margin: [0.5, 0.5, 0.5, 0.5],
@@ -1113,7 +1205,7 @@ export default function ResumeBuilderPage() {
                 ]).map((tmpl) => (
                   <button
                     key={tmpl.id}
-                    onClick={() => { setSelectedTemplate(tmpl.id); setTemplatePickerOpen(false) }}
+                    onClick={() => { setSelectedTemplate(tmpl.id); setTemplatePickerOpen(false); trackEvent.resumeBuilderTemplateChange(tmpl.id) }}
                     className={`w-24 rounded-lg border-2 p-2 transition-all ${
                       selectedTemplate === tmpl.id
                         ? 'border-neutral-900 shadow-sm'
@@ -1174,12 +1266,23 @@ export default function ResumeBuilderPage() {
   return (
     <div className="min-h-screen bg-neutral-50">
       {/* Header */}
-      <div className="bg-white border-b border-neutral-200 sticky top-0 z-50">
+      <div className={`bg-neutral-50 sticky top-0 z-50 border-b transition-all ${scrolled ? 'border-neutral-200 py-3' : 'border-transparent pt-4'}`}>
         <div className="max-w-6xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
               <h1 className="text-lg font-medium text-neutral-900">Resume Builder</h1>
-              <span className="text-xs text-neutral-400 bg-neutral-100 px-2 py-1 rounded-full">ATS-Optimized</span>
+              <div className="flex items-center gap-1.5">
+                <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2.5 py-1 rounded-full">
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
+                  ATS-Optimized
+                </span>
+                <span className="relative group">
+                  <span className="text-xs text-neutral-400 hover:text-neutral-600 cursor-help transition-colors">What&apos;s this?</span>
+                  <div className="absolute left-0 top-full mt-2 w-64 bg-neutral-900 text-white text-xs leading-relaxed rounded-lg px-3 py-2.5 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity z-50 shadow-lg">
+                    <span className="font-medium">ATS (Applicant Tracking System)</span> is software companies use to scan and filter resumes. This builder uses clean formatting that ATS can read correctly.
+                  </div>
+                </span>
+              </div>
             </div>
 
             <div className="flex items-center gap-3">
@@ -1214,7 +1317,7 @@ export default function ResumeBuilderPage() {
       </div>
 
       {/* Desktop: side-by-side layout */}
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 pt-12 pb-8">
         <div className="flex gap-8">
           {/* Left column: Accordion form */}
           <div className={`flex-1 min-w-0 space-y-3 ${activeTab === 'preview' ? 'hidden xl:block' : ''}`}>
@@ -1616,7 +1719,7 @@ export default function ResumeBuilderPage() {
           <div className={`xl:block xl:w-[480px] xl:shrink-0 ${activeTab === 'preview' ? 'block' : 'hidden'}`}>
             <div className="xl:sticky xl:top-24">
               <div className="p-3 bg-blue-50 rounded-lg border border-blue-100 flex items-start gap-2 mb-3">
-                <CheckCircle2 className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
+                <Lightbulb className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
                 <p className="text-xs text-blue-700 leading-relaxed">
                   <span className="font-medium text-blue-900">ATS Tip: </span>
                   {activeSection ? ATS_TIPS[activeSection] : ATS_TIPS.contact}
@@ -1637,6 +1740,39 @@ export default function ResumeBuilderPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* SEO Content Section */}
+      <div className="max-w-4xl mx-auto px-4 pt-16 pb-12">
+        <div className="mb-12">
+          <h2 className="text-xl md:text-2xl font-medium text-neutral-900 mb-4">Free Resume Builder for Designers</h2>
+          <div className="space-y-3 text-neutral-600 text-sm leading-relaxed">
+            <p>
+              Create a professional, ATS-optimized resume tailored for design roles. Whether you&apos;re a UI designer, UX researcher, product designer, or graphic designer, our free resume builder helps you stand out to both hiring managers and applicant tracking systems.
+            </p>
+            <p>
+              Choose from 3 templates — Classic, Modern, and Minimal — each designed with clean formatting that ATS software can parse correctly. Get a real-time resume score with actionable suggestions, then export a pixel-perfect PDF ready to submit.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          <div>
+            <h3 className="font-medium text-neutral-900 mb-1.5">ATS-Friendly Formatting</h3>
+            <p className="text-sm text-neutral-500 leading-relaxed">Standard section headings, readable fonts, and clean structure that applicant tracking systems can parse without errors.</p>
+          </div>
+          <div>
+            <h3 className="font-medium text-neutral-900 mb-1.5">Real-Time Resume Score</h3>
+            <p className="text-sm text-neutral-500 leading-relaxed">Get instant feedback on your resume&apos;s completeness with actionable tips to improve your chances of landing interviews.</p>
+          </div>
+          <div>
+            <h3 className="font-medium text-neutral-900 mb-1.5">One-Click PDF Export</h3>
+            <p className="text-sm text-neutral-500 leading-relaxed">Export a pixel-perfect PDF formatted for US Letter size. What you see in the preview is exactly what you get.</p>
+          </div>
+        </div>
+
+        {/* FAQ Section */}
+        <ResumeBuilderFAQ />
       </div>
 
       {/* Upgrade Modal */}
