@@ -1156,6 +1156,18 @@ function HomeContent() {
               </div>
             </Link>
 
+            {/* Resume Builder Promo */}
+            <Link href="/resume-builder" className="block border border-neutral-200 rounded-xl bg-neutral-50/20 p-8 hover:border-neutral-300 hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08),0px_1px_2px_0px_rgba(0,0,0,0.05)] transition-all duration-200 relative overflow-hidden group">
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-400/40 rounded-l-lg" />
+              <div className="text-center">
+                <p className="text-2xl mb-1">
+                  <span className="inline-block transition-transform group-hover:scale-110">&#9998;</span>
+                </p>
+                <p className="text-base text-neutral-900 font-medium">Free Resume Builder</p>
+                <p className="text-sm text-neutral-500 mt-1">ATS-optimized templates. Export to PDF in seconds.</p>
+              </div>
+            </Link>
+
             {/* Loading State */}
             {loading && (
               <>
