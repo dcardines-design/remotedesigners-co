@@ -1743,36 +1743,46 @@ export default function ResumeBuilderPage() {
       </div>
 
       {/* SEO Content Section */}
-      <div className="max-w-4xl mx-auto px-4 pt-16 pb-12">
-        <div className="mb-12">
-          <h2 className="text-xl md:text-2xl font-medium text-neutral-900 mb-4">Free Resume Builder for Designers</h2>
-          <div className="space-y-3 text-neutral-600 text-sm leading-relaxed">
-            <p>
-              Create a professional, ATS-optimized resume tailored for design roles. Whether you&apos;re a UI designer, UX researcher, product designer, or graphic designer, our free resume builder helps you stand out to both hiring managers and applicant tracking systems.
-            </p>
-            <p>
-              Choose from 3 templates — Classic, Modern, and Minimal — each designed with clean formatting that ATS software can parse correctly. Get a real-time resume score with actionable suggestions, then export a pixel-perfect PDF ready to submit.
+      <div className="border-t border-neutral-200">
+        <div className="max-w-4xl mx-auto px-4 pt-16 pb-12">
+          <div className="text-center mb-12">
+            <span className="text-[10px] text-neutral-400 uppercase tracking-widest">About this tool</span>
+            <h2 className="text-xl md:text-2xl font-medium text-neutral-900 mt-2 mb-3">Free Resume Builder for Designers</h2>
+            <p className="text-sm text-neutral-500 leading-relaxed max-w-2xl mx-auto">
+              Create a professional, ATS-optimized resume tailored for design roles. Whether you&apos;re a UI designer, UX researcher, product designer, or graphic designer, stand out to both hiring managers and applicant tracking systems.
             </p>
           </div>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <div>
-            <h3 className="font-medium text-neutral-900 mb-1.5">ATS-Friendly Formatting</h3>
-            <p className="text-sm text-neutral-500 leading-relaxed">Standard section headings, readable fonts, and clean structure that applicant tracking systems can parse without errors.</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8">
+            <div className="bg-white border border-neutral-200 rounded-xl p-5 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.04)]">
+              <div className="text-xl mb-2">✅</div>
+              <h3 className="font-semibold text-neutral-900 mb-1">ATS-Friendly Formatting</h3>
+              <p className="text-sm text-neutral-500">Standard section headings, readable fonts, and clean structure that ATS can parse without errors.</p>
+            </div>
+            <div className="bg-white border border-neutral-200 rounded-xl p-5 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.04)]">
+              <div className="text-xl mb-2">📊</div>
+              <h3 className="font-semibold text-neutral-900 mb-1">Real-Time Resume Score</h3>
+              <p className="text-sm text-neutral-500">Instant feedback on completeness with actionable tips to improve your chances of landing interviews.</p>
+            </div>
+            <div className="bg-white border border-neutral-200 rounded-xl p-5 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.04)]">
+              <div className="text-xl mb-2">📄</div>
+              <h3 className="font-semibold text-neutral-900 mb-1">One-Click PDF Export</h3>
+              <p className="text-sm text-neutral-500">Pixel-perfect PDF formatted for US Letter. What you see in the preview is exactly what you get.</p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-medium text-neutral-900 mb-1.5">Real-Time Resume Score</h3>
-            <p className="text-sm text-neutral-500 leading-relaxed">Get instant feedback on your resume&apos;s completeness with actionable tips to improve your chances of landing interviews.</p>
-          </div>
-          <div>
-            <h3 className="font-medium text-neutral-900 mb-1.5">One-Click PDF Export</h3>
-            <p className="text-sm text-neutral-500 leading-relaxed">Export a pixel-perfect PDF formatted for US Letter size. What you see in the preview is exactly what you get.</p>
-          </div>
-        </div>
 
-        {/* FAQ Section */}
-        <ResumeBuilderFAQ />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 text-sm text-neutral-500 leading-relaxed mb-16 border-t border-neutral-100 pt-10">
+            <p>
+              Choose from 3 templates: Classic, Modern, and Minimal, each designed with clean formatting that ATS software can parse correctly. Get a real-time resume score with actionable suggestions, then export a pixel-perfect PDF ready to submit.
+            </p>
+            <p>
+              Your data stays in your browser. Nothing is sent to a server. Build your resume in minutes, export it, and start applying to remote design jobs with confidence.
+            </p>
+          </div>
+
+          {/* FAQ Section */}
+          <ResumeBuilderFAQ />
+        </div>
       </div>
 
       {/* Upgrade Modal */}
