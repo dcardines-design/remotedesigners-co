@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { trackEvent } from '@/components/analytics-provider'
 
 // Export height constant for other components
 export const NEWSLETTER_BAR_HEIGHT = 56
@@ -56,6 +57,8 @@ export function NewsletterBar() {
         setStatus('success')
         setMessage(data.message || 'Successfully subscribed!')
         setEmail('')
+        // Track newsletter signup
+        trackEvent.newsletterSignup('footer')
         // Auto-hide after success
         setTimeout(() => handleDismiss(), 3000)
       } else {

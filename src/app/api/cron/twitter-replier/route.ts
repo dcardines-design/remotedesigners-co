@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
     }
 
     let tweetsPosted = 0
-    const results: Array<{ jobId: string; title: string; success: boolean }> = []
+    const results: Array<{ jobId: string; title: string; success: boolean; error?: string }> = []
 
     for (const job of jobs) {
       if (tweetsPosted >= MAX_TWEETS_PER_RUN) break
@@ -46,9 +46,9 @@ export async function GET(request: NextRequest) {
       if (!tweet) continue
 
       // Post it
-      const tweetId = await postTweet(client, tweet)
+      const result = await postTweet(client, tweet)
 
-      if (tweetId) {
+      if ('id' in result) {
         await recordTweet(job.id, tweet)
         tweetsPosted++
         console.log(`[Twitter Bot] Tweeted: ${job.title} at ${job.company}`)
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
           await new Promise(resolve => setTimeout(resolve, TWEET_SPACING_MS))
         }
       } else {
-        results.push({ jobId: job.id, title: `${job.title} at ${job.company}`, success: false })
+        results.push({ jobId: job.id, title: `${job.title} at ${job.company}`, success: false, error: result.error })
       }
     }
 

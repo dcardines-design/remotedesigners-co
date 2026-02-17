@@ -7,6 +7,7 @@ import { Bell, Pause, Play, Pencil, Trash2, Plus, Clock, Sparkles } from 'lucide
 import { toast } from 'sonner'
 import { PersonalizedAlertsModal } from '@/components/ui/personalized-alerts-modal'
 import { RainbowButton } from '@/components/ui'
+import { trackEvent } from '@/components/analytics-provider'
 
 // Job type labels for display
 const JOB_TYPE_LABELS: Record<string, { label: string; emoji: string }> = {
@@ -120,6 +121,7 @@ export default function AlertsPage() {
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete your job alert?')) return
     setActionLoading(true)
+    const alertId = alertData?.alert?.id
 
     try {
       const res = await fetch('/api/alerts', { method: 'DELETE' })
@@ -134,6 +136,10 @@ export default function AlertsPage() {
           </div>
         ),
       })
+      // Track alert deletion
+      if (alertId) {
+        trackEvent.jobAlertDeleted(alertId)
+      }
       fetchAlerts()
     } catch {
       toast.error('Failed to delete alert')

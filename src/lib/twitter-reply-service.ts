@@ -92,13 +92,15 @@ export function generateTweet(job: JobForTweet): string {
   return `✨ HIRING DESIGNER ✨\n${jobLine}\n📍 ${job.location}${salary}\nApply → ${jobUrl}\n${hashtags}`
 }
 
-export async function postTweet(client: TwitterApi, tweet: string): Promise<string | null> {
+export async function postTweet(client: TwitterApi, tweet: string): Promise<{ id: string } | { error: string }> {
   try {
     const result = await client.v2.tweet(tweet)
-    return result.data.id
-  } catch (error) {
-    console.error('[Twitter] Failed to post tweet:', error)
-    return null
+    return { id: result.data.id }
+  } catch (error: unknown) {
+    const err = error as { code?: number; message?: string; data?: { detail?: string } }
+    const errorMsg = err.data?.detail || err.message || 'Unknown error'
+    console.error('[Twitter] Failed to post tweet:', errorMsg)
+    return { error: errorMsg }
   }
 }
 

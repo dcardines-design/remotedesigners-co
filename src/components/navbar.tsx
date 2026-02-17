@@ -10,6 +10,7 @@ import { Button, RainbowButton, PersonalizedAlertsModal } from '@/components/ui'
 import { Bell, ArrowUpRight, Menu, X, Briefcase, LogIn, Bookmark, FileText, LogOut, Sparkles, Newspaper } from 'lucide-react'
 import { useSignupModal } from '@/context/signup-modal-context'
 import { isCompMember } from '@/lib/admin'
+import { trackEvent } from '@/components/analytics-provider'
 
 function UserDropdown({ email, onSignOut, showBilling, billingUrl, isMember }: {
   email: string
@@ -83,7 +84,10 @@ function UserDropdown({ email, onSignOut, showBilling, billingUrl, isMember }: {
                 href={billingUrl || '/api/stripe/portal'}
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  setOpen(false)
+                  trackEvent.billingPortalOpened('active')
+                }}
                 className="flex items-center justify-between w-full px-3 py-2 text-left text-sm text-neutral-700 hover:bg-neutral-50 transition-colors"
               >
                 Manage Billing
@@ -289,6 +293,9 @@ export function Navbar() {
                 priority
               />
             </Link>
+            <Button variant="ghost" size="sm" className="hidden md:inline-flex" onClick={() => window.location.href = '/resume-builder'}>
+              Free Resume Builder
+            </Button>
             <Button variant="ghost" size="sm" className="hidden md:inline-flex" onClick={() => window.location.href = '/blog'}>
               Blog
             </Button>
@@ -389,8 +396,16 @@ export function Navbar() {
               </div>
             )}
 
-            {/* Blog link at top */}
-            <div className="px-4 pt-4">
+            {/* Top links */}
+            <div className="px-4 pt-4 space-y-3">
+              <Link
+                href="/resume-builder"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-2 w-full px-4 py-3 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[1px] active:shadow-none transition-all"
+              >
+                <FileText className="w-4 h-4 text-neutral-400" />
+                Free Resume Builder
+              </Link>
               <Link
                 href="/blog"
                 onClick={() => setMobileMenuOpen(false)}
@@ -454,7 +469,10 @@ export function Navbar() {
                       href={billingUrl || '/api/stripe/portal'}
                       target="_blank"
                       rel="noopener noreferrer"
-                      onClick={() => setMobileMenuOpen(false)}
+                      onClick={() => {
+                        setMobileMenuOpen(false)
+                        trackEvent.billingPortalOpened('active')
+                      }}
                       className="flex items-center justify-between w-full px-4 py-3 text-sm font-medium text-neutral-700 bg-white border border-neutral-200 rounded-lg shadow-[0px_2px_0px_0px_rgba(0,0,0,0.05)] active:translate-y-[1px] active:shadow-none transition-all"
                     >
                       Manage Billing

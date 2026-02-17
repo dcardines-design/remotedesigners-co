@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Input, RainbowButton } from '@/components/ui'
 import { toast } from 'sonner'
+import { trackEvent } from '@/components/analytics-provider'
 
 // Job type options with emojis
 const JOB_TYPE_OPTIONS = [
@@ -248,6 +249,11 @@ export function PersonalizedAlertsModal({
           </div>
         ),
       })
+      // Track job alert creation
+      if (!isUpdate) {
+        const keywords = [...jobTypes, ...locations]
+        trackEvent.jobAlertCreated(keywords, isMember ? 'daily' : 'weekly')
+      }
       onClose()
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Something went wrong')

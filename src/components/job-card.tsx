@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import React from 'react'
+import React, { useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { trackEvent } from '@/components/analytics-provider'
 import { CompanyAvatar } from '@/components/company-avatar'
@@ -46,6 +46,8 @@ interface JobCardProps {
   showActions?: boolean
   variant?: 'default' | 'simple'
   isSubscribed?: boolean
+  position?: number
+  pageType?: string
 }
 
 export function JobCard({
@@ -56,9 +58,32 @@ export function JobCard({
   showActions = true,
   variant = 'default',
   isSubscribed = true,
+  position = 0,
+  pageType = 'unknown',
 }: JobCardProps) {
   const router = useRouter()
+  const cardRef = useRef<HTMLDivElement>(null)
+  const hasTrackedImpression = useRef(false)
   const isNew = isNewJob(job.posted_at)
+
+  // Track job impression when card enters viewport
+  useEffect(() => {
+    const currentRef = cardRef.current
+    if (!currentRef) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasTrackedImpression.current) {
+          trackEvent.jobImpression(job.id, position, pageType)
+          hasTrackedImpression.current = true
+        }
+      },
+      { threshold: 0.5 }
+    )
+
+    observer.observe(currentRef)
+    return () => observer.disconnect()
+  }, [job.id, position, pageType])
   const timeAgo = formatTimeAgo(job.posted_at)
   const salary = formatSalary(job)
   const remote = isRemoteJob(job.location)
@@ -213,6 +238,7 @@ export function JobCard({
 
   return (
     <div
+      ref={cardRef}
       onClick={() => router.push(jobUrl)}
       className={`block border rounded-xl p-5 relative hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08),0px_1px_2px_0px_rgba(0,0,0,0.05)] transition-all duration-200 cursor-pointer ${
         job.is_featured

@@ -113,6 +113,14 @@ export function Footer() {
             </ul>
           </div>
 
+          {/* Free Tools */}
+          <div>
+            <h3 className="text-white text-sm font-medium mb-4">Free Tools</h3>
+            <ul className="space-y-2 text-sm">
+              <li><Link href="/resume-builder" className="hover:text-white transition-colors">Free Resume Builder</Link></li>
+            </ul>
+          </div>
+
           {/* Company */}
           <div>
             <h3 className="text-white text-sm font-medium mb-4">Company</h3>

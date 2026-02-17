@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     let resumeText = ''
     if (file.type === 'application/pdf' || file.name.endsWith('.pdf')) {
       try {
-        const { text } = await extractText(buffer, { mergePages: true })
+        const { text } = await extractText(new Uint8Array(buffer), { mergePages: true })
         resumeText = text
       } catch (pdfError) {
         console.error('PDF parsing error:', pdfError)
