@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Input, Button, Checkbox, Select } from '@/components/ui'
-import { Plus, Trash2, Sparkles, Download, Eye, GripVertical, FileText, Lightbulb, ChevronDown, ChevronLeft, ChevronRight, Search, X, Upload, Palette } from 'lucide-react'
+import { Plus, Trash2, Sparkles, Download, Eye, GripVertical, FileText, Lightbulb, ChevronDown, ChevronLeft, ChevronRight, Search, X, Upload, Palette, CheckCircle2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { trackEvent } from '@/components/analytics-provider'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
