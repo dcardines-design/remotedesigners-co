@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { notFound } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import { extractIdFromSlug } from '@/lib/slug'
 import JobDetailClient from './JobDetailClient'
@@ -39,6 +40,7 @@ async function getJob(slug: string): Promise<Job | null> {
     .from('jobs')
     .select('id, title, company, company_logo, location, salary_min, salary_max, salary_text, description, job_type, experience_level, skills, apply_url, source, external_id, posted_at, is_featured, is_active, is_sticky, sticky_until, is_rainbow')
     .eq('id', jobId)
+    .eq('is_active', true)
     .single()
 
   if (error || !data) return null
@@ -50,10 +52,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const job = await getJob(id)
 
   if (!job) {
-    return {
-      title: 'Job Not Found',
-      description: 'This job listing is no longer available.',
-    }
+    notFound()
   }
 
   const title = job.company
@@ -166,17 +165,19 @@ export default async function JobDetailPage({ params }: { params: Promise<{ id: 
   const { id } = await params
   const job = await getJob(id)
 
-  const jsonLd = job ? generateJobPostingSchema(job) : null
+  if (!job) {
+    notFound()
+  }
+
+  const jsonLd = generateJobPostingSchema(job)
 
   return (
     <>
-      {jsonLd && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
-      )}
-      <JobDetailClient initialJob={job} error={job ? undefined : 'Job not found'} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <JobDetailClient initialJob={job} />
     </>
   )
 }
