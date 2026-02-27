@@ -11,6 +11,7 @@ import { FREE_JOBS_LIMIT } from '@/lib/stripe'
 import { isCompMember } from '@/lib/admin'
 import { toast } from 'sonner'
 import { useSignupModal } from '@/context/signup-modal-context'
+import { ResumeBuilderCTA } from './resume-builder-cta'
 import type { LandingPageStats } from './seo-landing-stats'
 
 // Helper functions
@@ -579,24 +580,7 @@ export function SEOLandingPage({ h1, intro, jobs: initialJobs, totalCount, curre
 
         {/* Resume Builder CTA */}
         <div className="mb-12">
-          <Link href="/resume-builder" className="block border border-neutral-200 rounded-xl px-6 py-5 bg-white hover:border-neutral-300 hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.05)] transition-all group">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-[52px] bg-white rounded border border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.06)] p-1.5 shrink-0 flex flex-col gap-[3px] transition-all group-hover:-translate-y-0.5 group-hover:shadow-[0px_4px_0px_0px_rgba(0,0,0,0.08)]">
-                <div className="w-3 h-[2px] bg-neutral-400 mx-auto rounded-full" />
-                <div className="w-full h-[1px] bg-neutral-200" />
-                <div className="w-full h-[1.5px] bg-neutral-300 rounded-full" />
-                <div className="w-3/4 h-[1.5px] bg-neutral-200 rounded-full" />
-                <div className="w-full h-[1px] bg-neutral-200" />
-                <div className="w-full h-[1.5px] bg-neutral-300 rounded-full" />
-                <div className="w-1/2 h-[1.5px] bg-neutral-200 rounded-full" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-neutral-900">Build your resume for free</p>
-                <p className="text-xs text-neutral-500 mt-0.5">3 ATS-optimized templates. Export to PDF instantly.</p>
-              </div>
-              <svg className="w-4 h-4 text-neutral-400 shrink-0 ml-auto transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-            </div>
-          </Link>
+          <ResumeBuilderCTA />
         </div>
 
         {/* FAQ Section */}
@@ -606,13 +590,60 @@ export function SEOLandingPage({ h1, intro, jobs: initialJobs, totalCount, curre
 
         {/* Stats - server-rendered for SEO */}
         {stats && stats.totalCount > 0 && (
-          <div className="border-t border-neutral-200 pt-8 mb-8 text-sm text-neutral-500 space-y-2">
-            <p>{stats.totalCount.toLocaleString()} open positions{stats.salaryMin && stats.salaryMax ? ` · Salary range: ${formatSalaryShort(stats.salaryMin)} – ${formatSalaryShort(stats.salaryMax)}/yr` : ''}{stats.postedThisWeek > 0 ? ` · ${stats.postedThisWeek} new this week` : ''}</p>
+          <div className="space-y-3 mb-8">
+            {/* Open positions */}
+            <div className="border border-neutral-200 rounded-xl px-5 py-4 bg-white">
+              <div className="flex items-center gap-3 relative">
+                <div className="bg-white rounded-lg border border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.06)] shrink-0 flex items-center justify-center w-14 h-14">
+                  <svg className="w-5 h-5 text-neutral-400" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M18.375 2.25c-1.035 0-1.875.84-1.875 1.875v15.75c0 1.035.84 1.875 1.875 1.875h.75c1.035 0 1.875-.84 1.875-1.875V4.125c0-1.036-.84-1.875-1.875-1.875h-.75zM9.75 8.625c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-.75a1.875 1.875 0 01-1.875-1.875V8.625zM3 13.125c0-1.036.84-1.875 1.875-1.875h.75c1.036 0 1.875.84 1.875 1.875v6.75c0 1.035-.84 1.875-1.875 1.875h-.75A1.875 1.875 0 013 19.875v-6.75z" />
+                  </svg>
+                </div>
+                <div className="min-w-0 flex flex-col gap-1">
+                  <span className="text-[10px] text-neutral-400 uppercase tracking-widest">Job Market Snapshot</span>
+                  <p className="text-sm font-semibold text-neutral-900">{stats.totalCount.toLocaleString()} open positions{stats.postedThisWeek > 0 ? ` · ${stats.postedThisWeek} new this week` : ''}</p>
+                  {stats.salaryMin && stats.salaryMax && (
+                    <p className="text-xs text-neutral-500">Salary range: {formatSalaryShort(stats.salaryMin)} – {formatSalaryShort(stats.salaryMax)}/yr</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Top companies */}
             {stats.topCompanies.length > 0 && (
-              <p>Top companies hiring: {stats.topCompanies.map(c => c.name).join(', ')}</p>
+              <div className="border border-neutral-200 rounded-xl px-5 py-4 bg-white">
+                <div className="flex items-center gap-3 relative">
+                  <div className="bg-white rounded-lg border border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.06)] shrink-0 flex items-center justify-center w-14 h-14">
+                    <svg className="w-5 h-5 text-neutral-400" viewBox="0 0 24 24" fill="currentColor">
+                      <path fillRule="evenodd" d="M4.5 2.25a.75.75 0 000 1.5v16.5h-.75a.75.75 0 000 1.5h16.5a.75.75 0 000-1.5h-.75V2.25a.75.75 0 000-1.5h-15zM9 6a.75.75 0 00-.75.75v.75c0 .414.336.75.75.75h.75a.75.75 0 00.75-.75V6.75A.75.75 0 009.75 6H9zm-.75 3.75A.75.75 0 019 9h.75a.75.75 0 01.75.75v.75a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v-.75zM9 12a.75.75 0 00-.75.75v.75c0 .414.336.75.75.75h.75a.75.75 0 00.75-.75v-.75A.75.75 0 009.75 12H9zm3.75-5.25A.75.75 0 0113.5 6h.75a.75.75 0 01.75.75v.75a.75.75 0 01-.75.75h-.75a.75.75 0 01-.75-.75v-.75zM13.5 9a.75.75 0 00-.75.75v.75c0 .414.336.75.75.75h.75a.75.75 0 00.75-.75v-.75a.75.75 0 00-.75-.75h-.75zm-.75 3.75a.75.75 0 01.75-.75h.75a.75.75 0 01.75.75v.75a.75.75 0 01-.75.75h-.75a.75.75 0 01-.75-.75v-.75zM9 19.5v-2.25a.75.75 0 01.75-.75h4.5a.75.75 0 01.75.75v2.25a.75.75 0 01-.75.75h-4.5A.75.75 0 019 19.5z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0 flex flex-col gap-1">
+                    <span className="text-[10px] text-neutral-400 uppercase tracking-widest">Top Companies Hiring</span>
+                    <p className="text-sm font-semibold text-neutral-900">{stats.topCompanies.length} companies</p>
+                    <p className="text-xs text-neutral-500">{stats.topCompanies.map(c => c.name).join(', ')}</p>
+                  </div>
+                </div>
+              </div>
             )}
+
+            {/* Employment type breakdown */}
             {stats.employmentBreakdown.length > 1 && (
-              <p>{stats.employmentBreakdown.map(b => `${b.type}: ${b.count}`).join(' · ')}</p>
+              <div className="border border-neutral-200 rounded-xl px-5 py-4 bg-white">
+                <div className="flex items-center gap-3 relative">
+                  <div className="bg-white rounded-lg border border-neutral-200 shadow-[0px_2px_0px_0px_rgba(0,0,0,0.06)] shrink-0 flex items-center justify-center w-14 h-14">
+                    <svg className="w-5 h-5 text-neutral-400" viewBox="0 0 24 24" fill="currentColor">
+                      <path fillRule="evenodd" d="M7.5 5.25a3 3 0 013-3h3a3 3 0 013 3v.205c.933.085 1.857.197 2.774.334 1.454.218 2.476 1.483 2.476 2.917v3.033c0 1.211-.734 2.352-1.936 2.752A24.726 24.726 0 0112 15.75c-2.73 0-5.357-.442-7.814-1.259-1.202-.4-1.936-1.541-1.936-2.752V8.706c0-1.434 1.022-2.7 2.476-2.917A48.814 48.814 0 017.5 5.455V5.25zm7.5 0v.09a49.488 49.488 0 00-6 0v-.09a1.5 1.5 0 011.5-1.5h3a1.5 1.5 0 011.5 1.5zm-3 8.25a.75.75 0 100-1.5.75.75 0 000 1.5z" clipRule="evenodd" />
+                      <path d="M3 18.4v-2.796a4.3 4.3 0 00.713.31A26.226 26.226 0 0012 17.25c2.93 0 5.748-.478 8.287-1.336.252-.085.5-.182.713-.31v2.796c0 1.434-1.022 2.7-2.476 2.917A48.814 48.814 0 0112 21.75a48.814 48.814 0 01-6.524-.583C4.022 20.9 3 19.634 3 18.4z" />
+                    </svg>
+                  </div>
+                  <div className="min-w-0 flex flex-col gap-1">
+                    <span className="text-[10px] text-neutral-400 uppercase tracking-widest">Employment Types</span>
+                    <p className="text-sm font-semibold text-neutral-900">{stats.employmentBreakdown.map(b => b.type).join(', ')}</p>
+                    <p className="text-xs text-neutral-500">{stats.employmentBreakdown.map(b => `${b.type}: ${b.count}`).join(' · ')}</p>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         )}
