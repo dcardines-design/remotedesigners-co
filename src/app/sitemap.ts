@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import { generateJobSlug } from '@/lib/slug'
-import { jobTypeSlugs, regionalSlugs, combinationSlugs, combinationPages, experienceLevelPages, employmentTypePages } from '@/config/seo-pages'
+import { jobTypeSlugs, regionalSlugs, combinationSlugs, combinationPages, jobTypePages as jobTypeConfigs, regionalPages as regionalConfigs, experienceLevelPages, employmentTypePages } from '@/config/seo-pages'
 import { BLOG_CATEGORIES } from '@/lib/blog/seo-helpers'
 
 const BASE_URL = 'https://remotedesigners.co'
@@ -55,7 +55,32 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }))
 
   // SEO Landing Pages - Combination (Job Type + Region)
-  const combinationLandingPages: MetadataRoute.Sitemap = combinationSlugs.map((slug) => {
+  // Fetch jobs with title and location to filter out empty combination pages
+  const { data: allActiveJobs } = await supabase
+    .from('jobs')
+    .select('title, location')
+    .eq('is_active', true)
+    .limit(10000)
+
+  const MIN_JOBS_FOR_SITEMAP = 5
+
+  const combinationLandingPages: MetadataRoute.Sitemap = combinationSlugs.filter((slug) => {
+    const page = combinationPages[slug]
+    const jobTypeConfig = jobTypeConfigs[page.jobTypeSlug]
+    const regionConfig = regionalConfigs[page.regionSlug]
+
+    if (!jobTypeConfig || !regionConfig || !allActiveJobs) return false
+
+    const matchCount = allActiveJobs.filter((job) => {
+      const titleLower = (job.title || '').toLowerCase()
+      const locationLower = (job.location || '').toLowerCase()
+      const titleMatch = jobTypeConfig.filterKeywords.some(k => titleLower.includes(k.toLowerCase()))
+      const locationMatch = regionConfig.locationKeywords.some(k => locationLower.includes(k.toLowerCase()))
+      return titleMatch && locationMatch
+    }).length
+
+    return matchCount >= MIN_JOBS_FOR_SITEMAP
+  }).map((slug) => {
     const page = combinationPages[slug]
     return {
       url: `${BASE_URL}/remote-${page.jobTypeSlug}-jobs-${page.regionSlug}`,

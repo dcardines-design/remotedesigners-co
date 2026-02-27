@@ -2,6 +2,8 @@ import { Metadata } from 'next'
 import { regionalPages, generalFAQs } from '@/config/seo-pages'
 import { createServerSupabaseClient } from '@/lib/supabase'
 import { SEOLandingPage } from '@/components/seo-landing-page'
+import { generateJobSlug } from '@/lib/slug'
+import { computeLandingPageStats } from '@/components/seo-landing-stats'
 
 const BASE_URL = 'https://remotedesigners.co'
 const page = regionalPages['worldwide']
@@ -57,12 +59,29 @@ export default async function Page() {
     .order('posted_at', { ascending: false })
     .limit(20)
 
+  const stats = computeLandingPageStats(jobs || [], count || 0)
+
+  const itemListSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    numberOfItems: count || 0,
+    itemListElement: (jobs || []).slice(0, 20).map((job, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: `https://remotedesigners.co/jobs/${generateJobSlug(job.title, job.company, job.id)}`,
+
+    })),
+
+  }
+
   const { breadcrumbSchema, faqSchema } = generateStructuredData()
 
   return (
     <>
+      {(count || 0) === 0 && <meta name="robots" content="noindex, follow" />}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }} />
       <SEOLandingPage
         h1={page.h1}
         intro={page.intro}
@@ -73,6 +92,7 @@ export default async function Page() {
         faqs={allFaqs}
         breadcrumbLabel="Worldwide"
       locationKeywords={page.locationKeywords}
+      stats={stats}
       />
     </>
   )

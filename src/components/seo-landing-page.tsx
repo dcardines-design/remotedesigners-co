@@ -11,6 +11,7 @@ import { FREE_JOBS_LIMIT } from '@/lib/stripe'
 import { isCompMember } from '@/lib/admin'
 import { toast } from 'sonner'
 import { useSignupModal } from '@/context/signup-modal-context'
+import type { LandingPageStats } from './seo-landing-stats'
 
 // Helper functions
 const getInitials = (company: string) => company.substring(0, 2).toUpperCase()
@@ -206,6 +207,7 @@ interface SEOLandingPageProps {
   faqs?: FAQ[]
   breadcrumbLabel: string
   parentPage?: { label: string; href: string }
+  stats?: LandingPageStats
   // Optional filter params for load more API calls
   filterKeywords?: string[]
   locationKeywords?: string[]
@@ -213,7 +215,14 @@ interface SEOLandingPageProps {
   employmentType?: string
 }
 
-export function SEOLandingPage({ h1, intro, jobs: initialJobs, totalCount, currentSlug, pageType, faqs, breadcrumbLabel, parentPage, filterKeywords, locationKeywords, experienceLevel, employmentType }: SEOLandingPageProps) {
+function formatSalaryShort(value: number): string {
+  if (value >= 1000) {
+    return `$${Math.round(value / 1000)}k`
+  }
+  return `$${value.toLocaleString()}`
+}
+
+export function SEOLandingPage({ h1, intro, jobs: initialJobs, totalCount, currentSlug, pageType, faqs, breadcrumbLabel, parentPage, stats, filterKeywords, locationKeywords, experienceLevel, employmentType }: SEOLandingPageProps) {
   const router = useRouter()
   const { openLoginModal } = useSignupModal()
   const [isSubscribed, setIsSubscribed] = useState(false)
@@ -454,6 +463,68 @@ export function SEOLandingPage({ h1, intro, jobs: initialJobs, totalCount, curre
             <span>jobs available</span>
           </div>
         </div>
+
+        {/* Stats Section - server-rendered for SEO */}
+        {stats && stats.totalCount > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+            <div className="bg-white border border-neutral-200 rounded-lg p-4">
+              <p className="text-2xl font-semibold text-neutral-900">{stats.totalCount.toLocaleString()}</p>
+              <p className="text-sm text-neutral-500 mt-1">Open positions</p>
+            </div>
+
+            {stats.salaryMin && stats.salaryMax && (
+              <div className="bg-white border border-neutral-200 rounded-lg p-4">
+                <p className="text-2xl font-semibold text-neutral-900">
+                  {formatSalaryShort(stats.salaryMin)} - {formatSalaryShort(stats.salaryMax)}
+                </p>
+                <p className="text-sm text-neutral-500 mt-1">Salary range</p>
+              </div>
+            )}
+
+            {stats.postedThisWeek > 0 && (
+              <div className="bg-white border border-neutral-200 rounded-lg p-4">
+                <p className="text-2xl font-semibold text-neutral-900">{stats.postedThisWeek}</p>
+                <p className="text-sm text-neutral-500 mt-1">New this week</p>
+              </div>
+            )}
+
+            {stats.postedToday > 0 && (
+              <div className="bg-white border border-neutral-200 rounded-lg p-4">
+                <p className="text-2xl font-semibold text-neutral-900">{stats.postedToday}</p>
+                <p className="text-sm text-neutral-500 mt-1">Posted today</p>
+              </div>
+            )}
+
+            {stats.topCompanies.length > 0 && (
+              <div className="col-span-2 md:col-span-4 bg-white border border-neutral-200 rounded-lg p-4">
+                <p className="text-sm font-medium text-neutral-900 mb-2">Top companies hiring</p>
+                <div className="flex flex-wrap gap-2">
+                  {stats.topCompanies.map((company) => (
+                    <span
+                      key={company.name}
+                      className="bg-neutral-50 text-neutral-700 text-sm px-3 py-1 rounded-md border border-neutral-100"
+                    >
+                      {company.name}{company.count > 1 ? ` (${company.count})` : ''}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {stats.employmentBreakdown.length > 1 && (
+              <div className="col-span-2 md:col-span-4 bg-white border border-neutral-200 rounded-lg p-4">
+                <p className="text-sm font-medium text-neutral-900 mb-2">By employment type</p>
+                <div className="flex flex-wrap gap-3">
+                  {stats.employmentBreakdown.map((item) => (
+                    <span key={item.type} className="text-sm text-neutral-600">
+                      {item.type}: <span className="font-medium text-neutral-900">{item.count}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Job Listings */}
         <div className="space-y-4 mb-8">
