@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getStripe } from '@/lib/stripe'
-import { createAdminSupabaseClient } from '@/lib/supabase'
+import { createAdminSupabaseClient, findAuthUserByEmail } from '@/lib/supabase'
 
 export async function GET(request: NextRequest) {
   const sessionId = request.nextUrl.searchParams.get('session_id')
@@ -37,10 +37,7 @@ export async function GET(request: NextRequest) {
     const normalizedEmail = email.toLowerCase()
 
     // Check if user exists, create if not
-    const { data: authUsers } = await supabase.auth.admin.listUsers()
-    const existingUser = authUsers?.users?.find(
-      u => u.email?.toLowerCase() === normalizedEmail
-    )
+    const existingUser = await findAuthUserByEmail(supabase, normalizedEmail)
 
     if (!existingUser) {
       // Create new user

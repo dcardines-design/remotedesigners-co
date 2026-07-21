@@ -23,5 +23,28 @@ export function createAdminSupabaseClient() {
   })
 }
 
+type AdminClient = ReturnType<typeof createAdminSupabaseClient>
+
+// Find an auth user by email, paginating past Supabase's default 50-user page
+// size. listUsers() returns only the first page by default, so any user beyond
+// the first 50 is invisible — which silently breaks subscription activation and
+// post-checkout auto-login once the user base grows past 50.
+export async function findAuthUserByEmail(supabase: AdminClient, email: string) {
+  const target = email.toLowerCase()
+  const perPage = 1000
+  for (let page = 1; page <= 100; page++) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage })
+    if (error) {
+      console.error('listUsers failed:', error)
+      return null
+    }
+    const users = data?.users || []
+    const match = users.find(u => u.email?.toLowerCase() === target)
+    if (match) return match
+    if (users.length < perPage) break // last page reached
+  }
+  return null
+}
+
 // For client components: import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 // For auth-aware server code: import { createAuthSupabaseClient } from '@/lib/supabase-server'

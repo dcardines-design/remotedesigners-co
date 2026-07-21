@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { getStripe, PRICING } from '@/lib/stripe'
-import { createAdminSupabaseClient } from '@/lib/supabase'
+import { createAdminSupabaseClient, findAuthUserByEmail } from '@/lib/supabase'
 import { postJobToTwitter } from '@/lib/twitter-service'
 import { sendJobPostingReceipt } from '@/lib/email'
 
@@ -276,10 +276,7 @@ async function handleSubscriptionCheckoutCompleted(
 
   if (!finalUserId) {
     // Try to find user by email
-    const { data: authUsers } = await supabase.auth.admin.listUsers()
-    const existingUser = authUsers?.users?.find(
-      u => u.email?.toLowerCase() === customerEmail.toLowerCase()
-    )
+    const existingUser = await findAuthUserByEmail(supabase, customerEmail)
 
     if (existingUser) {
       finalUserId = existingUser.id
@@ -324,10 +321,9 @@ async function handleSubscriptionCreated(
 
   // If we have a user_id in metadata, verify it exists
   if (userId) {
-    const { data: authUsers } = await supabase.auth.admin.listUsers()
-    const userExists = authUsers?.users?.find(u => u.id === userId)
+    const { data: byId } = await supabase.auth.admin.getUserById(userId)
 
-    if (!userExists) {
+    if (!byId?.user) {
       console.log(`User ${userId} from metadata doesn't exist, will find/create by email`)
       userId = undefined
       wasLoggedIn = false
@@ -336,10 +332,7 @@ async function handleSubscriptionCreated(
 
   // If no valid userId, find or create user by email
   if (!userId) {
-    const { data: authUsers } = await supabase.auth.admin.listUsers()
-    const existingUser = authUsers?.users?.find(
-      u => u.email?.toLowerCase() === customerEmail
-    )
+    const existingUser = await findAuthUserByEmail(supabase, customerEmail)
 
     if (existingUser) {
       userId = existingUser.id

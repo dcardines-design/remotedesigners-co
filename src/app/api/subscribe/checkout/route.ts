@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createAuthSupabaseClient } from '@/lib/supabase-server'
 import { createSubscriptionCheckout, type SubscriptionPlan } from '@/lib/stripe'
-import { createServerSupabaseClient } from '@/lib/supabase'
+import { createServerSupabaseClient, findAuthUserByEmail } from '@/lib/supabase'
 
 // TEST MODE: Disabled - use Stripe test keys instead
 const TEST_MODE = process.env.SKIP_PAYMENT === 'true'
@@ -54,8 +54,7 @@ export async function POST(request: Request) {
       }
     } else if (email) {
       // Check by email for non-logged-in users
-      const { data: authUsers } = await adminSupabase.auth.admin.listUsers()
-      const existingUser = authUsers?.users?.find(u => u.email?.toLowerCase() === email.toLowerCase())
+      const existingUser = await findAuthUserByEmail(adminSupabase, email)
 
       if (existingUser) {
         const { data: existingSub } = await adminSupabase
