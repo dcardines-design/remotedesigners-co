@@ -5,6 +5,7 @@ import { Navbar } from '@/components/navbar'
 import { Footer } from '@/components/footer'
 import { SignupModalProvider } from '@/context/signup-modal-context'
 import { AnalyticsProvider } from '@/components/analytics-provider'
+import { PostHogProvider } from '@/components/posthog-provider'
 import { Toaster } from 'sonner'
 import { AuthHandler } from '@/components/auth-handler'
 
@@ -124,6 +125,7 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} ${dmSans.variable}`}>
         <AuthHandler />
+        <PostHogProvider>
         <AnalyticsProvider>
           <SignupModalProvider>
             <Navbar />
@@ -142,6 +144,7 @@ export default function RootLayout({
             />
           </SignupModalProvider>
         </AnalyticsProvider>
+        </PostHogProvider>
       </body>
     </html>
   )

@@ -2,6 +2,7 @@
 
 import Script from 'next/script'
 import { useEffect } from 'react'
+import posthog from 'posthog-js'
 import { createBrowserSupabaseClient } from '@/lib/supabase-browser'
 
 // Extend window type for gtag
@@ -13,16 +14,24 @@ declare global {
 }
 
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
+const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY
+
+// Mirror every event into PostHog. No-op until NEXT_PUBLIC_POSTHOG_KEY is set.
+function ph(event: string, properties?: Record<string, unknown>) {
+  if (!POSTHOG_KEY) return
+  posthog.capture(event, properties)
+}
 
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    if (!GA_MEASUREMENT_ID) return
+    if (!GA_MEASUREMENT_ID && !POSTHOG_KEY) return
 
     // Identify user on auth state change
     const supabase = createBrowserSupabaseClient()
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         window.gtag?.('set', 'user_id', user.id)
+        if (POSTHOG_KEY) posthog.identify(user.id, { email: user.email })
       }
     })
 
@@ -31,8 +40,13 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
       if (event === 'SIGNED_IN' && session?.user) {
         window.gtag?.('set', 'user_id', session.user.id)
         window.gtag?.('event', 'login', { method: 'magic_link' })
+        if (POSTHOG_KEY) {
+          posthog.identify(session.user.id, { email: session.user.email })
+          posthog.capture('login', { method: 'magic_link' })
+        }
       } else if (event === 'SIGNED_OUT') {
         window.gtag?.('set', 'user_id', null)
+        if (POSTHOG_KEY) posthog.reset()
       }
     })
 
@@ -66,7 +80,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
   )
 }
 
-// Custom event tracking functions (mirrors PostHog API)
+// Custom event tracking functions. Each call fires to GA4 and PostHog.
 export const trackEvent = {
   // Job interactions
   jobView: (jobId: string, jobTitle: string, company: string) => {
@@ -76,6 +90,7 @@ export const trackEvent = {
       item_brand: company,
       item_category: 'job',
     })
+    ph('job_viewed', { job_id: jobId, job_title: jobTitle, company })
   },
 
   jobSave: (jobId: string, jobTitle: string, saved: boolean) => {
@@ -83,6 +98,7 @@ export const trackEvent = {
       item_id: jobId,
       item_name: jobTitle,
     })
+    ph(saved ? 'job_saved' : 'job_unsaved', { job_id: jobId, job_title: jobTitle })
   },
 
   applyClick: (jobId: string, jobTitle: string, company: string, applyUrl: string) => {
@@ -92,6 +108,12 @@ export const trackEvent = {
       item_name: jobTitle,
       item_brand: company,
     })
+    ph('apply_clicked', {
+      job_id: jobId,
+      job_title: jobTitle,
+      company,
+      apply_url: applyUrl,
+    })
   },
 
   // Search and filtering
@@ -100,6 +122,7 @@ export const trackEvent = {
       search_term: query,
       results_count: resultsCount,
     })
+    ph('search', { search_term: query, results_count: resultsCount })
   },
 
   filterApplied: (filterType: string, filterValue: string) => {
@@ -107,19 +130,23 @@ export const trackEvent = {
       filter_type: filterType,
       filter_value: filterValue,
     })
+    ph('filter_applied', { filter_type: filterType, filter_value: filterValue })
   },
 
   // Auth events
   signUp: (method: string) => {
     window.gtag?.('event', 'sign_up', { method })
+    ph('sign_up', { method })
   },
 
   login: (method: string) => {
     window.gtag?.('event', 'login', { method })
+    ph('login', { method })
   },
 
   logout: () => {
     window.gtag?.('event', 'logout')
+    ph('logout')
   },
 
   // Subscription events
@@ -130,17 +157,20 @@ export const trackEvent = {
       currency: 'USD',
       items: [{ item_id: plan, item_name: `${plan} subscription`, price }],
     })
+    ph('subscription_started', { plan, price, currency: 'USD' })
   },
 
   subscriptionCancelled: (plan: string) => {
     window.gtag?.('event', 'refund', {
       items: [{ item_id: plan, item_name: `${plan} subscription` }],
     })
+    ph('subscription_cancelled', { plan })
   },
 
   // Job posting events
   jobPostStarted: () => {
     window.gtag?.('event', 'begin_checkout', { item_category: 'job_posting' })
+    ph('job_post_started')
   },
 
   jobPostCompleted: (jobId: string, options: { featured?: boolean; sticky?: boolean; rainbow?: boolean }) => {
@@ -148,6 +178,7 @@ export const trackEvent = {
       job_id: jobId,
       ...options,
     })
+    ph('job_post_completed', { job_id: jobId, ...options })
   },
 
   jobPostPaymentStarted: (amount: number) => {
@@ -155,14 +186,16 @@ export const trackEvent = {
       value: amount,
       currency: 'USD',
     })
+    ph('job_post_payment_started', { amount, currency: 'USD' })
   },
 
-  // User identification (no-op for GA4, handled via user_id)
+  // User identification
   identify: (userId: string, traits?: Record<string, unknown>) => {
     window.gtag?.('set', 'user_id', userId)
     if (traits) {
       window.gtag?.('set', 'user_properties', traits)
     }
+    if (POSTHOG_KEY) posthog.identify(userId, traits)
   },
 
   // Newsletter signup
@@ -171,6 +204,7 @@ export const trackEvent = {
       location,
       email_domain: 'unknown', // Privacy: don't track actual email
     })
+    ph('newsletter_signup', { location })
   },
 
   // Job alert events
@@ -179,12 +213,14 @@ export const trackEvent = {
       keywords: keywords.join(','),
       frequency,
     })
+    ph('job_alert_created', { keywords, frequency })
   },
 
   jobAlertDeleted: (alertId: string) => {
     window.gtag?.('event', 'job_alert_deleted', {
       alert_id: alertId,
     })
+    ph('job_alert_deleted', { alert_id: alertId })
   },
 
   // Billing portal opened
@@ -192,6 +228,7 @@ export const trackEvent = {
     window.gtag?.('event', 'billing_portal_opened', {
       plan,
     })
+    ph('billing_portal_opened', { plan })
   },
 
   // Share job
@@ -201,6 +238,7 @@ export const trackEvent = {
       job_title: jobTitle,
       share_method: method,
     })
+    ph('job_shared', { job_id: jobId, job_title: jobTitle, share_method: method })
   },
 
   // Scroll depth tracking
@@ -209,6 +247,7 @@ export const trackEvent = {
       percent,
       page_type: pageType,
     })
+    ph('scroll_depth', { percent, page_type: pageType })
   },
 
   // Job impression (card viewed in viewport)
@@ -218,6 +257,7 @@ export const trackEvent = {
       position,
       page_type: pageType,
     })
+    ph('job_impression', { job_id: jobId, position, page_type: pageType })
   },
 
   // Outbound click tracking
@@ -227,6 +267,7 @@ export const trackEvent = {
       link_text: linkText,
       context,
     })
+    ph('outbound_click', { url, link_text: linkText, context })
   },
 
   // Resume builder
@@ -234,18 +275,22 @@ export const trackEvent = {
     window.gtag?.('event', 'resume_builder_promo_click', {
       location: 'homepage_sidebar',
     })
+    ph('resume_builder_promo_click', { location: 'homepage_sidebar' })
   },
   resumeBuilderView: () => {
     window.gtag?.('event', 'resume_builder_view')
+    ph('resume_builder_view')
   },
   resumeBuilderExport: (template: string) => {
     window.gtag?.('event', 'resume_builder_export', {
       template,
     })
+    ph('resume_builder_export', { template })
   },
   resumeBuilderTemplateChange: (template: string) => {
     window.gtag?.('event', 'resume_builder_template_change', {
       template,
     })
+    ph('resume_builder_template_change', { template })
   },
 }
