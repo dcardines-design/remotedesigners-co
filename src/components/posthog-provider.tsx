@@ -14,7 +14,12 @@ const POSTHOG_UI_HOST =
     ? 'https://eu.posthog.com'
     : 'https://us.posthog.com'
 
-if (typeof window !== 'undefined' && POSTHOG_KEY && !posthog.__loaded) {
+// Local development shouldn't pollute production numbers.
+const isLocalhost =
+  typeof window !== 'undefined' &&
+  /^(localhost|127\.0\.0\.1|\[::1\])$/.test(window.location.hostname)
+
+if (typeof window !== 'undefined' && POSTHOG_KEY && !isLocalhost && !posthog.__loaded) {
   posthog.init(POSTHOG_KEY, {
     api_host: '/ingest',
     ui_host: POSTHOG_UI_HOST,
@@ -33,7 +38,7 @@ function PostHogPageview() {
   const searchParams = useSearchParams()
 
   useEffect(() => {
-    if (!POSTHOG_KEY || !pathname) return
+    if (!POSTHOG_KEY || isLocalhost || !pathname) return
 
     const query = searchParams?.toString()
     posthog.capture('$pageview', {
@@ -45,7 +50,7 @@ function PostHogPageview() {
 }
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
-  if (!POSTHOG_KEY) return <>{children}</>
+  if (!POSTHOG_KEY || isLocalhost) return <>{children}</>
 
   return (
     <PHProvider client={posthog}>
