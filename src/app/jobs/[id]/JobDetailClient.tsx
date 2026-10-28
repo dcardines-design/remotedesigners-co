@@ -709,12 +709,12 @@ export default function JobDetailClient({ initialJob, error: initialError }: Job
                   fullWidth
                   size="sm-to-lg"
                   onClick={() => {
+                    // Track before the paywall redirect so non-subscriber clicks are counted
+                    trackEvent.applyClick(job.id, job.title, job.company, job.apply_url, !!isSubscribed, 'job_detail')
                     if (!isSubscribed) {
                       router.push(`/membership?skip_url=${encodeURIComponent(window.location.href)}`)
                       return
                     }
-                    // PostHog tracking
-                    trackEvent.applyClick(job.id, job.title, job.company, job.apply_url)
                     // Internal tracking
                     fetch(`/api/jobs/${job.id}/track`, {
                       method: 'POST',
