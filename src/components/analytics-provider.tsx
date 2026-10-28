@@ -101,18 +101,31 @@ export const trackEvent = {
     ph(saved ? 'job_saved' : 'job_unsaved', { job_id: jobId, job_title: jobTitle })
   },
 
-  applyClick: (jobId: string, jobTitle: string, company: string, applyUrl: string) => {
+  // Fires for every click, including non-subscribers who get sent to /membership,
+  // so is_subscribed separates real applications from paywall hits.
+  applyClick: (
+    jobId: string,
+    jobTitle: string,
+    company: string,
+    applyUrl: string,
+    isSubscribed: boolean,
+    location: 'job_detail' | 'job_card'
+  ) => {
     window.gtag?.('event', 'select_content', {
       content_type: 'job_application',
       item_id: jobId,
       item_name: jobTitle,
       item_brand: company,
+      is_subscribed: isSubscribed,
+      location,
     })
     ph('apply_clicked', {
       job_id: jobId,
       job_title: jobTitle,
       company,
       apply_url: applyUrl,
+      is_subscribed: isSubscribed,
+      location,
     })
   },
 
